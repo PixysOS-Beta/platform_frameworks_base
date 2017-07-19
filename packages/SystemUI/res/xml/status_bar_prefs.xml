@@ -77,6 +77,12 @@
         android:title="@string/volume_ringer_status_vibrate" />
 
     <com.android.systemui.tuner.StatusBarSwitch
+        android:icon="@drawable/ic_statusbar_volte"
+        android:key="ims"
+        android:title="@string/status_bar_ims"
+	sysui:defValue="false" />
+
+    <com.android.systemui.tuner.StatusBarSwitch
         android:icon="@drawable/ic_statusbar_wifi"
         android:key="wifi"
         android:title="@string/quick_settings_wifi_label" />
