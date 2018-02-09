@@ -66,6 +66,7 @@ import com.android.systemui.pixys.CaffeineModule;
 import com.android.systemui.pixys.HeadsUpModule;
 import com.android.systemui.pixys.DataSwitchModule;
 import com.android.systemui.pixys.PowerShareModule;
+import com.android.systemui.pixys.SoundSearchModule;
 import com.android.systemui.people.PeopleModule;
 import com.android.systemui.plugins.BcSmartspaceConfigPlugin;
 import com.android.systemui.plugins.BcSmartspaceDataPlugin;
@@ -202,6 +203,7 @@ import javax.inject.Named;
             ShadeModule.class,
             SmartRepliesInflationModule.class,
             SmartspaceModule.class,
+            SoundSearchModule.class,
             StatusBarPipelineModule.class,
             StatusBarPolicyModule.class,
             StatusBarWindowModule.class,
