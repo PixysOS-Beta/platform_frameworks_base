@@ -64,6 +64,7 @@ import com.android.systemui.navigationbar.NavigationBarComponent;
 import com.android.systemui.notetask.NoteTaskModule;
 import com.android.systemui.pixys.CaffeineModule;
 import com.android.systemui.pixys.HeadsUpModule;
+import com.android.systemui.pixys.DataSwitchModule;
 import com.android.systemui.people.PeopleModule;
 import com.android.systemui.plugins.BcSmartspaceConfigPlugin;
 import com.android.systemui.plugins.BcSmartspaceDataPlugin;
@@ -168,6 +169,7 @@ import javax.inject.Named;
             CommonRepositoryModule.class,
             ConnectivityModule.class,
             CoroutinesModule.class,
+            DataSwitchModule.class,
             DreamModule.class,
             ControlsModule.class,
             DemoModeModule.class,
