@@ -65,6 +65,7 @@ import com.android.systemui.notetask.NoteTaskModule;
 import com.android.systemui.pixys.CaffeineModule;
 import com.android.systemui.pixys.HeadsUpModule;
 import com.android.systemui.pixys.DataSwitchModule;
+import com.android.systemui.pixys.PowerShareModule;
 import com.android.systemui.people.PeopleModule;
 import com.android.systemui.plugins.BcSmartspaceConfigPlugin;
 import com.android.systemui.plugins.BcSmartspaceDataPlugin;
@@ -188,6 +189,7 @@ import javax.inject.Named;
             PeopleModule.class,
             PluginModule.class,
             PolicyModule.class,
+            PowerShareModule.class,
             PrivacyModule.class,
             QRCodeScannerModule.class,
             QSFragmentStartableModule.class,
