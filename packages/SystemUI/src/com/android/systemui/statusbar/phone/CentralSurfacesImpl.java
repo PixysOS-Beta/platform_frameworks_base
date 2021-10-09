@@ -236,6 +236,7 @@ import com.android.systemui.statusbar.phone.fragment.CollapsedStatusBarFragment;
 import com.android.systemui.statusbar.phone.ongoingcall.OngoingCallController;
 import com.android.systemui.statusbar.policy.BatteryController;
 import com.android.systemui.statusbar.policy.BrightnessMirrorController;
+import com.android.systemui.statusbar.policy.BurnInProtectionController;
 import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.statusbar.policy.ConfigurationController.ConfigurationListener;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController;
@@ -699,6 +700,8 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
 
     private final InteractionJankMonitor mJankMonitor;
 
+    private final BurnInProtectionController mBurnInProtectionController;
+
     /** Existing callback that handles back gesture invoked for the Shade. */
     private final OnBackInvokedCallback mOnBackInvokedCallback = () -> {
         if (DEBUG) {
@@ -840,7 +843,8 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
             UserTracker userTracker,
             Provider<FingerprintManager> fingerprintManager,
             ActivityStarter activityStarter,
-            TunerService tunerService
+            TunerService tunerService,
+            BurnInProtectionController burnInProtectionController
     ) {
         mContext = context;
         mNotificationsController = notificationsController;
@@ -937,6 +941,7 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
         statusBarWindowStateController.addListener(this::onStatusBarWindowStateChanged);
 
         mScreenOffAnimationController = screenOffAnimationController;
+        mBurnInProtectionController = burnInProtectionController;
 
         ShadeExpansionListener shadeExpansionListener = this::onPanelExpansionChanged;
         ShadeExpansionChangeEvent currentState =
@@ -1322,6 +1327,7 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
                     mShadeSurface.updateExpansionAndVisibility();
                     setBouncerShowingForStatusBarComponents(mBouncerShowing);
                     checkBarModes();
+                    mBurnInProtectionController.setPhoneStatusBarView(mStatusBarView);
                 });
         mStatusBarInitializer.initializeStatusBar(
                 mCentralSurfacesComponent::createCollapsedStatusBarFragment);
@@ -1666,6 +1672,7 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
     // Try to remove this.
     protected void createNavigationBar(@Nullable RegisterStatusBarResult result) {
         mNavigationBarController.createNavigationBars(true /* includeDefaultDisplay */, result);
+        mBurnInProtectionController.setNavigationBarView(getNavigationBarView());
     }
 
     /**
@@ -3199,6 +3206,8 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
 
             updateNotificationPanelTouchState();
             mNotificationShadeWindowViewController.cancelCurrentTouch();
+
+            mBurnInProtectionController.stopShiftTimer();
             if (mLaunchCameraOnFinishedGoingToSleep) {
                 mLaunchCameraOnFinishedGoingToSleep = false;
 
@@ -3359,6 +3368,7 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
                 }
             }
             updateScrimController();
+            mBurnInProtectionController.startShiftTimer();
         }
     };
 
