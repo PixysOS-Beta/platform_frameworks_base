@@ -1400,6 +1400,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
                             .build());
             mBrightnessMirrorController = new BrightnessMirrorController(
                     getNotificationShadeWindowView(),
+                    mContext,
                     mShadeSurface,
                     mNotificationShadeDepthControllerLazy.get(),
                     mBrightnessSliderFactory,
