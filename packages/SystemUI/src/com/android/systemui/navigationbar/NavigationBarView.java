@@ -180,6 +180,8 @@ public class NavigationBarView extends FrameLayout {
     private UpdateActiveTouchRegionsCallback mUpdateActiveTouchRegionsCallback;
 
 
+    private boolean mBlockedGesturalNavigation;
+
     @Nullable
     private ViewGroup mNavigationBarContents = null;
 
@@ -744,10 +746,13 @@ public class NavigationBarView extends FrameLayout {
         int displayId = mContext.getDisplayId();
 
         sysUiState.setFlag(SYSUI_STATE_OVERVIEW_DISABLED,
+                        mBlockedGesturalNavigation ||
                         (mDisabledFlags & View.STATUS_BAR_DISABLE_RECENT) != 0)
                 .setFlag(SYSUI_STATE_HOME_DISABLED,
+                        mBlockedGesturalNavigation ||
                         (mDisabledFlags & View.STATUS_BAR_DISABLE_HOME) != 0)
                 .setFlag(SYSUI_STATE_SEARCH_DISABLED,
+                        mBlockedGesturalNavigation ||
                         (mDisabledFlags & View.STATUS_BAR_DISABLE_SEARCH) != 0)
                 .commitUpdate(displayId);
     }
@@ -787,6 +792,12 @@ public class NavigationBarView extends FrameLayout {
         mBgExecutor.execute(() -> setNavBarVirtualKeyHapticFeedbackEnabled(!mShowSwipeUpUi));
         getHomeButton().setAccessibilityDelegate(
                 mShowSwipeUpUi ? mQuickStepAccessibilityDelegate : null);
+    }
+
+    public void setBlockedGesturalNavigation(boolean blocked, SysUiState sysUiState) {
+        mBlockedGesturalNavigation = blocked;
+        mEdgeBackGestureHandler.setBlockedGesturalNavigation(blocked);
+        updateDisabledSystemUiStateFlags(sysUiState);
     }
 
     /**

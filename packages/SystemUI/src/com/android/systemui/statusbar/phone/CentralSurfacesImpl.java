@@ -148,6 +148,7 @@ import com.android.systemui.keyguard.ScreenLifecycle;
 import com.android.systemui.keyguard.WakefulnessLifecycle;
 import com.android.systemui.keyguard.ui.binder.LightRevealScrimViewBinder;
 import com.android.systemui.keyguard.ui.viewmodel.LightRevealScrimViewModel;
+import com.android.systemui.model.SysUiState;
 import com.android.systemui.navigationbar.NavigationBarController;
 import com.android.systemui.navigationbar.NavigationBarView;
 import com.android.systemui.notetask.NoteTaskController;
@@ -611,6 +612,8 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
     private final SceneContainerFlags mSceneContainerFlags;
     private final BurnInProtectionController mBurnInProtectionController;
 
+    private final SysUiState mSysUiState;
+
     /**
      * Public constructor for CentralSurfaces.
      *
@@ -725,6 +728,8 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
             ActivityStarter activityStarter,
             SceneContainerFlags sceneContainerFlags,
             BurnInProtectionController burnInProtectionController
+            BurnInProtectionController burnInProtectionController,
+            SysUiState sysUiState
     ) {
         mContext = context;
         mNotificationsController = notificationsController;
@@ -820,6 +825,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
         mUserTracker = userTracker;
         mFingerprintManager = fingerprintManager;
         mActivityStarter = activityStarter;
+        mSysUiState = sysUiState;
         mSceneContainerFlags = sceneContainerFlags;
 
         mLockscreenShadeTransitionController = lockscreenShadeTransitionController;
@@ -1440,6 +1446,17 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         mBroadcastDispatcher.registerReceiver(mBroadcastReceiver, filter, null, UserHandle.ALL);
         mGameSpaceManager.observe();
+    }
+
+    @Override
+    public void setBlockedGesturalNavigation(boolean blocked) {
+        if (getShadeViewController() != null) {
+            getShadeViewController().setBlockedGesturalNavigation(blocked);
+            getShadeViewController().updateSystemUiStateFlags();
+        }
+        if (getNavigationBarView() != null) {
+            getNavigationBarView().setBlockedGesturalNavigation(blocked, mSysUiState);
+        }
     }
 
     protected QS createDefaultQSFragment() {
