@@ -19,7 +19,7 @@ import com.android.systemui.util.wakelock.WakeLockLogger;
 
 import com.google.android.systemui.ambient.AmbientIndicationContainer;
 import com.google.android.systemui.ambient.AmbientIndicationService;
-import com.google.android.systemui.res.R;
+import com.android.systemui.res.R;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
