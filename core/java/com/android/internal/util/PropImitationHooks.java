@@ -173,10 +173,6 @@ public class PropImitationHooks {
                 }
                 return;
         }
-       if ("com.google.android.gms.ui".equals(processName)) {
-            setPropValue("MODEL", sDeviceModel);
-            return;
-        }
     }
 
     private static void setProps(Map<String, String> props) {
