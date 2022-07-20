@@ -182,6 +182,7 @@ android_library {
 	"googlebattery-lib",
         "colorkt",
         "themelib",
+        "bcsmartspace-google",
     ],
     manifest: "AndroidManifest.xml",
 
