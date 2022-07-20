@@ -180,6 +180,7 @@ android_library {
         "colorkt",
         "themelib",
         "vendor.lineage.powershare-V1.0-java",
+        "bcsmartspace-google",
     ],
     manifest: "AndroidManifest.xml",
 
