@@ -952,7 +952,7 @@ public class ScreenDecorations extends CoreStartable implements Tunable , Dumpab
             if (mCutoutViews != null) {
                 for (DisplayCutoutView dcv : mCutoutViews) {
                     if (dcv != null) {
-                        dcv.update();
+                        dcv.updateCutout();
                     }
                 }
             }
