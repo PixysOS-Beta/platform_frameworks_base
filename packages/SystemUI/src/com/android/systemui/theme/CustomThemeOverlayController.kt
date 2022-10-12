@@ -54,6 +54,7 @@ import dev.kdrag0n.colorkt.data.Illuminants
 import dev.kdrag0n.colorkt.rgb.Srgb
 import dev.kdrag0n.colorkt.tristimulus.CieXyzAbs.Companion.toAbs
 import dev.kdrag0n.colorkt.ucs.lab.CieLab
+import dev.kdrag0n.monet.theme.ColorSwatch
 import dev.kdrag0n.monet.theme.DynamicColorScheme
 import dev.kdrag0n.monet.theme.MaterialYouTargets
 import java.util.concurrent.Executor
@@ -109,6 +110,7 @@ class CustomThemeOverlayController @Inject constructor(
     private var whiteLuminance: Double = Double.MIN_VALUE
     private var linearLightness: Boolean = false
     private var customColor: Boolean = false
+    private var dynamicColorScheme: DynamicColorScheme? = null
     private val mTunerService: TunerService = Dependency.get(TunerService::class.java)
     override fun start() {
         mTunerService.addTunable(this, PREF_COLOR_OVERRIDE, PREF_WHITE_LUMINANCE,
@@ -170,6 +172,8 @@ class CustomThemeOverlayController @Inject constructor(
             accurateShades = accurateShades,
         )
 
+	dynamicColorScheme = colorScheme
+
         val (groupKey, colorsList) = when (type) {
             ACCENT -> "accent" to colorScheme.accentColors
             NEUTRAL -> "neutral" to colorScheme.neutralColors
@@ -179,13 +183,11 @@ class CustomThemeOverlayController @Inject constructor(
 	setBootAnimColors()
 
         return FabricatedOverlay.Builder(context.packageName, groupKey, "android").run {
-            colorsList.withIndex().forEach { listEntry ->
-                val group = "$groupKey${listEntry.index + 1}"
+            colorsList.forEachIndexed { index, swatch ->
+                val group = "$groupKey${index + 1}"
 
-                listEntry.value.forEach { (shade, color) ->
-                    val colorSrgb = color.convert<Srgb>()
-                    Log.d(TAG, "Color $group $shade = ${colorSrgb.toHex()}")
-                    setColor("system_${group}_$shade", colorSrgb)
+                swatch.forEach { (shade, color) ->
+                    setColor("system_${group}_$shade", color)
                 }
             }
 
@@ -230,6 +232,30 @@ class CustomThemeOverlayController @Inject constructor(
          )
     }
 
+    override protected fun getAccent1(): List<Int> {
+        return getArgbColors(dynamicColorScheme?.accentColors?.get(0))
+    }
+
+    override protected fun getAccent2(): List<Int> {
+        return getArgbColors(dynamicColorScheme?.accentColors?.get(1))
+    }
+
+    override protected fun getAccent3(): List<Int> {
+        return getArgbColors(dynamicColorScheme?.accentColors?.get(2))
+    }
+
+    override protected fun getNeutral1(): List<Int> {
+        return getArgbColors(dynamicColorScheme?.neutralColors?.get(0))
+    }
+
+    override protected fun getNeutral2(): List<Int> {
+        return getArgbColors(dynamicColorScheme?.neutralColors?.get(1))
+    }
+
+    private fun getArgbColors(swatch: ColorSwatch?): List<Int> {
+        return swatch?.values?.map { it.toArgb() } ?: emptyList()
+    }
+
     companion object {
         private const val TAG = "CustomThemeOverlayController"
 
@@ -253,13 +279,16 @@ class CustomThemeOverlayController @Inject constructor(
                     .coerceAtLeast(WHITE_LUMINANCE_MIN)
         }
 
-        private fun FabricatedOverlay.Builder.setColor(name: String, @ColorInt color: Int) =
-            setResourceValue("android:color/$name", TypedValue.TYPE_INT_COLOR_ARGB8, color)
+        private fun Color.toArgb(): Int {
+            return convert<Srgb>().toRgb8() or (0xff shl 24)
+        }
 
         private fun FabricatedOverlay.Builder.setColor(name: String, color: Color): FabricatedOverlay.Builder {
-            val rgb = color.convert<Srgb>().toRgb8()
-            val argb = rgb or (0xff shl 24)
-            return setColor(name, argb)
+            return setResourceValue(
+                "android:color/$name",
+                TypedValue.TYPE_INT_COLOR_ARGB8,
+                color.toArgb()
+            )
         }
     }
 }
