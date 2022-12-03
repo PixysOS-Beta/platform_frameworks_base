@@ -869,9 +869,16 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
 
         if (mNeedsOverlayCreation) {
             mNeedsOverlayCreation = false;
-            fOverlays = new FabricatedOverlay[]{
-                    mSecondaryOverlay, mNeutralOverlay, mDynamicOverlay
-            };
+            FabricatedOverlay[] fOverlay = new FabricatedOverlay[skipNeutral ? 2 : 3];
+            int c = 0;
+            fOverlay[c++] = mSecondaryOverlay;
+            if (!skipNeutral) fOverlay[c++] = mNeutralOverlay;
+            fOverlay[c++] = mDynamicOverlay;
+            mThemeManager.applyCurrentUserOverlays(categoryToPackage, fOverlay,
+                    currentUser, managedProfiles);
+        } else {
+            mThemeManager.applyCurrentUserOverlays(categoryToPackage, null, currentUser,
+                    managedProfiles);
         }
 
         mThemeManager.applyCurrentUserOverlays(categoryToPackage, fOverlays, currentUser,
