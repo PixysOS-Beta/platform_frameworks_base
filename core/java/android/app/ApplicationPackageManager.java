@@ -824,6 +824,11 @@ public class ApplicationPackageManager extends PackageManager {
                 name.contains("PIXEL_2018_PRELOAD") ||
                 name.contains("PIXEL_2017_PRELOAD"))) {
             return false;
+               }
+        if (packageName != null &&
+                packageName.contains("com.google.android.apps.turbo") &&
+                name.contains("ADAPTIVE_CHARGING")) {
+            return false;
         }
         return mHasSystemFeatureCache.query(new HasSystemFeatureQuery(name, version));
     }
