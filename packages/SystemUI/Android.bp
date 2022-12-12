@@ -181,6 +181,7 @@ android_library {
         "themelib",
         "vendor.lineage.powershare-V1.0-java",
         "bcsmartspace-google",
+	"googlebattery-lib",
     ],
     manifest: "AndroidManifest.xml",
 
