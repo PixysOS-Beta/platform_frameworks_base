@@ -69,9 +69,11 @@ import com.android.systemui.statusbar.phone.dagger.CentralSurfacesComponent
 import com.android.systemui.statusbar.phone.ongoingcall.OngoingCallController
 import com.android.systemui.statusbar.phone.panelstate.PanelExpansionStateManager
 import com.android.systemui.statusbar.policy.*
+import com.android.systemui.statusbar.policy.FlashlightController;
 import com.android.systemui.statusbar.policy.BatteryController.BatteryStateChangeCallback
 import com.android.systemui.statusbar.window.StatusBarWindowController
 import com.android.systemui.statusbar.window.StatusBarWindowStateController
+import com.android.systemui.tuner.TunerService;
 import com.android.systemui.util.WallpaperController
 import com.android.systemui.util.concurrency.DelayableExecutor
 import com.android.systemui.util.concurrency.MessageRouter
@@ -138,6 +140,7 @@ constructor(
     navigationBarController: NavigationBarController,
     accessibilityFloatingMenuController: AccessibilityFloatingMenuController,
     assistManagerLazy: Lazy<AssistManager>,
+    FlashlightController flashlightController,
     configurationController: ConfigurationController,
     notificationShadeWindowController: NotificationShadeWindowController,
     dozeParameters: DozeParameters,
@@ -184,6 +187,7 @@ constructor(
     jankMonitor: InteractionJankMonitor,
     deviceStateManager: DeviceStateManager,
     wiredChargingRippleController: WiredChargingRippleController,
+    TunerService tunerService,
     dreamManager: IDreamManager
 ) :
     CentralSurfacesImpl(
@@ -227,6 +231,7 @@ constructor(
         navigationBarController,
         accessibilityFloatingMenuController,
         assistManagerLazy,
+        flashlightController,
         configurationController,
         notificationShadeWindowController,
         dozeParameters,
@@ -272,6 +277,7 @@ constructor(
         jankMonitor,
         deviceStateManager,
         wiredChargingRippleController,
+        tunerService,
         dreamManager
     ) {
     private var animStartTime: Long = 0

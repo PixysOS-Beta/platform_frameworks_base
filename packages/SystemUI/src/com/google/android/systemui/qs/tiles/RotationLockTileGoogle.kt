@@ -52,6 +52,7 @@ constructor(
     sensorPrivacyManager: SensorPrivacyManager,
     batteryController: BatteryController,
     secureSettings: SecureSettings,
+    KeyguardStateController keyguardStateController,
     @Named(DEVICE_STATE_ROTATION_LOCK_DEFAULTS)
     private val deviceStateRotationLockDefaults: Array<String?>,
     private val controller: DevicePostureController,
@@ -68,7 +69,8 @@ constructor(
         rotationLockController,
         sensorPrivacyManager,
         batteryController,
-        secureSettings
+        secureSettings,
+        keyguardStateController
     ) {
     private val isPerDeviceStateRotationLockEnabled: Boolean
         get() = deviceStateRotationLockDefaults.isNotEmpty()

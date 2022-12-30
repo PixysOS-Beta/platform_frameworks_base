@@ -45,7 +45,8 @@ constructor(
     activityStarter: ActivityStarter,
     qsLogger: QSLogger,
     batteryController: BatteryController,
-    secureSettings: SecureSettings
+    secureSettings: SecureSettings,
+    KeyguardStateController keyguardStateController
 ) :
     BatterySaverTile(
         host,
@@ -57,7 +58,8 @@ constructor(
         activityStarter,
         qsLogger,
         batteryController,
-        secureSettings
+        secureSettings,
+        keyguardStateController
     ) {
     var isExtremeEnabled = false
     override fun handleUpdateState(state: BooleanState, arg: Any) {

@@ -26,6 +26,7 @@ import com.google.android.systemui.qs.tiles.BatterySaverTileGoogle
 import com.google.android.systemui.qs.tiles.OverlayToggleTile
 import com.google.android.systemui.qs.tiles.ReverseChargingTile
 import com.google.android.systemui.qs.tiles.RotationLockTileGoogle
+
 import dagger.Lazy
 import javax.inject.Inject
 import javax.inject.Provider
@@ -68,9 +69,12 @@ constructor(
     oneHandedModeTileProvider: Provider<OneHandedModeTile>,
     colorCorrectionTileProvider: Provider<ColorCorrectionTile>,
     dreamTileProvider: Provider<DreamTile>,
-    syncTileProvider: Provider<SyncTile>,
     caffeineTileProvider: Provider<CaffeineTile>,
-    aodTileProvider: Provider<AlwaysOnDisplayTile>
+    headsUpTileProvider: Provider<HeadsUpTile>,
+    dataSwitchTileProvider: Provider<DataSwitchTile>,
+    powerShareTileProvider: Provider<PowerShareTile>,
+    soundSearchTileProvider: Provider<SoundSearchTile>,
+    aodTileProvider: Provider<AODTile> aodTileProvider>
 ) :
     QSFactoryImpl(
         qsHostLazy,
@@ -105,8 +109,11 @@ constructor(
         oneHandedModeTileProvider,
         colorCorrectionTileProvider,
         dreamTileProvider,
-        syncTileProvider,
         caffeineTileProvider,
+        headsUpTileProvider,
+        dataSwitchTileProvider,
+        powerShareTileProvider,
+        soundSearchTileProvider,
         aodTileProvider
     ) {
     override fun createTileInternal(tileSpec: String): QSTileImpl<*>? {
