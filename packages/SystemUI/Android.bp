@@ -306,6 +306,7 @@ android_app {
     ],
 
     jni_libs: ["libtensorflowlite_jni"],
+    use_embedded_native_libs: true,
     platform_apis: true,
     system_ext_specific: true,
     certificate: "platform",
