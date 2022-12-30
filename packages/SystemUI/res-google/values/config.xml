@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2022 Benzo Rom
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <!-- SystemUIFactory component -->
+    <string name="config_systemUIFactoryComponent" translatable="false">
+        com.google.android.systemui.SystemUIGoogleInitializer
+    </string>
+
+    <!-- Tiles native to System UI. Order should match "quick_settings_tiles_default" -->
+    <string name="quick_settings_tiles_stock" translatable="false">
+        internet,wifi,cell,bt,flashlight,dnd,alarm,airplane,controls,wallet,rotation,battery,cast,screenrecord,mictoggle,cameratoggle,caffeine,location,nfc,hotspot,inversion,saver,sync,aod,dark,work,night,reverse,reduce_brightness,qr_code_scanner,onehanded,color_correction,dream,ott
+    </string>
+
+    <!-- SystemUI Plugins that can be loaded on user builds. -->
+    <string-array name="config_pluginWhitelist" translatable="false">
+        <item>com.android.systemui</item>
+        <item>com.android.systemui.plugin.globalactions.wallet</item>
+    </string-array>
+
+    <!-- Tiles to auto add to Quick Settings upon first change of a given secure setting.
+         The syntax is setting-name:spec. If the tile is a TileService, the spec should be specified
+         as custom(package/class). Relative class name is supported. -->
+    <string-array name="config_quickSettingsAutoAdd" translatable="false">
+        <item>accessibility_display_daltonizer_enabled:color_correction</item>
+        <item>accessibility_display_inversion_enabled:inversion</item>
+        <item>one_handed_mode_enabled:onehanded</item>
+        <item>wind_down_first_time_setup:custom(com.google.android.apps.wellbeing/.screen.ui.GrayscaleTileService)</item>
+        <item>focus_mode_first_time_setup:custom(com.google.android.apps.wellbeing/.focusmode.quicksettings.FocusModeTileService)</item>
+    </string-array>
+
+    <!-- Smartspace trampoline activity that is used when the user taps smartspace. -->
+    <string name="config_smartspaceTrampolineActivityComponent" translatable="false">
+        com.google.android.apps.gsa.staticplugins.opa.smartspace.ExportedSmartspaceTrampolineActivity
+    </string>
+
+    <!-- Packages of SystemUI -->
+    <string-array name="system_ui_packages" translatable="false">
+        <item>com.android.keyguard</item>
+        <item>com.android.systemui</item>
+        <item>com.google.android.systemui</item>
+    </string-array>
+</resources>

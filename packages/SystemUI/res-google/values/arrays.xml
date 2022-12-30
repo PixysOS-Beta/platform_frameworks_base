@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2022 Benzo Rom
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <!-- Columbus. -->
+    <array name="columbus_sumatra_cert_allow_list">
+        <item>⼜꫼ꇭバ듣衣뺠焟꓏禸≑骂姙婘</item>
+        <item>괥仙胛ύꚾ샍洞恧㗆꯷咝ㅾ뿣鄖數</item>
+        <item>᥵닱煷벉ꗟ鹤ꛊꔽ쇑햛ᴔ翡젪切</item>
+        <item>္㣮䔷軧鋶呐侸㑯욳䛐믄䅟쌹ﳼ軁</item>
+    </array>
+    <array name="columbus_sumatra_package_allow_list">
+        <item>com.snapchat.android</item>
+        <item>com.snapchat.android.alpha</item>
+        <item>com.snapchat.android.perf</item>
+        <item>com.snapchat.android.master</item>
+        <item>com.snapchat.android.dev</item>
+        <item>com.snapchat.android.catalina</item>
+        <item>com.google.android.GoogleCamera</item>
+        <item>com.google.columbustest</item>
+    </array>
+
+    <array name="config_dock_bound_components"/>
+    <array name="config_nfc_conflict_with_usb_audio_productid"/>
+    <array name="config_nfc_conflict_with_usb_audio_vendorid"/>
+
+    <!-- Messages that should NOT be shown to the user during face authentication on keyguard.
+         This includes both lockscreen and bouncer. This should be used to hide messages that may be
+         too chatty or messages that the user can't do much about. Entries are defined in
+         android.hardware.biometrics.face@1.0 types.hal. -->
+     <integer-array name="config_face_acquire_device_entry_ignorelist" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>4</item>
+        <item>5</item>
+        <item>11</item>
+        <item>12</item>
+        <item>14</item>
+        <item>15</item>
+        <item>19</item>
+    </integer-array>
+
+    <!-- Which face help messages to defer until face auth times out. If face auth is cancelled
+         or ends on another error, then the message is never surfaced. May also never surface
+         if it doesn't meet a threshold % of authentication frames specified by.
+         config_face_help_msgs_defer_until_timeout_threshold. -->
+    <integer-array name="config_face_help_msgs_defer_until_timeout">
+        <item>3</item>
+    </integer-array>
+
+    <!-- SystemUI Plugins that can be loaded on user builds. -->
+    <string-array name="config_pluginWhitelist">
+        <item>com.android.systemui</item>
+        <item>com.android.systemui.plugin.globalactions.wallet</item>
+    </string-array>
+
+    <!-- Tiles to auto add to Quick Settings upon first change of a given secure setting.
+         The syntax is setting-name:spec. If the tile is a TileService, the spec should be specified
+         as custom(package/class). Relative class name is supported. -->
+    <string-array name="config_quickSettingsAutoAdd">
+        <item>accessibility_display_daltonizer_enabled:color_correction</item>
+        <item>accessibility_display_inversion_enabled:inversion</item>
+        <item>one_handed_mode_enabled:onehanded</item>
+        <item>wind_down_first_time_setup:custom(com.google.android.apps.wellbeing/.screen.ui.GrayscaleTileService)</item>
+        <item>focus_mode_first_time_setup:custom(com.google.android.apps.wellbeing/.focusmode.quicksettings.FocusModeTileService)</item>
+    </string-array>
+
+    <!-- Elmyra keys to block. -->
+    <array name="elmyra_blocking_system_keys">
+        <item>24</item>
+        <item>25</item>
+        <item>26</item>
+    </array>
+</resources>
