@@ -32,10 +32,6 @@ public class KtR {
         public static int config_wlc_support_enabled = R.bool.config_wlc_support_enabled;
     }
 
-    public static final class dimen {
-        public static int smartspace_icon_shadow = R.dimen.smartspace_icon_shadow;
-    }
-
     public static final class drawable {
         public static int ic_qs_reverse_charging = R.drawable.ic_qs_reverse_charging;
     }

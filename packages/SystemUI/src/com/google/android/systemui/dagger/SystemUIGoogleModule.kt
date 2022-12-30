@@ -43,7 +43,6 @@ import com.android.systemui.doze.DozeHost
 import com.android.systemui.dump.DumpManager
 import com.android.systemui.media.dagger.MediaModule
 import com.android.systemui.navigationbar.gestural.GestureModule
-import com.android.systemui.plugins.BcSmartspaceDataPlugin
 import com.android.systemui.plugins.qs.QSFactory
 import com.android.systemui.plugins.statusbar.StatusBarStateController
 import com.android.systemui.power.EnhancedEstimates
@@ -72,8 +71,6 @@ import com.google.android.systemui.qs.tileimpl.QSFactoryImplGoogle
 import com.google.android.systemui.reversecharging.ReverseChargingController
 import com.google.android.systemui.reversecharging.ReverseWirelessCharger
 import com.google.android.systemui.screenshot.ScreenshotModuleGoogle
-import com.google.android.systemui.smartspace.BcSmartspaceDataProvider
-import com.google.android.systemui.smartspace.dagger.SmartspaceGoogleModule
 import com.google.android.systemui.statusbar.KeyguardIndicationControllerGoogle
 import com.google.android.systemui.statusbar.dagger.StartCentralSurfacesGoogleModule
 import com.google.android.systemui.statusbar.policy.BatteryControllerImplGoogle
@@ -95,7 +92,6 @@ import javax.inject.Named
         PowerModuleGoogle::class,
         QSModuleGoogle::class,
         ScreenshotModuleGoogle::class,
-        SmartspaceGoogleModule::class,
         StartCentralSurfacesGoogleModule::class,
         VolumeModule::class
     ],
@@ -236,12 +232,6 @@ abstract class SystemUIGoogleModule {
         @SysUISingleton
         fun provideUsbManager(context: Context): Optional<UsbManager> {
             return Optional.ofNullable(context.getSystemService(UsbManager::class.java))
-        }
-
-        @Provides
-        @SysUISingleton
-        fun provideBcSmartspaceDataPlugin(): BcSmartspaceDataPlugin {
-            return BcSmartspaceDataProvider()
         }
 
         @Provides
