@@ -1,5 +1,5 @@
 java_import {
     name: "googlebattery-lib",
-    jars: ["googlebattery.jar"],
+    jars: ["GooglebatterySystemUI.jar"],
     sdk_version: "current",
 }
