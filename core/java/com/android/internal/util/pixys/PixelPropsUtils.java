@@ -155,9 +155,6 @@ public class PixelPropsUtils {
             "sunfish"
     };
 
-    private static volatile boolean sIsGms = false;
-    private static volatile boolean sIsFinsky = false;
-
     static {
         propsToKeep = new HashMap<>();
         propsToChange = new HashMap<>();
@@ -226,9 +223,6 @@ public class PixelPropsUtils {
                 }
             } else if (isPixelDevice) {
                 return;
-            } else if (packageName.equals("com.android.vending")) {
-                sIsFinsky = true;
-                return;
             } else {
                 if (Arrays.asList(packagesToChangePixel7Pro).contains(packageName)) {
                     propsToChange.putAll(propsToChangePixel7Pro);
@@ -239,24 +233,18 @@ public class PixelPropsUtils {
                 }
             }
 
-            if (DEBUG) Log.d(TAG, "Defining props for: " + packageName);
-            for (Map.Entry<String, Object> prop : propsToChange.entrySet()) {
-                String key = prop.getKey();
-                Object value = prop.getValue();
-                if (propsToKeep.containsKey(packageName) && propsToKeep.get(packageName).contains(key)) {
-                    if (DEBUG) Log.d(TAG, "Not defining " + key + " prop for: " + packageName);
-                    continue;
+            dlog("Defining props for: " + packageName);
+            if (!isPixelDevice) {
+                for (Map.Entry<String, Object> prop : propsToChange.entrySet()) {
+                    String key = prop.getKey();
+                    Object value = prop.getValue();
+                    if (propsToKeep.containsKey(packageName) && propsToKeep.get(packageName).contains(key)) {
+                        dlog("Not defining " + key + " prop for: " + packageName);
+                        continue;
+                    }
+                    dlog("Defining " + key + " prop for: " + packageName);
+                    setPropValue(key, value);
                 }
-                if (DEBUG) Log.d(TAG, "Defining " + key + " prop for: " + packageName);
-                setPropValue(key, value);
-            }
-            if (packageName.equals("com.google.android.gms")) {
-                final String processName = Application.getProcessName();
-                if (processName.equals("com.google.android.gms.unstable")) {
-                    sIsGms = true;
-                    spoofBuildGms();
-                }
-                return;
             }
             // Set proper indexing fingerprint
             if (packageName.equals("com.google.android.settings.intelligence")) {
@@ -318,61 +306,8 @@ public class PixelPropsUtils {
         }
     }
 
-    private static void setBuildField(String key, String value) {
-        try {
-            // Unlock
-            Field field = Build.class.getDeclaredField(key);
-            field.setAccessible(true);
+    public static void dlog(String msg) {
+      if (DEBUG) Log.d(TAG, msg);
 
-            // Edit
-            field.set(null, value);
-
-            // Lock
-            field.setAccessible(false);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            Log.e(TAG, "Failed to spoof Build." + key, e);
-        }
-    }
-
-    private static void setVersionField(String key, Integer value) {
-        try {
-            // Unlock
-            Field field = Build.VERSION.class.getDeclaredField(key);
-            field.setAccessible(true);
-
-            // Edit
-            field.set(null, value);
-
-            // Lock
-            field.setAccessible(false);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            Log.e(TAG, "Failed to spoof Build." + key, e);
-        }
-    }
-
-    private static void spoofBuildGms() {
-        // Alter build parameters to pixel 2 for avoiding hardware attestation enforcement
-        setBuildField("DEVICE", "walleye");
-        setBuildField("FINGERPRINT", "google/walleye/walleye:8.1.0/OPM1.171019.011/4448085:user/release-keys");
-        setBuildField("MODEL", "Pixel 2");
-        setBuildField("PRODUCT", "walleye");
-        setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.O);
-    }
-
-    private static boolean isCallerSafetyNet() {
-        return Arrays.stream(Thread.currentThread().getStackTrace())
-                .anyMatch(elem -> elem.getClassName().contains("DroidGuard"));
-    }
-
-    public static void onEngineGetCertificateChain() {
-        // Check stack for SafetyNet
-        if (sIsGms && isCallerSafetyNet()) {
-            throw new UnsupportedOperationException();
-        }
-
-        // Check stack for PlayIntegrity
-        if (sIsFinsky) {
-            throw new UnsupportedOperationException();
-        }
     }
 }
