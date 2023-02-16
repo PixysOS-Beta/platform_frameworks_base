@@ -24,14 +24,18 @@ import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /** @hide */
 public final class AttestationHooks {
     private static final String TAG = "Attestation";
+    private static final boolean DEBUG = false;
 
     private static final String PACKAGE_GMS = "com.google.android.gms";
     private static final String PACKAGE_FINSKY = "com.android.vending";
     private static final String PROCESS_UNSTABLE = "com.google.android.gms.unstable";
+    private static final String PROCESS_PERSISTENT = PACKAGE_GMS + ".persistent";
 
     private static volatile boolean sIsGms = false;
     private static volatile boolean sIsFinsky = false;
@@ -79,6 +83,18 @@ public final class AttestationHooks {
         setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.N_MR1);
     }
 
+    private static final Map<String, Object> sP6Props = new HashMap<>();
+    static {
+        sP6Props.put("ID", "TQ1A.230205.002");
+        sP6Props.put("BRAND", "google");
+        sP6Props.put("MANUFACTURER", "Google");
+        sP6Props.put("DEVICE", "raven");
+        sP6Props.put("PRODUCT", "raven");
+        sP6Props.put("MODEL", "Pixel 6 Pro");
+        sP6Props.put("FINGERPRINT", "google/raven/raven:13/TQ1A.230205.002/9471150:user/release-keys");
+        sP6Props.put("SECURITY_PATCH", "2023-02-05");
+    }
+
     public static void initApplicationBeforeOnCreate(Application app) {
         if (PACKAGE_GMS.equals(app.getPackageName()) &&
                 PROCESS_UNSTABLE.equals(Application.getProcessName())) {
@@ -86,9 +102,28 @@ public final class AttestationHooks {
             spoofBuildGms();
         }
 
+        if (PACKAGE_GMS.equals(app.getPackageName()) &&
+                PROCESS_PERSISTENT.equals(Application.getProcessName())) {
+            dlog("Spoofing Pixel 6 Pro for Persistent process");
+            sP6Props.forEach((k, v) -> setPropValue(k, v));
+        }
+
         if (PACKAGE_FINSKY.equals(app.getPackageName())) {
             sIsFinsky = true;
         }
+
+
+    private static void setPropValue(String key, Object value){
+        try {
+            dlog("Setting prop " + key + " to " + value.toString());
+            Field field = Build.class.getDeclaredField(key);
+            field.setAccessible(true);
+            field.set(null, value);
+            field.setAccessible(false);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Log.e(TAG, "Failed to set prop " + key, e);
+        }
+
     }
 
     private static boolean isCallerSafetyNet() {
@@ -103,4 +138,9 @@ public final class AttestationHooks {
             throw new UnsupportedOperationException();
         }
     }
+
+    public static void dlog(String msg) {
+      if (DEBUG) Log.d(TAG, msg);
+    }
+
 }
