@@ -142,5 +142,4 @@ public final class AttestationHooks {
     public static void dlog(String msg) {
       if (DEBUG) Log.d(TAG, msg);
     }
-
 }
