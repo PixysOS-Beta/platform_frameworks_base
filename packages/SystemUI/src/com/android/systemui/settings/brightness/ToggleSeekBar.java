@@ -26,9 +26,12 @@ import android.widget.SeekBar;
 import com.android.settingslib.RestrictedLockUtils;
 import com.android.systemui.Dependency;
 import com.android.systemui.plugins.ActivityStarter;
+import com.android.systemui.settings.brightness.NothingBrightness;
 
 public class ToggleSeekBar extends SeekBar {
     private String mAccessibilityLabel;
+
+    private NothingBrightness mNothingBrightness = new NothingBrightness();
 
     private RestrictedLockUtils.EnforcedAdmin mEnforcedAdmin = null;
 
@@ -55,6 +58,8 @@ public class ToggleSeekBar extends SeekBar {
         if (!isEnabled()) {
             setEnabled(true);
         }
+
+        mNothingBrightness.setMotionAction(event.getActionMasked());
 
         return super.onTouchEvent(event);
     }

@@ -54,6 +54,7 @@ import com.android.systemui.broadcast.BroadcastDispatcher;
 import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.settings.UserTracker;
+import com.android.systemui.settings.brightness.NothingBrightness;
 import com.android.systemui.statusbar.policy.BrightnessMirrorController;
 
 import java.util.concurrent.Executor;
@@ -116,6 +117,9 @@ public class BrightnessController implements ToggleSlider.Listener, MirroredBrig
 
     private ValueAnimator mSliderAnimator;
     private boolean mUserChangedBrightness;
+
+    private NothingBrightness mNothingBrightness = new NothingBrightness();
+    private boolean mNTBrightnessEnabled = true;
 
     @Override
     public void setMirror(BrightnessMirrorController controller) {
@@ -241,6 +245,10 @@ public class BrightnessController implements ToggleSlider.Listener, MirroredBrig
     private final Runnable mUpdateSliderRunnable = new Runnable() {
         @Override
         public void run() {
+	    if (mNothingBrightness.isSliderTouched()) {
+		return;
+	    }
+
             final boolean inVrMode = mIsVrModeEnabled;
             final BrightnessInfo info = mContext.getDisplay().getBrightnessInfo();
             if (info == null) {
@@ -370,6 +378,7 @@ public class BrightnessController implements ToggleSlider.Listener, MirroredBrig
 
         final float minBacklight;
         final float maxBacklight;
+        final float valFloat;
         final int metric;
 
         if (mIsVrModeEnabled) {
@@ -383,14 +392,19 @@ public class BrightnessController implements ToggleSlider.Listener, MirroredBrig
             minBacklight = mBrightnessMin;
             maxBacklight = mBrightnessMax;
         }
-        final float valFloat = MathUtils.min(
-                convertGammaToLinearFloat(value, minBacklight, maxBacklight),
-                maxBacklight);
+        if (!mNTBrightnessEnabled) {
+            valFloat = MathUtils.min(
+                    convertGammaToLinearFloat(value, minBacklight, maxBacklight),
+                    maxBacklight);
+        } else {
+            valFloat = MathUtils.map(
+                    0.0f, 65535.0f, minBacklight, maxBacklight, mNothingBrightness.convertToNTSliderValForManual(value));
+            Log.d(TAG, "onChanged value: " + value + ", brightness: " + valFloat);
+        }
         if (stopTracking) {
             // TODO(brightnessfloat): change to use float value instead.
             MetricsLogger.action(mContext, metric,
                     BrightnessSynchronizer.brightnessFloatToInt(valFloat));
-
         }
         mUserChangedBrightness = tracking && !stopTracking;
         setBrightness(valFloat);
@@ -467,9 +481,19 @@ public class BrightnessController implements ToggleSlider.Listener, MirroredBrig
             // then the slider does not need to animate, since the brightness will not change.
             return;
         }
-        // Returns GAMMA_SPACE_MIN - GAMMA_SPACE_MAX
-        final int sliderVal = convertLinearToGammaFloat(brightnessValue, min, max);
-        animateSliderTo(sliderVal);
+
+	// Calculate slider value based on brightness value
+        final int sliderVal;
+        if (mNTBrightnessEnabled) {
+            sliderVal = (mNothingBrightness.calculateSliderVal(min, max, brightnessValue, mControl.getValue()));
+            if (sliderVal == -1) {
+                return;
+            }
+        } else {
+            // Returns GAMMA_SPACE_MIN - GAMMA_SPACE_MAX
+            sliderVal = convertLinearToGammaFloat(brightnessValue, min, max);
+        }
+            animateSliderTo(sliderVal);
     }
 
     private void animateSliderTo(int target) {
