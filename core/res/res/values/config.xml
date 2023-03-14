@@ -362,7 +362,7 @@
 
     <!-- Flag indicating whether notification and ringtone volumes
          are controlled together (aliasing is true) or not. -->
-    <bool name="config_alias_ring_notif_stream_types">true</bool>
+    <bool name="config_alias_ring_notif_stream_types">false</bool>
 
     <!-- Default value for ConnectivityManager.getMultipathPreference() on metered networks. Actual
          device behaviour is controlled by Settings.Global.NETWORK_METERED_MULTIPATH_PREFERENCE.
