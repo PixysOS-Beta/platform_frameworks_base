@@ -186,11 +186,11 @@ object Flags {
 
     /** Flag to control the revamp of keyguard biometrics progress animation */
     // TODO(b/244313043): Tracking bug
-    @JvmField val BIOMETRICS_ANIMATION_REVAMP = unreleasedFlag(221, "biometrics_animation_revamp")
+    @JvmField val BIOMETRICS_ANIMATION_REVAMP = releasedFlag(221, "biometrics_animation_revamp")
 
     // TODO(b/262780002): Tracking Bug
     @JvmField
-    val REVAMPED_WALLPAPER_UI = unreleasedFlag(222, "revamped_wallpaper_ui", teamfood = false)
+    val REVAMPED_WALLPAPER_UI = releasedFlag(222, "revamped_wallpaper_ui")
 
     /** A different path for unocclusion transitions back to keyguard */
     // TODO(b/262859270): Tracking Bug
@@ -248,10 +248,10 @@ object Flags {
     // 600- status bar
 
     // TODO(b/256614753): Tracking Bug
-    val NEW_STATUS_BAR_MOBILE_ICONS = unreleasedFlag(606, "new_status_bar_mobile_icons")
+    val NEW_STATUS_BAR_MOBILE_ICONS = releasedFlag(606, "new_status_bar_mobile_icons")
 
     // TODO(b/256614210): Tracking Bug
-    val NEW_STATUS_BAR_WIFI_ICON = unreleasedFlag(607, "new_status_bar_wifi_icon")
+    val NEW_STATUS_BAR_WIFI_ICON = releasedFlag(607, "new_status_bar_wifi_icon")
 
     // TODO(b/256614751): Tracking Bug
     val NEW_STATUS_BAR_MOBILE_ICONS_BACKEND =
@@ -405,7 +405,7 @@ object Flags {
     @Keep
     @JvmField
     val WM_ENABLE_PREDICTIVE_BACK_ANIM =
-        sysPropBooleanFlag(1201, "persist.wm.debug.predictive_back_anim", default = false)
+        sysPropBooleanFlag(1201, "persist.wm.debug.predictive_back_anim", default = true)
 
     @Keep
     @JvmField
@@ -428,7 +428,7 @@ object Flags {
     // TODO(b/263826204): Tracking Bug
     @JvmField
     val WM_ENABLE_PREDICTIVE_BACK_BOUNCER_ANIM =
-        unreleasedFlag(1206, "persist.wm.debug.predictive_back_bouncer_anim", teamfood = true)
+        releasedFlag(1206, "persist.wm.debug.predictive_back_bouncer_anim")
 
     // 1300 - screenshots
     // TODO(b/254512719): Tracking Bug
@@ -499,7 +499,7 @@ object Flags {
     // 2500 - output switcher
     // TODO(b/261538825): Tracking Bug
     @JvmField
-    val OUTPUT_SWITCHER_ADVANCED_LAYOUT = unreleasedFlag(2500, "output_switcher_advanced_layout")
+    val OUTPUT_SWITCHER_ADVANCED_LAYOUT = releasedFlag(2500, "output_switcher_advanced_layout")
     @JvmField
     val OUTPUT_SWITCHER_ROUTES_PROCESSING =
         unreleasedFlag(2501, "output_switcher_routes_processing")
