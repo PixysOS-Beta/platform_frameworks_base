@@ -49,6 +49,7 @@ import com.android.internal.display.BrightnessSynchronizer;
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
 import com.android.settingslib.RestrictedLockUtilsInternal;
+import com.android.systemui.R;
 import com.android.systemui.broadcast.BroadcastDispatcher;
 import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
@@ -346,7 +347,7 @@ public class BrightnessController implements ToggleSlider.Listener, MirroredBrig
     private void setMode(int mode) {
         Settings.System.putIntForUser(mContext.getContentResolver(),
                 Settings.System.SCREEN_BRIGHTNESS_MODE, mode,
-                mUserTracker.getCurrentUserId());
+                mUserTracker.getUserId());
     }
 
     public void registerCallbacks() {
