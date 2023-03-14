@@ -49,7 +49,6 @@ import com.android.systemui.qs.SettingObserver;
 import com.android.systemui.qs.logging.QSLogger;
 import com.android.systemui.qs.tileimpl.QSTileImpl;
 import com.android.systemui.settings.UserTracker;
-import com.android.systemui.statusbar.policy.KeyguardStateController;
 import com.android.systemui.util.settings.GlobalSettings;
 
 import javax.inject.Inject;
@@ -57,7 +56,7 @@ import javax.inject.Inject;
 import dagger.Lazy;
 
 /** Quick settings tile: Airplane mode **/
-public class AirplaneModeTile extends SecureQSTile<BooleanState> {
+public class AirplaneModeTile extends QSTileImpl<BooleanState> {
     private final SettingObserver mSetting;
     private final BroadcastDispatcher mBroadcastDispatcher;
     private final Lazy<ConnectivityManager> mLazyConnectivityManager;
@@ -77,11 +76,10 @@ public class AirplaneModeTile extends SecureQSTile<BooleanState> {
             BroadcastDispatcher broadcastDispatcher,
             Lazy<ConnectivityManager> lazyConnectivityManager,
             GlobalSettings globalSettings,
-            UserTracker userTracker,
-            KeyguardStateController keyguardStateController
+            UserTracker userTracker
     ) {
         super(host, backgroundLooper, mainHandler, falsingManager, metricsLogger,
-                statusBarStateController, activityStarter, qsLogger, keyguardStateController);
+                statusBarStateController, activityStarter, qsLogger);
         mBroadcastDispatcher = broadcastDispatcher;
         mLazyConnectivityManager = lazyConnectivityManager;
 
@@ -101,11 +99,7 @@ public class AirplaneModeTile extends SecureQSTile<BooleanState> {
     }
 
     @Override
-    protected void handleClick(@Nullable View view, boolean keyguardShowing) {
-        if (checkKeyguard(view, keyguardShowing)) {
-            return;
-        }
-
+    public void handleClick(@Nullable View view) {
         boolean airplaneModeEnabled = mState.value;
         MetricsLogger.action(mContext, getMetricsCategory(), !airplaneModeEnabled);
         if (!airplaneModeEnabled && TelephonyProperties.in_ecm_mode().orElse(false)) {
