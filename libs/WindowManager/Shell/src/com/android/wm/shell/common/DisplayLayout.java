@@ -96,7 +96,8 @@ public class DisplayLayout {
 
     /**
      * Different from {@link #equals(Object)}, this method compares the basic geometry properties
-     * of two {@link DisplayLayout} objects including width, height, rotation, density and cutout.
+     * of two {@link DisplayLayout} objects including width, height, rotation, density, cutout and
+     * insets.
      * @return {@code true} if the given {@link DisplayLayout} is identical geometry wise.
      */
     public boolean isSameGeometry(@NonNull DisplayLayout other) {
@@ -104,7 +105,8 @@ public class DisplayLayout {
                 && mHeight == other.mHeight
                 && mRotation == other.mRotation
                 && mDensityDpi == other.mDensityDpi
-                && Objects.equals(mCutout, other.mCutout);
+                && Objects.equals(mCutout, other.mCutout)
+                && Objects.equals(mStableInsets, other.mStableInsets);
     }
 
     @Override
@@ -423,8 +425,8 @@ public class DisplayLayout {
         }
         final DisplayCutout.CutoutPathParserInfo info = cutout.getCutoutPathParserInfo();
         final DisplayCutout.CutoutPathParserInfo newInfo = new DisplayCutout.CutoutPathParserInfo(
-                info.getDisplayWidth(), info.getDisplayHeight(), info.getStableDisplayWidth(),
-                info.getStableDisplayHeight(), info.getDensity(), info.getCutoutSpec(), rotation,
+                info.getDisplayWidth(), info.getDisplayHeight(), info.getPhysicalDisplayWidth(),
+                info.getPhysicalDisplayHeight(), info.getDensity(), info.getCutoutSpec(), rotation,
                 info.getScale(), info.getPhysicalPixelDisplaySizeRatio());
         return computeSafeInsets(
                 DisplayCutout.constructDisplayCutout(newBounds, waterfallInsets, newInfo),

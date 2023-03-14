@@ -23,6 +23,7 @@
     android:maxWidth="@dimen/resolver_max_width"
     android:maxCollapsedHeight="@dimen/resolver_max_collapsed_height"
     android:maxCollapsedHeightSmall="56dp"
+    android:ignoreOffsetTopLimit="@id/title_container"
     android:id="@id/contentPanel">
 
     <RelativeLayout
@@ -90,11 +91,13 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
+            <!-- horizontal padding = 8dp content padding - 4dp margin that tab buttons have. -->
             <TabWidget
                 android:id="@android:id/tabs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:tabStripEnabled="false"
+                android:paddingHorizontal="4dp"
                 android:visibility="gone" />
             <FrameLayout
                 android:id="@android:id/tabcontent"

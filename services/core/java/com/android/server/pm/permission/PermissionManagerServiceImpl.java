@@ -42,6 +42,7 @@ import static android.content.pm.PackageManager.FLAG_PERMISSION_WHITELIST_SYSTEM
 import static android.content.pm.PackageManager.FLAG_PERMISSION_WHITELIST_UPGRADE;
 import static android.content.pm.PackageManager.MASK_PERMISSION_FLAGS_ALL;
 import static android.content.pm.PackageManager.MATCH_DEBUG_TRIAGED_MISSING;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.os.Process.INVALID_UID;
 import static android.os.Trace.TRACE_TAG_PACKAGE_MANAGER;
 import static android.permission.PermissionManager.KILL_APP_REASON_GIDS_CHANGED;
@@ -97,6 +98,7 @@ import android.os.storage.StorageManager;
 import android.permission.IOnPermissionsChangeListener;
 import android.permission.PermissionControllerManager;
 import android.permission.PermissionManager;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.ArraySet;
@@ -333,7 +335,8 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
             mPackageManagerInt.writeSettings(true);
         }
         @Override
-        public void onPermissionRevoked(int uid, int userId, String reason, boolean overrideKill) {
+        public void onPermissionRevoked(int uid, int userId, String reason, boolean overrideKill,
+                @Nullable String permissionName) {
             mOnPermissionChangeListeners.onPermissionsChanged(uid);
 
             // Critical; after this call the application should never have the permission
@@ -342,13 +345,41 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
                 return;
             }
 
-            final int appId = UserHandle.getAppId(uid);
-            if (reason == null) {
-                mHandler.post(() -> killUid(appId, userId, KILL_APP_REASON_PERMISSIONS_REVOKED));
-            } else {
-                mHandler.post(() -> killUid(appId, userId, reason));
+            mHandler.post(() -> {
+                if (POST_NOTIFICATIONS.equals(permissionName)
+                        && isAppBackupAndRestoreRunning(uid)) {
+                    return;
+                }
+
+                final int appId = UserHandle.getAppId(uid);
+                if (reason == null) {
+                    killUid(appId, userId, KILL_APP_REASON_PERMISSIONS_REVOKED);
+                } else {
+                    killUid(appId, userId, reason);
+                }
+            });
+        }
+
+        private boolean isAppBackupAndRestoreRunning(int uid) {
+            if (checkUidPermission(uid, Manifest.permission.BACKUP) != PERMISSION_GRANTED) {
+                return false;
+            }
+
+            try {
+                int userId = UserHandle.getUserId(uid);
+                boolean isInSetup = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                        Settings.Secure.USER_SETUP_COMPLETE, userId) == 0;
+                boolean isInDeferredSetup = Settings.Secure.getIntForUser(
+                        mContext.getContentResolver(),
+                        Settings.Secure.USER_SETUP_PERSONALIZATION_STATE, userId)
+                        == Settings.Secure.USER_SETUP_PERSONALIZATION_STARTED;
+                return isInSetup || isInDeferredSetup;
+            } catch (Settings.SettingNotFoundException e) {
+                Slog.w(LOG_TAG, "Failed to check if the user is in restore: " + e);
+                return false;
             }
         }
+
         @Override
         public void onInstallPermissionRevoked() {
             mPackageManagerInt.writeSettings(true);
@@ -613,8 +644,8 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
             Permission bp = mRegistry.getPermission(info.name);
             added = bp == null;
             int fixedLevel = PermissionInfo.fixProtectionLevel(info.protectionLevel);
+            enforcePermissionCapLocked(info, tree);
             if (added) {
-                enforcePermissionCapLocked(info, tree);
                 bp = new Permission(info.name, tree.getPackageName(), Permission.TYPE_DYNAMIC);
             } else if (!bp.isDynamic()) {
                 throw new SecurityException("Not allowed to modify non-dynamic permission "
@@ -1600,7 +1631,7 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
         if (callback != null) {
             if (isRuntimePermission) {
                 callback.onPermissionRevoked(UserHandle.getUid(userId, pkg.getUid()), userId,
-                        reason, overrideKill);
+                        reason, overrideKill, permName);
             } else {
                 mDefaultPermissionCallback.onInstallPermissionRevoked();
             }
@@ -1667,7 +1698,8 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
                 mDefaultPermissionCallback.onInstallPermissionGranted();
             }
 
-            public void onPermissionRevoked(int uid, int userId, String reason) {
+            public void onPermissionRevoked(int uid, int userId, String reason,
+                    boolean overrideKill, @Nullable String permissionName) {
                 revokedPermissions.add(IntPair.of(uid, userId));
 
                 syncUpdatedUsers.add(userId);
@@ -2101,6 +2133,46 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
             }
         }
 
+    }
+
+    /**
+     * If the package was below api 23, got the SYSTEM_ALERT_WINDOW permission automatically, and
+     * then updated past api 23, and the app does not satisfy any of the other SAW permission flags,
+     * the permission should be revoked.
+     *
+     * @param newPackage The new package that was installed
+     * @param oldPackage The old package that was updated
+     */
+    private void revokeSystemAlertWindowIfUpgradedPast23(
+            @NonNull AndroidPackage newPackage,
+            @NonNull AndroidPackage oldPackage) {
+        if (oldPackage.getTargetSdkVersion() >= Build.VERSION_CODES.M
+                || newPackage.getTargetSdkVersion() < Build.VERSION_CODES.M
+                || !newPackage.getRequestedPermissions()
+                .contains(Manifest.permission.SYSTEM_ALERT_WINDOW)) {
+            return;
+        }
+
+        Permission saw;
+        synchronized (mLock) {
+            saw = mRegistry.getPermission(Manifest.permission.SYSTEM_ALERT_WINDOW);
+        }
+        final PackageStateInternal ps =
+                mPackageManagerInt.getPackageStateInternal(newPackage.getPackageName());
+        if (shouldGrantPermissionByProtectionFlags(newPackage, ps, saw, new ArraySet<>())
+                || shouldGrantPermissionBySignature(newPackage, saw)) {
+            return;
+        }
+        for (int userId : getAllUserIds()) {
+            try {
+                revokePermissionFromPackageForUser(newPackage.getPackageName(),
+                        Manifest.permission.SYSTEM_ALERT_WINDOW, false, userId,
+                        mDefaultPermissionCallback);
+            } catch (IllegalStateException | SecurityException e) {
+                Log.e(TAG, "unable to revoke SYSTEM_ALERT_WINDOW for "
+                        + newPackage.getPackageName() + " user " + userId, e);
+            }
+        }
     }
 
     /**
@@ -2633,7 +2705,6 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
                     final Permission bp = mRegistry.getPermission(permName);
                     final boolean appSupportsRuntimePermissions =
                             pkg.getTargetSdkVersion() >= Build.VERSION_CODES.M;
-                    String legacyActivityRecognitionPermission = null;
 
                     if (DEBUG_INSTALL && bp != null) {
                         Log.i(TAG, "Package " + friendlyName
@@ -2657,47 +2728,12 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
                     // Cache newImplicitPermissions before modifing permissionsState as for the
                     // shared uids the original and new state are the same object
                     if (!origState.hasPermissionState(permName)
-                            && (pkg.getImplicitPermissions().contains(permName)
-                            || (permName.equals(Manifest.permission.ACTIVITY_RECOGNITION)))) {
-                        if (pkg.getImplicitPermissions().contains(permName)) {
+                            && (pkg.getImplicitPermissions().contains(permName))) {
                             // If permName is an implicit permission, try to auto-grant
                             newImplicitPermissions.add(permName);
-
                             if (DEBUG_PERMISSIONS) {
                                 Slog.i(TAG, permName + " is newly added for " + friendlyName);
                             }
-                        } else {
-                            // Special case for Activity Recognition permission. Even if AR
-                            // permission is not an implicit permission we want to add it to the
-                            // list (try to auto-grant it) if the app was installed on a device
-                            // before AR permission was split, regardless of if the app now requests
-                            // the new AR permission or has updated its target SDK and AR is no
-                            // longer implicit to it. This is a compatibility workaround for apps
-                            // when AR permission was split in Q.
-                            // TODO(zhanghai): This calls into SystemConfig, which generally
-                            //  shouldn't  cause deadlock, but maybe we should keep a cache of the
-                            //  split permission  list and just eliminate the possibility.
-                            final List<PermissionManager.SplitPermissionInfo> permissionList =
-                                    getSplitPermissionInfos();
-                            int numSplitPerms = permissionList.size();
-                            for (int splitPermNum = 0; splitPermNum < numSplitPerms;
-                                    splitPermNum++) {
-                                PermissionManager.SplitPermissionInfo sp = permissionList.get(
-                                        splitPermNum);
-                                String splitPermName = sp.getSplitPermission();
-                                if (sp.getNewPermissions().contains(permName)
-                                        && origState.isPermissionGranted(splitPermName)) {
-                                    legacyActivityRecognitionPermission = splitPermName;
-                                    newImplicitPermissions.add(permName);
-
-                                    if (DEBUG_PERMISSIONS) {
-                                        Slog.i(TAG, permName + " is newly added for "
-                                                + friendlyName);
-                                    }
-                                    break;
-                                }
-                            }
-                        }
                     }
 
                     // TODO(b/140256621): The package instant app method has been removed
@@ -2831,8 +2867,7 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
                             // Hard restricted permissions cannot be held.
                             } else if (!permissionPolicyInitialized
                                     || (!hardRestricted || restrictionExempt)) {
-                                if ((origPermState != null && origPermState.isGranted())
-                                        || legacyActivityRecognitionPermission != null) {
+                                if ((origPermState != null && origPermState.isGranted())) {
                                     if (!uidState.grantPermission(bp)) {
                                         wasChanged = true;
                                     }
@@ -4666,6 +4701,7 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
                 if (hasOldPkg) {
                     revokeRuntimePermissionsIfGroupChangedInternal(pkg, oldPkg);
                     revokeStoragePermissionsIfScopeExpandedInternal(pkg, oldPkg);
+                    revokeSystemAlertWindowIfUpgradedPast23(pkg, oldPkg);
                 }
                 if (hasPermissionDefinitionChanges) {
                     revokeRuntimePermissionsIfPermissionDefinitionChangedInternal(
@@ -5246,7 +5282,11 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
             onPermissionRevoked(uid, userId, reason, false);
         }
         public void onPermissionRevoked(int uid, @UserIdInt int userId, String reason,
-                boolean overrideKill) {}
+                boolean overrideKill) {
+            onPermissionRevoked(uid, userId, reason, false, null);
+        }
+        public void onPermissionRevoked(int uid, @UserIdInt int userId, String reason,
+                boolean overrideKill, @Nullable String permissionName) {}
         public void onInstallPermissionRevoked() {}
         public void onPermissionUpdated(@UserIdInt int[] updatedUserIds, boolean sync) {}
         public void onPermissionUpdatedNotifyListener(@UserIdInt int[] updatedUserIds, boolean sync,

@@ -38,6 +38,7 @@ class FlagManager constructor(
         const val ACTION_SET_FLAG = "com.android.systemui.action.SET_FLAG"
         const val ACTION_GET_FLAGS = "com.android.systemui.action.GET_FLAGS"
         const val FLAGS_PERMISSION = "com.android.systemui.permission.FLAGS"
+        const val ACTION_SYSUI_STARTED = "com.android.systemui.STARTED"
         const val EXTRA_ID = "id"
         const val EXTRA_VALUE = "value"
         const val EXTRA_FLAGS = "flags"
@@ -64,20 +65,29 @@ class FlagManager constructor(
         intent.setPackage(RECEIVING_PACKAGE)
 
         return CallbackToFutureAdapter.getFuture {
-            completer: CallbackToFutureAdapter.Completer<Collection<Flag<*>>> ->
-                context.sendOrderedBroadcast(intent, null,
-                    object : BroadcastReceiver() {
-                        override fun onReceive(context: Context, intent: Intent) {
-                            val extras: Bundle? = getResultExtras(false)
-                            val listOfFlags: java.util.ArrayList<ParcelableFlag<*>>? =
-                                extras?.getParcelableArrayList(EXTRA_FLAGS)
-                            if (listOfFlags != null) {
-                                completer.set(listOfFlags)
-                            } else {
-                                completer.setException(NoFlagResultsException())
-                            }
+                completer: CallbackToFutureAdapter.Completer<Collection<Flag<*>>> ->
+            context.sendOrderedBroadcast(
+                intent,
+                null,
+                object : BroadcastReceiver() {
+                    override fun onReceive(context: Context, intent: Intent) {
+                        val extras: Bundle? = getResultExtras(false)
+                        val listOfFlags: java.util.ArrayList<ParcelableFlag<*>>? =
+                            extras?.getParcelableArrayList(
+                                EXTRA_FLAGS, ParcelableFlag::class.java
+                            )
+                        if (listOfFlags != null) {
+                            completer.set(listOfFlags)
+                        } else {
+                            completer.setException(NoFlagResultsException())
                         }
-                    }, null, Activity.RESULT_OK, "extra data", null)
+                    }
+                },
+                null,
+                Activity.RESULT_OK,
+                "extra data",
+                null
+            )
             "QueryingFlags"
         }
     }
@@ -152,7 +162,11 @@ class FlagManager constructor(
             }
             val parts = uri.pathSegments
             val idStr = parts[parts.size - 1]
-            val id = try { idStr.toInt() } catch (e: NumberFormatException) { return }
+            val id = try {
+                idStr.toInt()
+            } catch (e: NumberFormatException) {
+                return
+            }
             clearCacheAction?.accept(id)
             dispatchListenersAndMaybeRestart(id, onSettingsChangedAction)
         }
@@ -188,4 +202,5 @@ class FlagManager constructor(
 }
 
 class NoFlagResultsException : Exception(
-    "SystemUI failed to communicate its flags back successfully")
+    "SystemUI failed to communicate its flags back successfully"
+)

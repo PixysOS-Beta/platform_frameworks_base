@@ -42,8 +42,10 @@ import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ParceledListSlice;
+import android.content.pm.UserInfo;
 import android.metrics.LogMaker;
 import android.os.Binder;
 import android.os.Build;
@@ -84,7 +86,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -105,7 +106,7 @@ public class PreferencesHelper implements RankingConfig {
     private static final String NON_BLOCKABLE_CHANNEL_DELIM = ":";
 
     @VisibleForTesting
-    static final int NOTIFICATION_CHANNEL_COUNT_LIMIT = 50000;
+    static final int NOTIFICATION_CHANNEL_COUNT_LIMIT = 5000;
     @VisibleForTesting
     static final int NOTIFICATION_CHANNEL_GROUP_COUNT_LIMIT = 50000;
 
@@ -146,7 +147,6 @@ public class PreferencesHelper implements RankingConfig {
     static final boolean DEFAULT_HIDE_SILENT_STATUS_BAR_ICONS = false;
     private static final boolean DEFAULT_SHOW_BADGE = true;
 
-    private static final boolean DEFAULT_OEM_LOCKED_IMPORTANCE  = false;
     private static final boolean DEFAULT_APP_LOCKED_IMPORTANCE  = false;
 
     static final boolean DEFAULT_BUBBLES_ENABLED = true;
@@ -190,16 +190,16 @@ public class PreferencesHelper implements RankingConfig {
     private boolean mIsMediaNotificationFilteringEnabled = DEFAULT_MEDIA_NOTIFICATION_FILTERING;
     private boolean mAreChannelsBypassingDnd;
     private boolean mHideSilentStatusBarIcons = DEFAULT_HIDE_SILENT_STATUS_BAR_ICONS;
+    private boolean mShowReviewPermissionsNotification;
 
     private boolean mAllowInvalidShortcuts = false;
-
-    private Map<String, List<String>> mOemLockedApps = new HashMap();
 
     public PreferencesHelper(Context context, PackageManager pm, RankingHandler rankingHandler,
             ZenModeHelper zenHelper, PermissionHelper permHelper,
             NotificationChannelLogger notificationChannelLogger,
             AppOpsManager appOpsManager,
-            SysUiStatsEvent.BuilderFactory statsEventBuilderFactory) {
+            SysUiStatsEvent.BuilderFactory statsEventBuilderFactory,
+            boolean showReviewPermissionsNotification) {
         mContext = context;
         mZenModeHelper = zenHelper;
         mRankingHandler = rankingHandler;
@@ -208,6 +208,7 @@ public class PreferencesHelper implements RankingConfig {
         mNotificationChannelLogger = notificationChannelLogger;
         mAppOps = appOpsManager;
         mStatsEventBuilderFactory = statsEventBuilderFactory;
+        mShowReviewPermissionsNotification = showReviewPermissionsNotification;
 
         XML_VERSION = 4;
 
@@ -227,7 +228,8 @@ public class PreferencesHelper implements RankingConfig {
         final int xmlVersion = parser.getAttributeInt(null, ATT_VERSION, -1);
         boolean upgradeForBubbles = xmlVersion == XML_VERSION_BUBBLES_UPGRADE;
         boolean migrateToPermission = (xmlVersion < XML_VERSION_NOTIF_PERMISSION);
-        if (xmlVersion < XML_VERSION_REVIEW_PERMISSIONS_NOTIFICATION) {
+        if (mShowReviewPermissionsNotification
+                && (xmlVersion < XML_VERSION_REVIEW_PERMISSIONS_NOTIFICATION)) {
             // make a note that we should show the notification at some point.
             // it shouldn't be possible for the user to already have seen it, as the XML version
             // would be newer then.
@@ -411,7 +413,7 @@ public class PreferencesHelper implements RankingConfig {
                     channel.populateFromXml(parser);
                 }
                 channel.setImportanceLockedByCriticalDeviceFunction(
-                        r.defaultAppLockedImportance);
+                        r.defaultAppLockedImportance || r.fixedImportance);
 
                 if (isShortcutOk(channel) && isDeletionOk(channel)) {
                     r.channels.put(id, channel);
@@ -484,14 +486,6 @@ public class PreferencesHelper implements RankingConfig {
             r.visibility = visibility;
             r.showBadge = showBadge;
             r.bubblePreference = bubblePreference;
-            if (mOemLockedApps.containsKey(r.pkg)) {
-                List<String> channels = mOemLockedApps.get(r.pkg);
-                if (channels == null || channels.isEmpty()) {
-                    r.oemLockedImportance = true;
-                } else {
-                    r.oemLockedChannels = channels;
-                }
-            }
 
             try {
                 createDefaultChannelIfNeededLocked(r);
@@ -818,6 +812,13 @@ public class PreferencesHelper implements RankingConfig {
         }
     }
 
+    boolean isImportanceLocked(String pkg, int uid) {
+        synchronized (mPackagePreferences) {
+            PackagePreferences r = getOrCreatePackagePreferencesLocked(pkg, uid);
+            return r.fixedImportance || r.defaultAppLockedImportance;
+        }
+    }
+
     @Override
     public boolean isGroupBlocked(String packageName, int uid, String groupId) {
         if (groupId == null) {
@@ -1008,7 +1009,7 @@ public class PreferencesHelper implements RankingConfig {
                 clearLockedFieldsLocked(channel);
 
                 channel.setImportanceLockedByCriticalDeviceFunction(
-                        r.defaultAppLockedImportance);
+                        r.defaultAppLockedImportance || r.fixedImportance);
 
                 if (channel.getLockscreenVisibility() == Notification.VISIBILITY_PUBLIC) {
                     channel.setLockscreenVisibility(
@@ -1090,8 +1091,7 @@ public class PreferencesHelper implements RankingConfig {
                 updatedChannel.unlockFields(updatedChannel.getUserLockedFields());
             }
 
-            if ((mPermissionHelper.isPermissionFixed(r.pkg, UserHandle.getUserId(r.uid))
-                    || channel.isImportanceLockedByCriticalDeviceFunction())
+            if (channel.isImportanceLockedByCriticalDeviceFunction()
                     && !(channel.isBlockable() || channel.getImportance() == IMPORTANCE_NONE)) {
                 updatedChannel.setImportance(channel.getImportance());
             }
@@ -1267,6 +1267,28 @@ public class PreferencesHelper implements RankingConfig {
         mHideSilentStatusBarIcons = hide;
     }
 
+    public void updateFixedImportance(List<UserInfo> users) {
+        for (UserInfo user : users) {
+            List<PackageInfo> packages = mPm.getInstalledPackagesAsUser(
+                    PackageManager.PackageInfoFlags.of(PackageManager.MATCH_SYSTEM_ONLY),
+                    user.getUserHandle().getIdentifier());
+            for (PackageInfo pi : packages) {
+                boolean fixed = mPermissionHelper.isPermissionFixed(
+                        pi.packageName, user.getUserHandle().getIdentifier());
+                if (fixed) {
+                    synchronized (mPackagePreferences) {
+                        PackagePreferences p = getOrCreatePackagePreferencesLocked(
+                                pi.packageName, pi.applicationInfo.uid);
+                        p.fixedImportance = true;
+                        for (NotificationChannel channel : p.channels.values()) {
+                            channel.setImportanceLockedByCriticalDeviceFunction(true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void updateDefaultApps(int userId, ArraySet<String> toRemove,
             ArraySet<Pair<String, Integer>> toAdd) {
         synchronized (mPackagePreferences) {
@@ -1274,8 +1296,10 @@ public class PreferencesHelper implements RankingConfig {
                 if (userId == UserHandle.getUserId(p.uid)) {
                     if (toRemove != null && toRemove.contains(p.pkg)) {
                         p.defaultAppLockedImportance = false;
-                        for (NotificationChannel channel : p.channels.values()) {
-                            channel.setImportanceLockedByCriticalDeviceFunction(false);
+                        if (!p.fixedImportance) {
+                            for (NotificationChannel channel : p.channels.values()) {
+                                channel.setImportanceLockedByCriticalDeviceFunction(false);
+                            }
                         }
                     }
                 }
@@ -1934,13 +1958,9 @@ public class PreferencesHelper implements RankingConfig {
                     pw.print(" defaultAppLocked=");
                     pw.print(r.defaultAppLockedImportance);
                 }
-                if (r.oemLockedImportance != DEFAULT_OEM_LOCKED_IMPORTANCE) {
-                    pw.print(" oemLocked=");
-                    pw.print(r.oemLockedImportance);
-                }
-                if (!r.oemLockedChannels.isEmpty()) {
-                    pw.print(" futureLockedChannels=");
-                    pw.print(r.oemLockedChannels);
+                if (r.fixedImportance != DEFAULT_APP_LOCKED_IMPORTANCE) {
+                    pw.print(" fixedImportance=");
+                    pw.print(r.fixedImportance);
                 }
                 pw.println();
                 for (NotificationChannel channel : r.channels.values()) {
@@ -2682,9 +2702,8 @@ public class PreferencesHelper implements RankingConfig {
         int lockedAppFields = DEFAULT_LOCKED_APP_FIELDS;
         // these fields are loaded on boot from a different source of truth and so are not
         // written to notification policy xml
-        boolean oemLockedImportance = DEFAULT_OEM_LOCKED_IMPORTANCE;
-        List<String> oemLockedChannels = new ArrayList<>();
         boolean defaultAppLockedImportance = DEFAULT_APP_LOCKED_IMPORTANCE;
+        boolean fixedImportance = DEFAULT_APP_LOCKED_IMPORTANCE;
 
         boolean hasSentInvalidMessage = false;
         boolean hasSentValidMessage = false;

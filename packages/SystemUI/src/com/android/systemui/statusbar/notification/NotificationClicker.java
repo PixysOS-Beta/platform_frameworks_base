@@ -16,6 +16,7 @@
 package com.android.systemui.statusbar.notification;
 
 import android.app.Notification;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
@@ -70,7 +71,8 @@ public final class NotificationClicker implements View.OnClickListener {
         }
 
         mCentralSurfacesOptional.ifPresent(centralSurfaces -> centralSurfaces.wakeUpIfDozing(
-                SystemClock.uptimeMillis(), v, "NOTIFICATION_CLICK"));
+                SystemClock.uptimeMillis(), v, "NOTIFICATION_CLICK",
+                PowerManager.WAKE_REASON_GESTURE));
 
         final ExpandableNotificationRow row = (ExpandableNotificationRow) v;
         final NotificationEntry entry = row.getEntry();
@@ -104,7 +106,7 @@ public final class NotificationClicker implements View.OnClickListener {
             mBubblesOptional.get().collapseStack();
         }
 
-        mNotificationActivityStarter.onNotificationClicked(entry.getSbn(), row);
+        mNotificationActivityStarter.onNotificationClicked(entry, row);
     }
 
     private boolean isMenuVisible(ExpandableNotificationRow row) {

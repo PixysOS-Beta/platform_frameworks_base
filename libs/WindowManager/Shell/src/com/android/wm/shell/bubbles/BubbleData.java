@@ -158,7 +158,6 @@ public class BubbleData {
     @Nullable
     private Listener mListener;
 
-    @Nullable
     private Bubbles.BubbleMetadataFlagListener mBubbleMetadataFlagListener;
     private Bubbles.PendingIntentCanceledListener mCancelledListener;
 
@@ -465,7 +464,7 @@ public class BubbleData {
                 getOverflowBubbles(), invalidBubblesFromPackage, removeBubble);
     }
 
-    /** Dismisses all bubbles from the given package. */
+    /** Removes all bubbles from the given package. */
     public void removeBubblesWithPackageName(String packageName, int reason) {
         final Predicate<Bubble> bubbleMatchesPackage = bubble ->
                 bubble.getPackageName().equals(packageName);
@@ -475,6 +474,18 @@ public class BubbleData {
 
         performActionOnBubblesMatching(getBubbles(), bubbleMatchesPackage, removeBubble);
         performActionOnBubblesMatching(getOverflowBubbles(), bubbleMatchesPackage, removeBubble);
+    }
+
+    /** Removes all bubbles for the given user. */
+    public void removeBubblesForUser(int userId) {
+        List<Bubble> removedBubbles = filterAllBubbles(bubble ->
+                userId == bubble.getUser().getIdentifier());
+        for (Bubble b : removedBubbles) {
+            doRemove(b.getKey(), Bubbles.DISMISS_USER_REMOVED);
+        }
+        if (!removedBubbles.isEmpty()) {
+            dispatchPendingChanges();
+        }
     }
 
     private void doAdd(Bubble bubble) {
@@ -552,7 +563,8 @@ public class BubbleData {
                 || reason == Bubbles.DISMISS_BLOCKED
                 || reason == Bubbles.DISMISS_SHORTCUT_REMOVED
                 || reason == Bubbles.DISMISS_PACKAGE_REMOVED
-                || reason == Bubbles.DISMISS_USER_CHANGED;
+                || reason == Bubbles.DISMISS_USER_CHANGED
+                || reason == Bubbles.DISMISS_USER_REMOVED;
 
         int indexToRemove = indexForKey(key);
         if (indexToRemove == -1) {
@@ -1073,6 +1085,35 @@ public class BubbleData {
         return null;
     }
 
+    /**
+     * Returns a list of bubbles that match the provided predicate. This checks all types of
+     * bubbles (i.e. pending, suppressed, active, and overflowed).
+     */
+    private List<Bubble> filterAllBubbles(Predicate<Bubble> predicate) {
+        ArrayList<Bubble> matchingBubbles = new ArrayList<>();
+        for (Bubble b : mPendingBubbles.values()) {
+            if (predicate.test(b)) {
+                matchingBubbles.add(b);
+            }
+        }
+        for (Bubble b : mSuppressedBubbles.values()) {
+            if (predicate.test(b)) {
+                matchingBubbles.add(b);
+            }
+        }
+        for (Bubble b : mBubbles) {
+            if (predicate.test(b)) {
+                matchingBubbles.add(b);
+            }
+        }
+        for (Bubble b : mOverflowBubbles) {
+            if (predicate.test(b)) {
+                matchingBubbles.add(b);
+            }
+        }
+        return matchingBubbles;
+    }
+
     @VisibleForTesting(visibility = PRIVATE)
     void setTimeSource(TimeSource timeSource) {
         mTimeSource = timeSource;
@@ -1094,7 +1135,7 @@ public class BubbleData {
     /**
      * Description of current bubble data state.
      */
-    public void dump(PrintWriter pw, String[] args) {
+    public void dump(PrintWriter pw) {
         pw.print("selected: ");
         pw.println(mSelectedBubble != null
                 ? mSelectedBubble.getKey()
@@ -1105,13 +1146,13 @@ public class BubbleData {
         pw.print("stack bubble count:    ");
         pw.println(mBubbles.size());
         for (Bubble bubble : mBubbles) {
-            bubble.dump(pw, args);
+            bubble.dump(pw);
         }
 
         pw.print("overflow bubble count:    ");
         pw.println(mOverflowBubbles.size());
         for (Bubble bubble : mOverflowBubbles) {
-            bubble.dump(pw, args);
+            bubble.dump(pw);
         }
 
         pw.print("summaryKeys: ");

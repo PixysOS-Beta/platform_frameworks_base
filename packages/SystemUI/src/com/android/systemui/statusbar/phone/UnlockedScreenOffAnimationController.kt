@@ -10,6 +10,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.view.Surface
 import android.view.View
+import android.view.WindowManager.fixScale
 import com.android.internal.jank.InteractionJankMonitor
 import com.android.internal.jank.InteractionJankMonitor.CUJ_SCREEN_OFF
 import com.android.internal.jank.InteractionJankMonitor.CUJ_SCREEN_OFF_SHOW_AOD
@@ -138,8 +139,8 @@ class UnlockedScreenOffAnimationController @Inject constructor(
     }
 
     fun updateAnimatorDurationScale() {
-        animatorDurationScale =
-                globalSettings.getFloat(Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+        animatorDurationScale = fixScale(
+                globalSettings.getFloat(Settings.Global.ANIMATOR_DURATION_SCALE, 1f))
     }
 
     override fun shouldDelayKeyguardShow(): Boolean =
@@ -313,7 +314,7 @@ class UnlockedScreenOffAnimationController @Inject constructor(
         // already expanded and showing notifications/QS, the animation looks really messy. For now,
         // disable it if the notification panel is expanded.
         if ((!this::mCentralSurfaces.isInitialized ||
-                mCentralSurfaces.notificationPanelViewController.isExpanded) &&
+                mCentralSurfaces.notificationPanelViewController.isPanelExpanded) &&
                 // Status bar might be expanded because we have started
                 // playing the animation already
                 !isAnimationPlaying()

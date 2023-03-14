@@ -235,7 +235,8 @@ public class TransactionParcelTests {
     public void testPause() {
         // Write to parcel
         PauseActivityItem item = PauseActivityItem.obtain(true /* finished */,
-                true /* userLeaving */, 135 /* configChanges */, true /* dontReport */);
+                true /* userLeaving */, 135 /* configChanges */, true /* dontReport */,
+                true /* autoEnteringPip */);
         writeAndPrepareForReading(item);
 
         // Read from parcel and assert
@@ -249,7 +250,7 @@ public class TransactionParcelTests {
     public void testResume() {
         // Write to parcel
         ResumeActivityItem item = ResumeActivityItem.obtain(27 /* procState */,
-                true /* isForward */);
+                true /* isForward */, false /* shouldSendCompatFakeFocus */);
         writeAndPrepareForReading(item);
 
         // Read from parcel and assert
@@ -425,7 +426,7 @@ public class TransactionParcelTests {
 
         @Override
         public void bindApplication(String s, ApplicationInfo applicationInfo,
-                String sdkSandboxClientAppPackage,
+                String sdkSandboxClientAppVolumeUuid, String sdkSandboxClientAppPackage,
                 ProviderInfoList list, ComponentName componentName, ProfilerInfo profilerInfo,
                 Bundle bundle, IInstrumentationWatcher iInstrumentationWatcher,
                 IUiAutomationConnection iUiAutomationConnection, int i, boolean b, boolean b1,

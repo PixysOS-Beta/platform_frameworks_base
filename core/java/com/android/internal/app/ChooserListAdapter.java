@@ -31,15 +31,19 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.ShortcutInfo;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Trace;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.DeviceConfig;
 import android.service.chooser.ChooserTarget;
+import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.android.internal.R;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.ResolverActivity.ResolvedComponentInfo;
 import com.android.internal.app.chooser.ChooserTargetInfo;
 import com.android.internal.app.chooser.DisplayResolveInfo;
@@ -83,7 +87,7 @@ public class ChooserListAdapter extends ResolverListAdapter {
     private final ChooserActivityLogger mChooserActivityLogger;
 
     private int mNumShortcutResults = 0;
-    private Map<DisplayResolveInfo, LoadIconTask> mIconLoaders = new HashMap<>();
+    private final Map<SelectableTargetInfo, LoadDirectShareIconTask> mIconLoaders = new HashMap<>();
     private boolean mApplySharingAppLimits;
 
     // Reserve spots for incoming direct share targets by adding placeholders
@@ -100,6 +104,37 @@ public class ChooserListAdapter extends ResolverListAdapter {
     private List<DisplayResolveInfo> mSortedList = new ArrayList<>();
     private AppPredictor mAppPredictor;
     private AppPredictor.Callback mAppPredictorCallback;
+
+    // For pinned direct share labels, if the text spans multiple lines, the TextView will consume
+    // the full width, even if the characters actually take up less than that. Measure the actual
+    // line widths and constrain the View's width based upon that so that the pin doesn't end up
+    // very far from the text.
+    private final View.OnLayoutChangeListener mPinTextSpacingListener =
+            new View.OnLayoutChangeListener() {
+                @Override
+                public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                        int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    TextView textView = (TextView) v;
+                    Layout layout = textView.getLayout();
+                    if (layout != null) {
+                        int textWidth = 0;
+                        for (int line = 0; line < layout.getLineCount(); line++) {
+                            textWidth = Math.max((int) Math.ceil(layout.getLineMax(line)),
+                                    textWidth);
+                        }
+                        int desiredWidth = textWidth + textView.getPaddingLeft()
+                                + textView.getPaddingRight();
+                        if (textView.getWidth() > desiredWidth) {
+                            ViewGroup.LayoutParams params = textView.getLayoutParams();
+                            params.width = desiredWidth;
+                            textView.setLayoutParams(params);
+                            // Need to wait until layout pass is over before requesting layout.
+                            textView.post(() -> textView.requestLayout());
+                        }
+                        textView.removeOnLayoutChangeListener(this);
+                    }
+                }
+            };
 
     public ChooserListAdapter(Context context, List<Intent> payloadIntents,
             Intent[] initialIntents, List<ResolveInfo> rList,
@@ -206,7 +241,6 @@ public class ChooserListAdapter extends ResolverListAdapter {
         mListViewDataChanged = false;
     }
 
-
     private void createPlaceHolders() {
         mNumShortcutResults = 0;
         mServiceTargets.clear();
@@ -224,37 +258,31 @@ public class ChooserListAdapter extends ResolverListAdapter {
     @Override
     protected void onBindView(View view, TargetInfo info, int position) {
         final ViewHolder holder = (ViewHolder) view.getTag();
+
         if (info == null) {
             holder.icon.setImageDrawable(
                     mContext.getDrawable(R.drawable.resolver_icon_placeholder));
             return;
         }
 
-        if (!(info instanceof DisplayResolveInfo)) {
-            holder.bindLabel(info.getDisplayLabel(), info.getExtendedInfo(), alwaysShowSubLabel());
-            holder.bindIcon(info);
-
-            if (info instanceof SelectableTargetInfo) {
-                // direct share targets should append the application name for a better readout
-                DisplayResolveInfo rInfo = ((SelectableTargetInfo) info).getDisplayResolveInfo();
-                CharSequence appName = rInfo != null ? rInfo.getDisplayLabel() : "";
-                CharSequence extendedInfo = info.getExtendedInfo();
-                String contentDescription = String.join(" ", info.getDisplayLabel(),
-                        extendedInfo != null ? extendedInfo : "", appName);
-                holder.updateContentDescription(contentDescription);
+        holder.bindLabel(info.getDisplayLabel(), info.getExtendedInfo(), alwaysShowSubLabel());
+        holder.bindIcon(info);
+        if (info instanceof SelectableTargetInfo) {
+            // direct share targets should append the application name for a better readout
+            SelectableTargetInfo sti = (SelectableTargetInfo) info;
+            DisplayResolveInfo rInfo = sti.getDisplayResolveInfo();
+            CharSequence appName = rInfo != null ? rInfo.getDisplayLabel() : "";
+            CharSequence extendedInfo = info.getExtendedInfo();
+            String contentDescription = String.join(" ", info.getDisplayLabel(),
+                    extendedInfo != null ? extendedInfo : "", appName);
+            holder.updateContentDescription(contentDescription);
+            if (!sti.hasDisplayIcon()) {
+                loadDirectShareIcon(sti);
             }
-        } else {
+        } else if (info instanceof DisplayResolveInfo) {
             DisplayResolveInfo dri = (DisplayResolveInfo) info;
-            holder.bindLabel(dri.getDisplayLabel(), dri.getExtendedInfo(), alwaysShowSubLabel());
-            LoadIconTask task = mIconLoaders.get(dri);
-            if (task == null) {
-                task = new LoadIconTask(dri, holder);
-                mIconLoaders.put(dri, task);
-                task.execute();
-            } else {
-                // The holder was potentially changed as the underlying items were
-                // reshuffled, so reset the target holder
-                task.setViewHolder(holder);
+            if (!dri.hasDisplayIcon()) {
+                loadIcon(dri);
             }
         }
 
@@ -273,6 +301,9 @@ public class ChooserListAdapter extends ResolverListAdapter {
             holder.itemView.setBackground(holder.defaultItemViewBackground);
         }
 
+        // Always remove the spacing listener, attach as needed to direct share targets below.
+        holder.text.removeOnLayoutChangeListener(mPinTextSpacingListener);
+
         if (info instanceof MultiDisplayResolveInfo) {
             // If the target is grouped show an indicator
             Drawable bkg = mContext.getDrawable(R.drawable.chooser_group_background);
@@ -285,10 +316,25 @@ public class ChooserListAdapter extends ResolverListAdapter {
             Drawable bkg = mContext.getDrawable(R.drawable.chooser_pinned_background);
             holder.text.setPaddingRelative(bkg.getIntrinsicWidth() /* start */, 0, 0, 0);
             holder.text.setBackground(bkg);
+            holder.text.addOnLayoutChangeListener(mPinTextSpacingListener);
         } else {
             holder.text.setBackground(null);
             holder.text.setPaddingRelative(0, 0, 0, 0);
         }
+    }
+
+    private void loadDirectShareIcon(SelectableTargetInfo info) {
+        LoadDirectShareIconTask task = (LoadDirectShareIconTask) mIconLoaders.get(info);
+        if (task == null) {
+            task = createLoadDirectShareIconTask(info);
+            mIconLoaders.put(info, task);
+            task.loadIcon();
+        }
+    }
+
+    @VisibleForTesting
+    protected LoadDirectShareIconTask createLoadDirectShareIconTask(SelectableTargetInfo info) {
+        return new LoadDirectShareIconTask(info);
     }
 
     void updateAlphabeticalList() {
@@ -305,7 +351,7 @@ public class ChooserListAdapter extends ResolverListAdapter {
                 Map<String, DisplayResolveInfo> consolidated = new HashMap<>();
                 for (DisplayResolveInfo info : allTargets) {
                     String resolvedTarget = info.getResolvedComponentName().getPackageName()
-                        + '#' + info.getDisplayLabel();
+                            + '#' + info.getDisplayLabel();
                     DisplayResolveInfo multiDri = consolidated.get(resolvedTarget);
                     if (multiDri == null) {
                         consolidated.put(resolvedTarget, info);
@@ -314,7 +360,7 @@ public class ChooserListAdapter extends ResolverListAdapter {
                     } else {
                         // create consolidated target from the single DisplayResolveInfo
                         MultiDisplayResolveInfo multiDisplayResolveInfo =
-                            new MultiDisplayResolveInfo(resolvedTarget, multiDri);
+                                new MultiDisplayResolveInfo(resolvedTarget, multiDri);
                         multiDisplayResolveInfo.addTarget(info);
                         consolidated.put(resolvedTarget, multiDisplayResolveInfo);
                     }
@@ -667,8 +713,10 @@ public class ChooserListAdapter extends ResolverListAdapter {
             @Override
             protected List<ResolvedComponentInfo> doInBackground(
                     List<ResolvedComponentInfo>... params) {
+                Trace.beginSection("ChooserListAdapter#SortingTask");
                 mResolverListController.topK(params[0],
                         mChooserListCommunicator.getMaxRankedTargets());
+                Trace.endSection();
                 return params[0];
             }
             @Override
@@ -702,12 +750,44 @@ public class ChooserListAdapter extends ResolverListAdapter {
      * Necessary methods to communicate between {@link ChooserListAdapter}
      * and {@link ChooserActivity}.
      */
-    interface ChooserListCommunicator extends ResolverListCommunicator {
+    @VisibleForTesting
+    public interface ChooserListCommunicator extends ResolverListCommunicator {
 
         int getMaxRankedTargets();
 
         void sendListViewUpdateMessage(UserHandle userHandle);
 
         boolean isSendAction(Intent targetIntent);
+    }
+
+    /**
+     * Loads direct share targets icons.
+     */
+    @VisibleForTesting
+    public class LoadDirectShareIconTask extends AsyncTask<Void, Void, Boolean> {
+        private final SelectableTargetInfo mTargetInfo;
+
+        private LoadDirectShareIconTask(SelectableTargetInfo targetInfo) {
+            mTargetInfo = targetInfo;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            return mTargetInfo.loadIcon();
+        }
+
+        @Override
+        protected void onPostExecute(Boolean isLoaded) {
+            if (isLoaded) {
+                notifyDataSetChanged();
+            }
+        }
+
+        /**
+         * An alias for execute to use with unit tests.
+         */
+        public void loadIcon() {
+            execute();
+        }
     }
 }

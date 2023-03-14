@@ -61,18 +61,26 @@ import javax.inject.Named;
 public class DreamTile extends QSTileImpl<QSTile.BooleanState> {
 
     private static final String LOG_TAG = "QSDream";
-    private final Icon mIcon = ResourceIcon.get(R.drawable.ic_qs_screen_saver);
+    // TODO: consider 1 animated icon instead
+    private final Icon mIconDocked = ResourceIcon.get(R.drawable.ic_qs_screen_saver);
+    private final Icon mIconUndocked = ResourceIcon.get(R.drawable.ic_qs_screen_saver_undocked);
     private final IDreamManager mDreamManager;
     private final BroadcastDispatcher mBroadcastDispatcher;
     private final SettingObserver mEnabledSettingObserver;
     private final SettingObserver mDreamSettingObserver;
     private final UserTracker mUserTracker;
     private final boolean mDreamSupported;
-    private final boolean mDreamOnlyEnabledForSystemUser;
+    private final boolean mDreamOnlyEnabledForDockUser;
+
+    private boolean mIsDocked = false;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_DOCK_EVENT.equals(intent.getAction())) {
+                mIsDocked = intent.getIntExtra(Intent.EXTRA_DOCK_STATE, -1)
+                        != Intent.EXTRA_DOCK_STATE_UNDOCKED;
+            }
             refreshState();
         }
     };
@@ -92,22 +100,22 @@ public class DreamTile extends QSTileImpl<QSTile.BooleanState> {
             BroadcastDispatcher broadcastDispatcher,
             UserTracker userTracker,
             @Named(DreamModule.DREAM_SUPPORTED) boolean dreamSupported,
-            @Named(DreamModule.DREAM_ONLY_ENABLED_FOR_SYSTEM_USER)
-                    boolean dreamOnlyEnabledForSystemUser
+            @Named(DreamModule.DREAM_ONLY_ENABLED_FOR_DOCK_USER)
+                    boolean dreamOnlyEnabledForDockUser
     ) {
         super(host, backgroundLooper, mainHandler, falsingManager, metricsLogger,
                 statusBarStateController, activityStarter, qsLogger);
         mDreamManager = dreamManager;
         mBroadcastDispatcher = broadcastDispatcher;
         mEnabledSettingObserver = new SettingObserver(secureSettings, mHandler,
-                Settings.Secure.SCREENSAVER_ENABLED) {
+                Settings.Secure.SCREENSAVER_ENABLED, userTracker.getUserId()) {
             @Override
             protected void handleValueChanged(int value, boolean observedChange) {
                 refreshState();
             }
         };
         mDreamSettingObserver = new SettingObserver(secureSettings, mHandler,
-                Settings.Secure.SCREENSAVER_COMPONENTS) {
+                Settings.Secure.SCREENSAVER_COMPONENTS, userTracker.getUserId()) {
             @Override
             protected void handleValueChanged(int value, boolean observedChange) {
                 refreshState();
@@ -115,7 +123,7 @@ public class DreamTile extends QSTileImpl<QSTile.BooleanState> {
         };
         mUserTracker = userTracker;
         mDreamSupported = dreamSupported;
-        mDreamOnlyEnabledForSystemUser = dreamOnlyEnabledForSystemUser;
+        mDreamOnlyEnabledForDockUser = dreamOnlyEnabledForDockUser;
     }
 
     @Override
@@ -126,6 +134,7 @@ public class DreamTile extends QSTileImpl<QSTile.BooleanState> {
             final IntentFilter filter = new IntentFilter();
             filter.addAction(Intent.ACTION_DREAMING_STARTED);
             filter.addAction(Intent.ACTION_DREAMING_STOPPED);
+            filter.addAction(Intent.ACTION_DOCK_EVENT);
             mBroadcastDispatcher.registerReceiver(mReceiver, filter);
         } else {
             mBroadcastDispatcher.unregisterReceiver(mReceiver);
@@ -168,7 +177,7 @@ public class DreamTile extends QSTileImpl<QSTile.BooleanState> {
         state.label = getTileLabel();
         state.secondaryLabel = getActiveDreamName();
         state.contentDescription = getContentDescription(state.secondaryLabel);
-        state.icon = mIcon;
+        state.icon = mIsDocked ? mIconDocked : mIconUndocked;
 
         if (getActiveDream() == null || !isScreensaverEnabled()) {
             state.state = Tile.STATE_UNAVAILABLE;
@@ -194,7 +203,8 @@ public class DreamTile extends QSTileImpl<QSTile.BooleanState> {
         // For now, restrict to debug users.
         return Build.isDebuggable()
                 && mDreamSupported
-                && (!mDreamOnlyEnabledForSystemUser || mUserTracker.getUserHandle().isSystem());
+                // TODO(b/257333623): Allow the Dock User to be non-SystemUser user in HSUM.
+                && (!mDreamOnlyEnabledForDockUser || mUserTracker.getUserHandle().isSystem());
     }
 
     @VisibleForTesting

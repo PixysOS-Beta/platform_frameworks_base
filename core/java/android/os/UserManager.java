@@ -257,7 +257,8 @@ public class UserManager {
     public static final String DISALLOW_MODIFY_ACCOUNTS = "no_modify_accounts";
 
     /**
-     * Specifies if a user is disallowed from changing Wi-Fi access points via Settings.
+     * Specifies if a user is disallowed from changing Wi-Fi access points via Settings. This
+     * restriction does not affect Wi-Fi tethering settings.
      *
      * <p>A device owner and a profile owner can set this restriction, although the restriction has
      * no effect in a managed profile. When it is set by a device owner, a profile owner on the
@@ -294,6 +295,9 @@ public class UserManager {
 
     /**
      * Specifies if a user is disallowed from using Wi-Fi tethering.
+     *
+     * <p>This restriction does not limit the user's ability to modify or connect to regular
+     * Wi-Fi networks, which is separately controlled by {@link #DISALLOW_CONFIG_WIFI}.
      *
      * <p>This restriction can only be set by a device owner,
      * a profile owner of an organization-owned managed profile on the parent profile.
@@ -1967,7 +1971,8 @@ public class UserManager {
     /** @hide */
     public UserManager(Context context, IUserManager service) {
         mService = service;
-        mContext = context.getApplicationContext();
+        Context appContext = context.getApplicationContext();
+        mContext = (appContext == null ? context : appContext);
         mUserId = context.getUserId();
     }
 
@@ -5127,23 +5132,13 @@ public class UserManager {
     })
     @UserHandleAware
     public boolean isUserSwitcherEnabled(boolean showEvenIfNotActionable) {
-        if (!supportsMultipleUsers()) {
-            return false;
-        }
-        if (hasUserRestrictionForUser(DISALLOW_USER_SWITCH, mUserId)) {
-            return false;
-        }
-        // If Demo Mode is on, don't show user switcher
-        if (isDeviceInDemoMode(mContext)) {
-            return false;
-        }
-        // Check the Settings.Global.USER_SWITCHER_ENABLED that the user can toggle on/off.
-        final boolean userSwitcherSettingOn = Settings.Global.getInt(mContext.getContentResolver(),
-                Settings.Global.USER_SWITCHER_ENABLED,
-                Resources.getSystem().getBoolean(R.bool.config_showUserSwitcherByDefault) ? 1 : 0)
-                != 0;
-        if (!userSwitcherSettingOn) {
-            return false;
+
+        try {
+            if (!mService.isUserSwitcherEnabled(mUserId)) {
+                return false;
+            }
+        } catch (RemoteException re) {
+            throw re.rethrowFromSystemServer();
         }
 
         // The feature is enabled. But is it worth showing?

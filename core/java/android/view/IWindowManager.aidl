@@ -32,7 +32,6 @@ import android.graphics.Region;
 import android.os.Bundle;
 import android.os.IRemoteCallback;
 import android.os.ParcelFileDescriptor;
-import android.view.ContentRecordingSession;
 import android.view.DisplayCutout;
 import android.view.DisplayInfo;
 import android.view.IAppTransitionAnimationSpecsFuture;
@@ -40,7 +39,7 @@ import android.view.ICrossWindowBlurEnabledListener;
 import android.view.IDisplayWindowInsetsController;
 import android.view.IDisplayWindowListener;
 import android.view.IDisplayFoldListener;
-import android.view.IDisplayWindowRotationController;
+import android.view.IDisplayChangeWindowController;
 import android.view.IOnKeyguardExitResult;
 import android.view.IPinnedTaskListener;
 import android.view.IScrollCaptureResponseListener;
@@ -146,7 +145,7 @@ interface IWindowManager
      * controller is called after the display has "frozen" for a rotation and display rotation will
      * only continue once the controller has finished calculating associated configurations.
      */
-    void setDisplayWindowRotationController(IDisplayWindowRotationController controller);
+    void setDisplayChangeWindowController(IDisplayChangeWindowController controller);
 
     /**
      * Adds a root container that a client shell can populate with its own windows (usually via
@@ -414,11 +413,6 @@ interface IWindowManager
     boolean hasNavigationBar(int displayId);
 
     /**
-     * Get the position of the nav bar
-     */
-    int getNavBarPosition(int displayId);
-
-    /**
      * Lock the device immediately with the specified options (can be null).
      */
     @UnsupportedAppUsage(maxTargetSdk = 30, trackingBug = 170729553)
@@ -542,6 +536,21 @@ interface IWindowManager
      * Returns true if window trace is enabled.
      */
     boolean isWindowTraceEnabled();
+
+    /**
+     * Starts a transition trace.
+     */
+    void startTransitionTrace();
+
+    /**
+     * Stops a transition trace.
+     */
+    void stopTransitionTrace();
+
+    /**
+     * Returns true if transition trace is enabled.
+     */
+    boolean isTransitionTraceEnabled();
 
     /**
      * Gets the windowing mode of the display.
@@ -718,9 +727,8 @@ interface IWindowManager
      * If invoked through a package other than a launcher app, returns an empty list.
      *
      * @param displayId the id of the logical display
-     * @param packageName the name of the calling package
      */
-    List<DisplayInfo> getPossibleDisplayInfo(int displayId, String packageName);
+    List<DisplayInfo> getPossibleDisplayInfo(int displayId);
 
     /**
      * Called to show global actions.
@@ -857,17 +865,6 @@ interface IWindowManager
     void detachWindowContextFromWindowContainer(IBinder clientToken);
 
     /**
-     * Updates the content recording session. If a different session is already in progress, then
-     * the pre-existing session is stopped, and the new incoming session takes over.
-     *
-     * The DisplayContent for the new session will begin recording when
-     * {@link RootWindowContainer#onDisplayChanged} is invoked for the new {@link VirtualDisplay}.
-     *
-     * @param incomingSession the nullable incoming content recording session
-     */
-    void setContentRecordingSession(in ContentRecordingSession incomingSession);
-
-    /**
      * Registers a listener, which is to be called whenever cross-window blur is enabled/disabled.
      *
      * @param listener the listener to be registered
@@ -950,4 +947,18 @@ interface IWindowManager
      * means the recents app can control the SystemUI flags, and vice-versa.
      */
     void setRecentsAppBehindSystemBars(boolean behindSystemBars);
+
+    /**
+     * Gets the background color of the letterbox. Considered invalid if the background has
+     * multiple colors {@link #isLetterboxBackgroundMultiColored}. Should be called by SystemUI when
+     * computing the letterbox appearance for status bar treatment.
+     */
+    int getLetterboxBackgroundColorInArgb();
+
+    /**
+     * Whether the outer area of the letterbox has multiple colors (e.g. blurred background).
+     * Should be called by SystemUI when computing the letterbox appearance for status bar
+     * treatment.
+     */
+    boolean isLetterboxBackgroundMultiColored();
 }

@@ -706,7 +706,7 @@ class ShortcutPackage extends ShortcutPackageItem {
             }
             pinnedShortcuts.addAll(pinned);
         });
-        // Then, update the pinned state if necessary.
+        // Secondly, update the pinned state if necessary.
         final List<ShortcutInfo> pinned = findAll(pinnedShortcuts);
         if (pinned != null) {
             pinned.forEach(si -> {
@@ -720,6 +720,8 @@ class ShortcutPackage extends ShortcutPackageItem {
                 si.clearFlags(ShortcutInfo.FLAG_PINNED);
             }
         });
+        // Then, schedule a background job to persist the pinned states.
+        mShortcutUser.forAllLaunchers(ShortcutPackageItem::scheduleSave);
 
         // Lastly, remove the ones that are no longer pinned, cached nor dynamic.
         removeOrphans();
@@ -1960,10 +1962,15 @@ class ShortcutPackage extends ShortcutPackageItem {
 
                             continue;
                         case TAG_SHORTCUT:
-                            final ShortcutInfo si = parseShortcut(parser, packageName,
-                                    shortcutUser.getUserId(), fromBackup);
-                            // Don't use addShortcut(), we don't need to save the icon.
-                            ret.mShortcuts.put(si.getId(), si);
+                            try {
+                                final ShortcutInfo si = parseShortcut(parser, packageName,
+                                        shortcutUser.getUserId(), fromBackup);
+                                // Don't use addShortcut(), we don't need to save the icon.
+                                ret.mShortcuts.put(si.getId(), si);
+                            } catch (Exception e) {
+                                // b/246540168 malformed shortcuts should be ignored
+                                Slog.e(TAG, "Failed parsing shortcut.", e);
+                            }
                             continue;
                         case TAG_SHARE_TARGET:
                             ret.mShareTargets.add(ShareTargetInfo.loadFromXml(parser));

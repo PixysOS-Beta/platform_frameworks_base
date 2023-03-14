@@ -108,8 +108,13 @@ class UserTrackerImpl internal constructor(
 
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_USER_SWITCHED)
+            addAction(Intent.ACTION_USER_INFO_CHANGED)
+            // These get called when a managed profile goes in or out of quiet mode.
             addAction(Intent.ACTION_MANAGED_PROFILE_AVAILABLE)
+            addAction(Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE)
+            addAction(Intent.ACTION_MANAGED_PROFILE_ADDED)
             addAction(Intent.ACTION_MANAGED_PROFILE_REMOVED)
+            addAction(Intent.ACTION_MANAGED_PROFILE_UNLOCKED)
         }
         context.registerReceiverForAllUsers(this, filter, null /* permission */, backgroundHandler)
 
@@ -121,7 +126,12 @@ class UserTrackerImpl internal constructor(
             Intent.ACTION_USER_SWITCHED -> {
                 handleSwitchUser(intent.getIntExtra(Intent.EXTRA_USER_HANDLE, UserHandle.USER_NULL))
             }
-            Intent.ACTION_MANAGED_PROFILE_AVAILABLE, Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE -> {
+            Intent.ACTION_USER_INFO_CHANGED,
+            Intent.ACTION_MANAGED_PROFILE_AVAILABLE,
+            Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE,
+            Intent.ACTION_MANAGED_PROFILE_ADDED,
+            Intent.ACTION_MANAGED_PROFILE_REMOVED,
+            Intent.ACTION_MANAGED_PROFILE_UNLOCKED -> {
                 handleProfilesChanged()
             }
         }
@@ -208,7 +218,7 @@ class UserTrackerImpl internal constructor(
         pw.println("Initialized: $initialized")
         if (initialized) {
             pw.println("userId: $userId")
-            val ids = userProfiles.map { it.id }
+            val ids = userProfiles.map { it.toFullString() }
             pw.println("userProfiles: $ids")
         }
         val list = synchronized(callbacks) {

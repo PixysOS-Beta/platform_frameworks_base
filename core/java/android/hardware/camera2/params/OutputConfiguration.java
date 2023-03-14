@@ -159,14 +159,24 @@ public final class OutputConfiguration implements Parcelable {
      *
      * <li> For a SurfaceView output surface, the timestamp base is {@link
      * #TIMESTAMP_BASE_CHOREOGRAPHER_SYNCED}. The timestamp is overridden with choreographer
-     * pulses from the display subsystem for smoother display of camera frames. The timestamp
-     * is roughly in the same time base as {@link android.os.SystemClock#uptimeMillis}.</li>
+     * pulses from the display subsystem for smoother display of camera frames when the camera
+     * device runs in fixed frame rate. The timestamp is roughly in the same time base as
+     * {@link android.os.SystemClock#uptimeMillis}.</li>
      * <li> For an output surface of MediaRecorder, MediaCodec, or ImageReader with {@link
      * android.hardware.HardwareBuffer#USAGE_VIDEO_ENCODE} usge flag, the timestamp base is
      * {@link #TIMESTAMP_BASE_MONOTONIC}, which is roughly the same time base as
      * {@link android.os.SystemClock#uptimeMillis}.</li>
      * <li> For all other cases, the timestamp base is {@link #TIMESTAMP_BASE_SENSOR}, the same
-     * as what's specified by {@link CameraCharacteristics#SENSOR_INFO_TIMESTAMP_SOURCE}.</li>
+     * as what's specified by {@link CameraCharacteristics#SENSOR_INFO_TIMESTAMP_SOURCE}.
+     * <ul><li> For a SurfaceTexture output surface, the camera system re-spaces the delivery
+     * of output frames based on image readout intervals, reducing viewfinder jitter. The timestamps
+     * of images remain to be {@link #TIMESTAMP_BASE_SENSOR}.</li></ul></li>
+     *
+     * <p>Note that the reduction of frame jitter for SurfaceView and SurfaceTexture comes with
+     * slight increase in photon-to-photon latency, which is the time from when photons hit the
+     * scene to when the corresponding pixels show up on the screen. If the photon-to-photon latency
+     * is more important than the smoothness of viewfinder, {@link #TIMESTAMP_BASE_SENSOR} should be
+     * used instead.</p>
      *
      * @see #TIMESTAMP_BASE_CHOREOGRAPHER_SYNCED
      * @see #TIMESTAMP_BASE_MONOTONIC
@@ -222,7 +232,8 @@ public final class OutputConfiguration implements Parcelable {
      *
      * <p>The timestamp of the output images are overridden with choreographer pulses from the
      * display subsystem for smoother display of camera frames. An output target of SurfaceView
-     * uses this time base by default.</p>
+     * uses this time base by default. Note that the timestamp override is done for fixed camera
+     * frame rate only.</p>
      *
      * <p>This timestamp base isn't applicable to SurfaceTexture targets. SurfaceTexture's
      * {@link android.graphics.SurfaceTexture#updateTexImage updateTexImage} function always

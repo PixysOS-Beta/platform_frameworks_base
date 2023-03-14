@@ -16,18 +16,23 @@
 
 package com.android.server.statusbar;
 
+import static android.Manifest.permission.CONTROL_DEVICE_STATE;
+import static android.Manifest.permission.INTERACT_ACROSS_USERS;
+import static android.Manifest.permission.INTERACT_ACROSS_USERS_FULL;
 import static android.app.StatusBarManager.DISABLE2_GLOBAL_ACTIONS;
 import static android.app.StatusBarManager.DISABLE2_NOTIFICATION_SHADE;
 import static android.app.StatusBarManager.NAV_BAR_MODE_DEFAULT;
 import static android.app.StatusBarManager.NAV_BAR_MODE_KIDS;
 import static android.app.StatusBarManager.NavBarMode;
 import static android.app.StatusBarManager.SessionFlags;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_3BUTTON_OVERLAY;
 
 import android.Manifest;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
+import android.annotation.RequiresPermission;
 import android.app.ActivityManager;
 import android.app.ActivityManagerInternal;
 import android.app.ActivityThread;
@@ -62,7 +67,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
 import android.os.Process;
 import android.os.RemoteException;
@@ -96,6 +100,7 @@ import com.android.internal.statusbar.ISessionListener;
 import com.android.internal.statusbar.IStatusBar;
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.internal.statusbar.IUndoMediaTransferCallback;
+import com.android.internal.statusbar.LetterboxDetails;
 import com.android.internal.statusbar.NotificationVisibility;
 import com.android.internal.statusbar.RegisterStatusBarResult;
 import com.android.internal.statusbar.StatusBarIcon;
@@ -596,13 +601,15 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
         public void onSystemBarAttributesChanged(int displayId, @Appearance int appearance,
                 AppearanceRegion[] appearanceRegions, boolean navbarColorManagedByIme,
                 @Behavior int behavior, InsetsVisibilities requestedVisibilities,
-                String packageName) {
+                String packageName, LetterboxDetails[] letterboxDetails) {
             getUiState(displayId).setBarAttributes(appearance, appearanceRegions,
-                    navbarColorManagedByIme, behavior, requestedVisibilities, packageName);
+                    navbarColorManagedByIme, behavior, requestedVisibilities, packageName,
+                    letterboxDetails);
             if (mBar != null) {
                 try {
                     mBar.onSystemBarAttributesChanged(displayId, appearance, appearanceRegions,
-                            navbarColorManagedByIme, behavior, requestedVisibilities, packageName);
+                            navbarColorManagedByIme, behavior, requestedVisibilities, packageName,
+                            letterboxDetails);
                 } catch (RemoteException ex) { }
             }
         }
@@ -631,10 +638,11 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
         @Override
         public void showToast(int uid, String packageName, IBinder token, CharSequence text,
                 IBinder windowToken, int duration,
-                @Nullable ITransientNotificationCallback callback) {
+                @Nullable ITransientNotificationCallback callback, int displayId) {
             if (mBar != null) {
                 try {
-                    mBar.showToast(uid, packageName, token, text, windowToken, duration, callback);
+                    mBar.showToast(uid, packageName, token, text, windowToken, duration, callback,
+                            displayId);
                 } catch (RemoteException ex) { }
             }
         }
@@ -660,15 +668,6 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
         }
 
         @Override
-        public void handleWindowManagerLoggingCommand(String[] args, ParcelFileDescriptor outFd) {
-            if (mBar != null) {
-                try {
-                    mBar.handleWindowManagerLoggingCommand(args, outFd);
-                } catch (RemoteException ex) { }
-            }
-        }
-
-        @Override
         public void setNavigationBarLumaSamplingEnabled(int displayId, boolean enable) {
             if (mBar != null) {
                 try {
@@ -685,6 +684,33 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
             if (mBar != null) {
                 try {
                     mBar.setUdfpsHbmListener(listener);
+                } catch (RemoteException ex) { }
+            }
+        }
+
+        @Override
+        public void showRearDisplayDialog(int currentBaseState) {
+            if (mBar != null) {
+                try {
+                    mBar.showRearDisplayDialog(currentBaseState);
+                } catch (RemoteException ex) { }
+            }
+        }
+
+        @Override
+        public void goToFullscreenFromSplit() {
+            if (mBar != null) {
+                try {
+                    mBar.goToFullscreenFromSplit();
+                } catch (RemoteException ex) { }
+            }
+        }
+
+        @Override
+        public void enterStageSplitFromRunningApp(boolean leftOrTop) {
+            if (mBar != null) {
+                try {
+                    mBar.enterStageSplitFromRunningApp(leftOrTop);
                 } catch (RemoteException ex) { }
             }
         }
@@ -1203,17 +1229,20 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
         private int mImeBackDisposition = 0;
         private boolean mShowImeSwitcher = false;
         private IBinder mImeToken = null;
+        private LetterboxDetails[] mLetterboxDetails = new LetterboxDetails[0];
 
         private void setBarAttributes(@Appearance int appearance,
                 AppearanceRegion[] appearanceRegions, boolean navbarColorManagedByIme,
                 @Behavior int behavior, InsetsVisibilities requestedVisibilities,
-                String packageName) {
+                String packageName,
+                LetterboxDetails[] letterboxDetails) {
             mAppearance = appearance;
             mAppearanceRegions = appearanceRegions;
             mNavbarColorManagedByIme = navbarColorManagedByIme;
             mBehavior = behavior;
             mRequestedVisibilities = requestedVisibilities;
             mPackageName = packageName;
+            mLetterboxDetails = letterboxDetails;
         }
 
         private void showTransient(@InternalInsetsType int[] types) {
@@ -1288,18 +1317,28 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
                 "StatusBarManagerService");
     }
 
+    @RequiresPermission(android.Manifest.permission.CONTROL_DEVICE_STATE)
+    private void enforceControlDeviceStatePermission() {
+        mContext.enforceCallingOrSelfPermission(CONTROL_DEVICE_STATE, "StatusBarManagerService");
+    }
+
+    private boolean doesCallerHoldInteractAcrossUserPermission() {
+        return mContext.checkCallingPermission(INTERACT_ACROSS_USERS_FULL) == PERMISSION_GRANTED
+                || mContext.checkCallingPermission(INTERACT_ACROSS_USERS) == PERMISSION_GRANTED;
+    }
+
     /**
      *  For targetSdk S+ we require STATUS_BAR. For targetSdk < S, we only require EXPAND_STATUS_BAR
      *  but also require that it falls into one of the allowed use-cases to lock down abuse vector.
      */
     private boolean checkCanCollapseStatusBar(String method) {
         int uid = Binder.getCallingUid();
-        int pid = Binder.getCallingUid();
+        int pid = Binder.getCallingPid();
         if (CompatChanges.isChangeEnabled(LOCK_DOWN_COLLAPSE_STATUS_BAR, uid)) {
             enforceStatusBar();
         } else {
             if (mContext.checkPermission(Manifest.permission.STATUS_BAR, pid, uid)
-                    != PackageManager.PERMISSION_GRANTED) {
+                    != PERMISSION_GRANTED) {
                 enforceExpandStatusBar();
                 if (!mActivityTaskManager.canCloseSystemDialogs(pid, uid)) {
                     Slog.e(TAG, "Permission Denial: Method " + method + "() requires permission "
@@ -1340,7 +1379,7 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
                     state.mImeBackDisposition, state.mShowImeSwitcher,
                     gatherDisableActionsLocked(mCurrentUserId, 2), state.mImeToken,
                     state.mNavbarColorManagedByIme, state.mBehavior, state.mRequestedVisibilities,
-                    state.mPackageName, transientBarTypes);
+                    state.mPackageName, transientBarTypes, state.mLetterboxDetails);
         }
     }
 
@@ -2005,6 +2044,11 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
         }
 
         final int userId = mCurrentUserId;
+        final int callingUserId = UserHandle.getUserId(Binder.getCallingUid());
+        if (mCurrentUserId != callingUserId && !doesCallerHoldInteractAcrossUserPermission()) {
+            throw new SecurityException("Calling user id: " + callingUserId
+                    + ", cannot call on behalf of current user id: " + mCurrentUserId + ".");
+        }
         final long userIdentity = Binder.clearCallingIdentity();
         try {
             Settings.Secure.putIntForUser(mContext.getContentResolver(),
@@ -2161,6 +2205,19 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.CONTROL_DEVICE_STATE)
+    @Override
+    public void showRearDisplayDialog(int currentState) {
+        enforceControlDeviceStatePermission();
+        if (mBar != null) {
+            try {
+                mBar.showRearDisplayDialog(currentState);
+            } catch (RemoteException e) {
+                Slog.e(TAG, "showRearDisplayDialog", e);
+            }
+        }
+    }
+
     /** @hide */
     public void passThroughShellCommand(String[] args, FileDescriptor fd) {
         enforceStatusBarOrShell();
@@ -2256,6 +2313,25 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
 
     protected void dump(FileDescriptor fd, PrintWriter pw, String[] args) {
         if (!DumpUtils.checkDumpPermission(mContext, TAG, pw)) return;
+        boolean proto = false;
+        for (int i = 0; i < args.length; i++) {
+            if ("--proto".equals(args[i])) {
+                proto = true;
+            }
+        }
+        if (proto) {
+            if (mBar == null)  return;
+            try (TransferPipe tp = new TransferPipe()) {
+                // Sending the command to the remote, which needs to execute async to avoid blocking
+                // See Binder#dumpAsync() for inspiration
+                mBar.dumpProto(args, tp.getWriteFd());
+                // Times out after 5s
+                tp.go(fd);
+            } catch (Throwable t) {
+                Slog.e(TAG, "Error sending command to IStatusBar", t);
+            }
+            return;
+        }
 
         synchronized (mLock) {
             for (int i = 0; i < mDisplayUiState.size(); i++) {

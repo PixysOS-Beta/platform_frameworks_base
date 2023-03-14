@@ -43,13 +43,13 @@ import com.android.internal.logging.UiEventLogger;
 import com.android.internal.widget.RemeasuringLinearLayout;
 import com.android.systemui.R;
 import com.android.systemui.plugins.qs.QSTile;
+import com.android.systemui.qs.logging.QSLogger;
 import com.android.systemui.settings.brightness.BrightnessSliderController;
 import com.android.systemui.tuner.TunerService;
 import com.android.systemui.tuner.TunerService.Tunable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /** View that represents the quick settings tile panel (when expanded/pulled down). **/
 public class QSPanel extends LinearLayout implements Tunable {
@@ -106,6 +106,8 @@ public class QSPanel extends LinearLayout implements Tunable {
     private final Rect mClippingRect = new Rect();
     private ViewGroup mMediaHostView;
     private boolean mShouldMoveMediaOnExpansion = true;
+    private boolean mUsingCombinedHeaders = false;
+    private QSLogger mQsLogger;
 
     public QSPanel(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -122,12 +124,15 @@ public class QSPanel extends LinearLayout implements Tunable {
 
     }
 
-    void initialize() {
+    void initialize(QSLogger qsLogger) {
+        mQsLogger = qsLogger;
         mTileLayout = getOrCreateTileLayout();
 
         if (mUsingMediaPlayer) {
             mHorizontalLinearLayout = new RemeasuringLinearLayout(mContext);
             mHorizontalLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
+            mHorizontalLinearLayout.setVisibility(
+                    mUsingHorizontalLayout ? View.VISIBLE : View.GONE);
             mHorizontalLinearLayout.setClipChildren(false);
             mHorizontalLinearLayout.setClipToPadding(false);
 
@@ -147,19 +152,25 @@ public class QSPanel extends LinearLayout implements Tunable {
         }
     }
 
+    void setUsingCombinedHeaders(boolean usingCombinedHeaders) {
+        mUsingCombinedHeaders = usingCombinedHeaders;
+    }
+
     protected void setHorizontalContentContainerClipping() {
         mHorizontalContentContainer.setClipChildren(true);
         mHorizontalContentContainer.setClipToPadding(false);
         // Don't clip on the top, that way, secondary pages tiles can animate up
+        // Clipping coordinates should be relative to this view, not absolute (parent coordinates)
         mHorizontalContentContainer.addOnLayoutChangeListener(
                 (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-                    if (left != oldLeft || right != oldRight || bottom != oldBottom) {
-                        mClippingRect.left = left;
-                        mClippingRect.right = right;
-                        mClippingRect.bottom = bottom;
+                    if ((right - left) != (oldRight - oldLeft)
+                            || ((bottom - top) != (oldBottom - oldTop))) {
+                        mClippingRect.right = right - left;
+                        mClippingRect.bottom = bottom - top;
                         mHorizontalContentContainer.setClipBounds(mClippingRect);
                     }
                 });
+        mClippingRect.left = 0;
         mClippingRect.top = -1000;
         mHorizontalContentContainer.setClipBounds(mClippingRect);
     }
@@ -198,6 +209,7 @@ public class QSPanel extends LinearLayout implements Tunable {
         if (mTileLayout == null) {
             mTileLayout = (QSTileLayout) LayoutInflater.from(mContext)
                     .inflate(R.layout.qs_paged_tile_layout, this, false);
+            mTileLayout.setLogger(mQsLogger);
             mTileLayout.setSquishinessFraction(mSquishinessFraction);
         }
         return mTileLayout;
@@ -287,7 +299,16 @@ public class QSPanel extends LinearLayout implements Tunable {
                 } else {
                     topOffset = tileHeightOffset;
                 }
-                int top = Objects.requireNonNull(mChildrenLayoutTop.get(child));
+                // Animation can occur before the layout pass, meaning setSquishinessFraction() gets
+                // called before onLayout(). So, a child view could be null because it has not
+                // been added to mChildrenLayoutTop yet (which happens in onLayout()).
+                // We use a continue statement here to catch this NPE because, on the layout pass,
+                // this code will be called again from onLayout() with the populated children views.
+                Integer childLayoutTop = mChildrenLayoutTop.get(child);
+                if (childLayoutTop == null) {
+                    continue;
+                }
+                int top = childLayoutTop;
                 child.setLeftTopRightBottom(child.getLeft(), top + topOffset,
                         child.getRight(), top + topOffset + child.getHeight());
             }
@@ -359,12 +380,14 @@ public class QSPanel extends LinearLayout implements Tunable {
 
     protected void updatePadding() {
         final Resources res = mContext.getResources();
-        int paddingTop = res.getDimensionPixelSize(R.dimen.qs_panel_padding_top);
-        // Bottom padding only when there's a new footer with its height.
+        int paddingTop = res.getDimensionPixelSize(
+                mUsingCombinedHeaders ? R.dimen.qs_panel_padding_top_combined_headers
+                        : R.dimen.qs_panel_padding_top);
+        int paddingBottom = res.getDimensionPixelSize(R.dimen.qs_panel_padding_bottom);
         setPaddingRelative(getPaddingStart(),
                 paddingTop,
                 getPaddingEnd(),
-                getPaddingBottom());
+                paddingBottom);
     }
 
     void addOnConfigurationChangedListener(OnConfigurationChangedListener listener) {
@@ -443,6 +466,8 @@ public class QSPanel extends LinearLayout implements Tunable {
         mMediaHostView = hostView;
         ViewGroup newParent = horizontal ? mHorizontalLinearLayout : this;
         ViewGroup currentParent = (ViewGroup) hostView.getParent();
+        Log.d(getDumpableTag(), "Reattaching media host: " + horizontal
+                + ", current " + currentParent + ", new " + newParent);
         if (currentParent != newParent) {
             if (currentParent != null) {
                 currentParent.removeView(hostView);
@@ -459,6 +484,8 @@ public class QSPanel extends LinearLayout implements Tunable {
                     ? Math.max(mMediaTotalBottomMargin - getPaddingBottom(), 0) : 0;
             layoutParams.topMargin = mediaNeedsTopMargin() && !horizontal
                     ? mMediaTopMargin : 0;
+            // Call setLayoutParams explicitly to ensure that requestLayout happens
+            hostView.setLayoutParams(layoutParams);
         }
     }
 
@@ -587,6 +614,7 @@ public class QSPanel extends LinearLayout implements Tunable {
 
     void setUsingHorizontalLayout(boolean horizontal, ViewGroup mediaHostView, boolean force) {
         if (horizontal != mUsingHorizontalLayout || force) {
+            Log.d(getDumpableTag(), "setUsingHorizontalLayout: " + horizontal + ", " + force);
             mUsingHorizontalLayout = horizontal;
             ViewGroup newParent = horizontal ? mHorizontalContentContainer : this;
             switchAllContentToParent(newParent, mTileLayout);
@@ -711,6 +739,8 @@ public class QSPanel extends LinearLayout implements Tunable {
         default void setExpansion(float expansion, float proposedTranslation) {}
 
         int getNumVisibleTiles();
+
+        default void setLogger(QSLogger qsLogger) { }
     }
 
     interface OnConfigurationChangedListener {

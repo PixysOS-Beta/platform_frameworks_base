@@ -336,6 +336,59 @@ public class SystemConfigTest {
         assertThat(mSysConfig.getAllowedVendorApexes()).isEmpty();
     }
 
+    /**
+     * Tests that readPermissions works correctly for the tag: {@code install-constraints-allowed}.
+     */
+    @Test
+    public void readPermissions_installConstraints_successful() throws IOException {
+        final String contents =
+                "<config>\n"
+                        + "    <install-constraints-allowed package=\"com.android.apex1\" />\n"
+                        + "</config>";
+        final File folder = createTempSubfolder("folder");
+        createTempFile(folder, "install-constraints-allowlist.xml", contents);
+
+        readPermissions(folder, /* Grant all permission flags */ ~0);
+
+        assertThat(mSysConfig.getInstallConstraintsAllowlist())
+                .containsExactly("com.android.apex1");
+    }
+
+    /**
+     * Tests that readPermissions works correctly for the tag: {@code install-constraints-allowed}.
+     */
+    @Test
+    public void readPermissions_installConstraints_noPackage() throws IOException {
+        final String contents =
+                "<config>\n"
+                        + "    <install-constraints-allowed/>\n"
+                        + "</config>";
+        final File folder = createTempSubfolder("folder");
+        createTempFile(folder, "install-constraints-allowlist.xml", contents);
+
+        readPermissions(folder, /* Grant all permission flags */ ~0);
+
+        assertThat(mSysConfig.getInstallConstraintsAllowlist()).isEmpty();
+    }
+
+    /**
+     * Tests that readPermissions works correctly for the tag {@code install-constraints-allowed}
+     * without {@link SystemConfig#ALLOW_VENDOR_APEX}.
+     */
+    @Test
+    public void readPermissions_installConstraints_noAppConfigs() throws IOException {
+        final String contents =
+                "<config>\n"
+                        + "    <install-constraints-allowed package=\"com.android.apex1\" />\n"
+                        + "</config>";
+        final File folder = createTempSubfolder("folder");
+        createTempFile(folder, "install-constraints-allowlist.xml", contents);
+
+        readPermissions(folder,  /* Grant all but ALLOW_APP_CONFIGS flag */ ~0x08);
+
+        assertThat(mSysConfig.getInstallConstraintsAllowlist()).isEmpty();
+    }
+
     @Test
     public void readApexPrivAppPermissions_addAllPermissions()
             throws Exception {
@@ -358,67 +411,6 @@ public class SystemConfigTest {
         assertThat(mSysConfig.getApexPrivAppDenyPermissions("com.android.my_module",
                 "com.android.apk_in_apex"))
             .containsExactly("android.permission.BAR");
-    }
-
-    @Test
-    public void pruneVendorApexPrivappAllowlists_removeVendor()
-            throws Exception {
-        File apexDir = createTempSubfolder("apex");
-
-        // Read non-vendor apex permission allowlists
-        final String allowlistNonVendorContents =
-                "<privapp-permissions package=\"com.android.apk_in_non_vendor_apex\">"
-                        + "<permission name=\"android.permission.FOO\"/>"
-                        + "<deny-permission name=\"android.permission.BAR\"/>"
-                        + "</privapp-permissions>";
-        File nonVendorPermDir =
-                createTempSubfolder("apex/com.android.non_vendor/etc/permissions");
-        File nonVendorPermissionFile =
-                createTempFile(nonVendorPermDir, "permissions.xml", allowlistNonVendorContents);
-        XmlPullParser nonVendorParser = readXmlUntilStartTag(nonVendorPermissionFile);
-        mSysConfig.readApexPrivAppPermissions(nonVendorParser, nonVendorPermissionFile,
-                apexDir.toPath());
-
-        // Read vendor apex permission allowlists
-        final String allowlistVendorContents =
-                "<privapp-permissions package=\"com.android.apk_in_vendor_apex\">"
-                        + "<permission name=\"android.permission.BAZ\"/>"
-                        + "<deny-permission name=\"android.permission.BAT\"/>"
-                        + "</privapp-permissions>";
-        File vendorPermissionFile =
-                createTempFile(createTempSubfolder("apex/com.android.vendor/etc/permissions"),
-                        "permissions.xml", allowlistNonVendorContents);
-        XmlPullParser vendorParser = readXmlUntilStartTag(vendorPermissionFile);
-        mSysConfig.readApexPrivAppPermissions(vendorParser, vendorPermissionFile,
-                apexDir.toPath());
-
-        // Read allowed vendor apex list
-        final String allowedVendorContents =
-                "<config>\n"
-                        + "    <allowed-vendor-apex package=\"com.android.vendor\" "
-                        + "installerPackage=\"com.installer\" />\n"
-                        + "</config>";
-        final File allowedVendorFolder = createTempSubfolder("folder");
-        createTempFile(allowedVendorFolder, "vendor-apex-allowlist.xml", allowedVendorContents);
-        readPermissions(allowedVendorFolder, /* Grant all permission flags */ ~0);
-
-        // Finally, prune non-vendor allowlists.
-        // There is no guarantee in which order the above reads will be done, however pruning
-        // will always happen last.
-        mSysConfig.pruneVendorApexPrivappAllowlists();
-
-        assertThat(mSysConfig.getApexPrivAppPermissions("com.android.non_vendor",
-                "com.android.apk_in_non_vendor_apex"))
-            .containsExactly("android.permission.FOO");
-        assertThat(mSysConfig.getApexPrivAppDenyPermissions("com.android.non_vendor",
-                "com.android.apk_in_non_vendor_apex"))
-            .containsExactly("android.permission.BAR");
-        assertThat(mSysConfig.getApexPrivAppPermissions("com.android.vendor",
-                "com.android.apk_in_vendor_apex"))
-            .isNull();
-        assertThat(mSysConfig.getApexPrivAppDenyPermissions("com.android.vendor",
-                "com.android.apk_in_vendor_apex"))
-            .isNull();
     }
 
     /**
@@ -454,14 +446,14 @@ public class SystemConfigTest {
                         + "    <library \n"
                         + "        name=\"foo\"\n"
                         + "        file=\"" + mFooJar + "\"\n"
-                        + "        on-bootclasspath-before=\"A\"\n"
+                        + "        on-bootclasspath-before=\"Q\"\n"
                         + "        on-bootclasspath-since=\"W\"\n"
                         + "     />\n\n"
                         + " </permissions>";
         parseSharedLibraries(contents);
         assertFooIsOnlySharedLibrary();
         SystemConfig.SharedLibraryEntry entry = mSysConfig.getSharedLibraries().get("foo");
-        assertThat(entry.onBootclasspathBefore).isEqualTo("A");
+        assertThat(entry.onBootclasspathBefore).isEqualTo("Q");
         assertThat(entry.onBootclasspathSince).isEqualTo("W");
     }
 

@@ -36,6 +36,7 @@ import android.net.ConnectivityManager;
 import android.net.INetworkManagementEventObserver;
 import android.net.Network;
 import android.net.NetworkCapabilities;
+import android.os.BatteryConsumer;
 import android.os.BatteryManagerInternal;
 import android.os.BatteryStats;
 import android.os.BatteryStatsInternal;
@@ -798,6 +799,7 @@ public final class BatteryStatsService extends IBatteryStats.Stub
                 case FrameworkStatsLog.BATTERY_USAGE_STATS_SINCE_RESET:
                     final BatteryUsageStatsQuery querySinceReset =
                             new BatteryUsageStatsQuery.Builder()
+                                    .setMaxStatsAgeMs(0)
                                     .includeProcessStateData()
                                     .includeVirtualUids()
                                     .build();
@@ -806,6 +808,7 @@ public final class BatteryStatsService extends IBatteryStats.Stub
                 case FrameworkStatsLog.BATTERY_USAGE_STATS_SINCE_RESET_USING_POWER_PROFILE_MODEL:
                     final BatteryUsageStatsQuery queryPowerProfile =
                             new BatteryUsageStatsQuery.Builder()
+                                    .setMaxStatsAgeMs(0)
                                     .includeProcessStateData()
                                     .includeVirtualUids()
                                     .powerProfileModeledOnly()
@@ -822,6 +825,7 @@ public final class BatteryStatsService extends IBatteryStats.Stub
                     final long sessionEnd = mStats.getStartClockTime();
                     final BatteryUsageStatsQuery queryBeforeReset =
                             new BatteryUsageStatsQuery.Builder()
+                                    .setMaxStatsAgeMs(0)
                                     .includeProcessStateData()
                                     .includeVirtualUids()
                                     .aggregateSnapshots(sessionStart, sessionEnd)
@@ -2260,7 +2264,8 @@ public final class BatteryStatsService extends IBatteryStats.Stub
     private void dumpHelp(PrintWriter pw) {
         pw.println("Battery stats (batterystats) dump options:");
         pw.println("  [--checkin] [--proto] [--history] [--history-start] [--charged] [-c]");
-        pw.println("  [--daily] [--reset] [--write] [--new-daily] [--read-daily] [-h] [<package.name>]");
+        pw.println("  [--daily] [--reset] [--reset-all] [--write] [--new-daily] [--read-daily]");
+        pw.println("  [-h] [<package.name>]");
         pw.println("  --checkin: generate output for a checkin report; will write (and clear) the");
         pw.println("             last old completed stats when they had been reset.");
         pw.println("  -c: write the current stats in checkin format.");
@@ -2271,12 +2276,17 @@ public final class BatteryStatsService extends IBatteryStats.Stub
         pw.println("  --charged: only output data since last charged.");
         pw.println("  --daily: only output full daily data.");
         pw.println("  --reset: reset the stats, clearing all current data.");
+        pw.println("  --reset-all: reset the stats, clearing all current and past data.");
         pw.println("  --write: force write current collected stats to disk.");
         pw.println("  --new-daily: immediately create and write new daily stats record.");
         pw.println("  --read-daily: read-load last written daily stats.");
         pw.println("  --settings: dump the settings key/values related to batterystats");
         pw.println("  --cpu: dump cpu stats for debugging purpose");
         pw.println("  --power-profile: dump the power profile constants");
+        pw.println("  --usage: write battery usage stats. Optional arguments:");
+        pw.println("     --proto: output as a binary protobuffer");
+        pw.println("     --model power-profile: use the power profile model"
+                + " even if measured energy is available");
         pw.println("  <package.name>: optional name of package to filter output by.");
         pw.println("  -h: print this help text.");
         pw.println("Battery stats (batterystats) commands:");
@@ -2317,6 +2327,31 @@ public final class BatteryStatsService extends IBatteryStats.Stub
     private void dumpPowerProfile(PrintWriter pw) {
         synchronized (mStats) {
             mStats.dumpPowerProfileLocked(pw);
+        }
+    }
+
+    private void dumpUsageStatsToProto(FileDescriptor fd, PrintWriter pw, int model,
+            boolean proto) {
+        awaitCompletion();
+        syncStats("dump", BatteryExternalStatsWorker.UPDATE_ALL);
+
+        BatteryUsageStatsQuery.Builder builder = new BatteryUsageStatsQuery.Builder()
+                .setMaxStatsAgeMs(0)
+                .includeProcessStateData()
+                .includePowerModels();
+        if (model == BatteryConsumer.POWER_MODEL_POWER_PROFILE) {
+            builder.powerProfileModeledOnly();
+        }
+        BatteryUsageStatsQuery query = builder.build();
+        synchronized (mStats) {
+            mStats.prepareForDumpLocked();
+            BatteryUsageStats batteryUsageStats =
+                    mBatteryUsageStatsProvider.getBatteryUsageStats(query);
+            if (proto) {
+                batteryUsageStats.dumpToProto(fd);
+            } else {
+                batteryUsageStats.dump(pw, "");
+            }
         }
     }
 
@@ -2407,6 +2442,14 @@ public final class BatteryStatsService extends IBatteryStats.Stub
                     flags |= BatteryStats.DUMP_CHARGED_ONLY;
                 } else if ("--daily".equals(arg)) {
                     flags |= BatteryStats.DUMP_DAILY_ONLY;
+                } else if ("--reset-all".equals(arg)) {
+                    awaitCompletion();
+                    synchronized (mStats) {
+                        mStats.resetAllStatsCmdLocked();
+                        mBatteryUsageStatsStore.removeAllSnapshots();
+                        pw.println("Battery stats and history reset.");
+                        noOutput = true;
+                    }
                 } else if ("--reset".equals(arg)) {
                     awaitCompletion();
                     synchronized (mStats) {
@@ -2464,6 +2507,35 @@ public final class BatteryStatsService extends IBatteryStats.Stub
                     return;
                 } else if ("--power-profile".equals(arg)) {
                     dumpPowerProfile(pw);
+                    return;
+                } else if ("--usage".equals(arg)) {
+                    int model = BatteryConsumer.POWER_MODEL_UNDEFINED;
+                    boolean proto = false;
+                    for (int j = i + 1; j < args.length; j++) {
+                        switch (args[j]) {
+                            case "--proto":
+                                proto = true;
+                                break;
+                            case "--model": {
+                                if (j + 1 < args.length) {
+                                    j++;
+                                    if ("power-profile".equals(args[j])) {
+                                        model = BatteryConsumer.POWER_MODEL_POWER_PROFILE;
+                                    } else {
+                                        pw.println("Unknown power model: " + args[j]);
+                                        dumpHelp(pw);
+                                        return;
+                                    }
+                                } else {
+                                    pw.println("--model without a value");
+                                    dumpHelp(pw);
+                                    return;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    dumpUsageStatsToProto(fd, pw, model, proto);
                     return;
                 } else if ("-a".equals(arg)) {
                     flags |= BatteryStats.DUMP_VERBOSE;

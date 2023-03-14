@@ -30,6 +30,9 @@ import com.android.settingslib.widget.AdaptiveOutlineDrawable;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BluetoothUtils {
     private static final String TAG = "BluetoothUtils";
@@ -39,6 +42,8 @@ public class BluetoothUtils {
 
     public static final int META_INT_ERROR = -1;
     public static final String BT_ADVANCED_HEADER_ENABLED = "bt_advanced_header_enabled";
+    private static final int METADATA_FAST_PAIR_CUSTOMIZED_FIELDS = 25;
+    private static final String KEY_HEARABLE_CONTROL_SLICE = "HEARABLE_CONTROL_SLICE_WITH_WIDTH";
 
     private static ErrorListener sErrorListener;
 
@@ -232,14 +237,10 @@ public class BluetoothUtils {
      * @return true if it supports advanced metadata, false otherwise.
      */
     public static boolean isAdvancedDetailsHeader(@NonNull BluetoothDevice bluetoothDevice) {
-        if (!DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_SETTINGS_UI, BT_ADVANCED_HEADER_ENABLED,
-                true)) {
-            Log.d(TAG, "isAdvancedDetailsHeader: advancedEnabled is false");
+        if (!isAdvancedHeaderEnabled()) {
             return false;
         }
-        // The metadata is for Android R
-        if (getBooleanMetaData(bluetoothDevice, BluetoothDevice.METADATA_IS_UNTETHERED_HEADSET)) {
-            Log.d(TAG, "isAdvancedDetailsHeader: untetheredHeadset is true");
+        if (isUntetheredHeadset(bluetoothDevice)) {
             return true;
         }
         // The metadata is for Android S
@@ -249,6 +250,47 @@ public class BluetoothUtils {
                 || TextUtils.equals(deviceType, BluetoothDevice.DEVICE_TYPE_WATCH)
                 || TextUtils.equals(deviceType, BluetoothDevice.DEVICE_TYPE_DEFAULT)) {
             Log.d(TAG, "isAdvancedDetailsHeader: deviceType is " + deviceType);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check if the Bluetooth device is supports advanced metadata and an untethered headset
+     *
+     * @param bluetoothDevice the BluetoothDevice to get metadata
+     * @return true if it supports advanced metadata and an untethered headset, false otherwise.
+     */
+    public static boolean isAdvancedUntetheredDevice(@NonNull BluetoothDevice bluetoothDevice) {
+        if (!isAdvancedHeaderEnabled()) {
+            return false;
+        }
+        if (isUntetheredHeadset(bluetoothDevice)) {
+            return true;
+        }
+        // The metadata is for Android S
+        String deviceType = getStringMetaData(bluetoothDevice,
+                BluetoothDevice.METADATA_DEVICE_TYPE);
+        if (TextUtils.equals(deviceType, BluetoothDevice.DEVICE_TYPE_UNTETHERED_HEADSET)) {
+            Log.d(TAG, "isAdvancedUntetheredDevice: is untethered device ");
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isAdvancedHeaderEnabled() {
+        if (!DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_SETTINGS_UI, BT_ADVANCED_HEADER_ENABLED,
+                true)) {
+            Log.d(TAG, "isAdvancedDetailsHeader: advancedEnabled is false");
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean isUntetheredHeadset(@NonNull BluetoothDevice bluetoothDevice) {
+        // The metadata is for Android R
+        if (getBooleanMetaData(bluetoothDevice, BluetoothDevice.METADATA_IS_UNTETHERED_HEADSET)) {
+            Log.d(TAG, "isAdvancedDetailsHeader: untetheredHeadset is true");
             return true;
         }
         return false;
@@ -384,8 +426,43 @@ public class BluetoothUtils {
         return Uri.parse(data);
     }
 
+    /**
+     * Get URI Bluetooth metadata for extra control
+     *
+     * @param bluetoothDevice the BluetoothDevice to get metadata
+     * @return the URI metadata
+     */
+    public static String getControlUriMetaData(BluetoothDevice bluetoothDevice) {
+        String data = getStringMetaData(bluetoothDevice, METADATA_FAST_PAIR_CUSTOMIZED_FIELDS);
+        return extraTagValue(KEY_HEARABLE_CONTROL_SLICE, data);
+    }
+
     @SuppressLint("NewApi") // Hidden API made public
     private static boolean doesClassMatch(BluetoothClass btClass, int classId) {
         return btClass.doesClassMatch(classId);
+    }
+
+    private static String extraTagValue(String tag, String metaData) {
+        if (TextUtils.isEmpty(metaData)) {
+            return null;
+        }
+        Pattern pattern = Pattern.compile(generateExpressionWithTag(tag, "(.*?)"));
+        Matcher matcher = pattern.matcher(metaData);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
+    private static String getTagStart(String tag) {
+        return String.format(Locale.ENGLISH, "<%s>", tag);
+    }
+
+    private static String getTagEnd(String tag) {
+        return String.format(Locale.ENGLISH, "</%s>", tag);
+    }
+
+    private static String generateExpressionWithTag(String tag, String value) {
+        return getTagStart(tag) + value + getTagEnd(tag);
     }
 }

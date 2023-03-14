@@ -18,7 +18,6 @@ package androidx.window.extensions.embedding;
 
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.verify;
 
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 
 import android.platform.test.annotations.Presubmit;
@@ -43,8 +42,6 @@ import org.mockito.MockitoAnnotations;
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class TaskFragmentAnimationControllerTest {
-    private static final int TASK_ID = 10;
-
     @Mock
     private TaskFragmentOrganizer mOrganizer;
     private TaskFragmentAnimationController mAnimationController;
@@ -57,41 +54,31 @@ public class TaskFragmentAnimationControllerTest {
 
     @Test
     public void testRegisterRemoteAnimations() {
-        mAnimationController.registerRemoteAnimations(TASK_ID);
+        mAnimationController.registerRemoteAnimations();
 
-        verify(mOrganizer).registerRemoteAnimations(TASK_ID, mAnimationController.mDefinition);
+        verify(mOrganizer).registerRemoteAnimations(mAnimationController.mDefinition);
 
-        mAnimationController.registerRemoteAnimations(TASK_ID);
+        mAnimationController.registerRemoteAnimations();
 
         // No extra call if it has been registered.
-        verify(mOrganizer).registerRemoteAnimations(TASK_ID, mAnimationController.mDefinition);
+        verify(mOrganizer).registerRemoteAnimations(mAnimationController.mDefinition);
     }
 
     @Test
     public void testUnregisterRemoteAnimations() {
-        mAnimationController.unregisterRemoteAnimations(TASK_ID);
+        mAnimationController.unregisterRemoteAnimations();
 
         // No call if it is not registered.
-        verify(mOrganizer, never()).unregisterRemoteAnimations(anyInt());
+        verify(mOrganizer, never()).unregisterRemoteAnimations();
 
-        mAnimationController.registerRemoteAnimations(TASK_ID);
-        mAnimationController.unregisterRemoteAnimations(TASK_ID);
+        mAnimationController.registerRemoteAnimations();
+        mAnimationController.unregisterRemoteAnimations();
 
-        verify(mOrganizer).unregisterRemoteAnimations(TASK_ID);
+        verify(mOrganizer).unregisterRemoteAnimations();
 
-        mAnimationController.unregisterRemoteAnimations(TASK_ID);
+        mAnimationController.unregisterRemoteAnimations();
 
         // No extra call if it has been unregistered.
-        verify(mOrganizer).unregisterRemoteAnimations(TASK_ID);
-    }
-
-    @Test
-    public void testUnregisterAllRemoteAnimations() {
-        mAnimationController.registerRemoteAnimations(TASK_ID);
-        mAnimationController.registerRemoteAnimations(TASK_ID + 1);
-        mAnimationController.unregisterAllRemoteAnimations();
-
-        verify(mOrganizer).unregisterRemoteAnimations(TASK_ID);
-        verify(mOrganizer).unregisterRemoteAnimations(TASK_ID + 1);
+        verify(mOrganizer).unregisterRemoteAnimations();
     }
 }

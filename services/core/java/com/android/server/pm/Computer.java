@@ -94,12 +94,13 @@ import java.util.Set;
 @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
 public interface Computer extends PackageDataSnapshot {
 
+    int getVersion();
+
     /**
      * Administrative statistics: record that the snapshot has been used.  Every call
      * to use() increments the usage counter.
      */
-    default void use() {
-    }
+    Computer use();
     /**
      * Fetch the snapshot usage counter.
      * @return The number of times this snapshot was used.
@@ -111,6 +112,8 @@ public interface Computer extends PackageDataSnapshot {
             @PackageManager.ResolveInfoFlagsBits long flags,
             @PackageManagerInternal.PrivateResolveFlags long privateResolveFlags,
             int filterCallingUid, int userId, boolean resolveForStart, boolean allowDynamicSplits);
+    @NonNull List<ResolveInfo> queryIntentActivitiesInternal(Intent intent, String resolvedType,
+            long flags, int filterCallingUid, int userId);
     @NonNull List<ResolveInfo> queryIntentActivitiesInternal(Intent intent, String resolvedType,
             long flags, int userId);
     @NonNull List<ResolveInfo> queryIntentServicesInternal(Intent intent, String resolvedType,

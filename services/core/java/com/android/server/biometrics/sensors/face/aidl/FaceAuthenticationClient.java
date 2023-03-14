@@ -99,7 +99,8 @@ class FaceAuthenticationClient extends AuthenticationClient<AidlSession>
         super(context, lazyDaemon, token, listener, targetUserId, operationId, restricted,
                 owner, cookie, requireConfirmation, sensorId, logger, biometricContext,
                 isStrongBiometric, null /* taskStackListener */, lockoutCache,
-                allowBackgroundAuthentication, true /* shouldVibrate */,
+                allowBackgroundAuthentication,
+                false /* shouldVibrate */,
                 isKeyguardBypassEnabled);
         setRequestId(requestId);
         mUsageStats = usageStats;
@@ -128,7 +129,7 @@ class FaceAuthenticationClient extends AuthenticationClient<AidlSession>
     @Override
     protected ClientMonitorCallback wrapCallbackForStart(@NonNull ClientMonitorCallback callback) {
         return new ClientMonitorCompositeCallback(
-                getLogger().createALSCallback(true /* startWithClient */), callback);
+                getLogger().getAmbientLightProbe(true /* startWithClient */), callback);
     }
 
     @Override

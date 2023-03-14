@@ -19,13 +19,16 @@ package com.android.wm.shell.pip;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_UNDEFINED;
 import static android.app.WindowConfiguration.WINDOWING_MODE_PINNED;
 
+import android.annotation.Nullable;
 import android.app.ActivityTaskManager;
 import android.app.ActivityTaskManager.RootTaskInfo;
 import android.app.RemoteAction;
 import android.content.ComponentName;
 import android.content.Context;
 import android.os.RemoteException;
+import android.util.Log;
 import android.util.Pair;
+import android.window.TaskSnapshot;
 
 import com.android.internal.protolog.common.ProtoLog;
 import com.android.wm.shell.protolog.ShellProtoLogGroup;
@@ -80,7 +83,9 @@ public class PipUtils {
     public static boolean remoteActionsMatch(RemoteAction action1, RemoteAction action2) {
         if (action1 == action2) return true;
         if (action1 == null || action2 == null) return false;
-        return Objects.equals(action1.getTitle(), action2.getTitle())
+        return action1.isEnabled() == action2.isEnabled()
+                && action1.shouldShowIcon() == action2.shouldShowIcon()
+                && Objects.equals(action1.getTitle(), action2.getTitle())
                 && Objects.equals(action1.getContentDescription(), action2.getContentDescription())
                 && Objects.equals(action1.getActionIntent(), action2.getActionIntent());
     }
@@ -105,5 +110,18 @@ public class PipUtils {
             }
         }
         return false;
+    }
+
+    /** @return {@link TaskSnapshot} for a given task id. */
+    @Nullable
+    public static TaskSnapshot getTaskSnapshot(int taskId, boolean isLowResolution) {
+        if (taskId <= 0) return null;
+        try {
+            return ActivityTaskManager.getService().getTaskSnapshot(
+                    taskId, isLowResolution, false /* takeSnapshotIfNeeded */);
+        } catch (RemoteException e) {
+            Log.e(TAG, "Failed to get task snapshot, taskId=" + taskId, e);
+            return null;
+        }
     }
 }

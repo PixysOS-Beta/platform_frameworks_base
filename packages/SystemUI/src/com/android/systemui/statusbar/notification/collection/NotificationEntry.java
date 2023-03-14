@@ -61,11 +61,11 @@ import com.android.internal.util.ArrayUtils;
 import com.android.internal.util.ContrastColorUtil;
 import com.android.systemui.statusbar.InflationTask;
 import com.android.systemui.statusbar.notification.collection.NotifCollection.CancellationReason;
-import com.android.systemui.statusbar.notification.collection.legacy.NotificationGroupManagerLegacy;
 import com.android.systemui.statusbar.notification.collection.listbuilder.pluggable.NotifFilter;
 import com.android.systemui.statusbar.notification.collection.listbuilder.pluggable.NotifPromoter;
 import com.android.systemui.statusbar.notification.collection.notifcollection.NotifDismissInterceptor;
 import com.android.systemui.statusbar.notification.collection.notifcollection.NotifLifetimeExtender;
+import com.android.systemui.statusbar.notification.collection.render.GroupMembershipManager;
 import com.android.systemui.statusbar.notification.icon.IconPack;
 import com.android.systemui.statusbar.notification.row.ExpandableNotificationRow;
 import com.android.systemui.statusbar.notification.row.ExpandableNotificationRowController;
@@ -158,16 +158,12 @@ public final class NotificationEntry extends ListEntry {
     private long initializationTime = -1;
 
     /**
-     * Whether or not this row represents a system notification. Note that if this is
-     * {@code null}, that means we were either unable to retrieve the info or have yet to
-     * retrieve the info.
-     */
-    public Boolean mIsSystemNotification;
-
-    /**
      * Has the user sent a reply through this Notification.
      */
     private boolean hasSentReply;
+
+    private boolean mSensitive = true;
+    private List<OnSensitivityChangedListener> mOnSensitivityChangedListeners = new ArrayList<>();
 
     private boolean mAutoHeadsUp;
     private boolean mPulseSupressed;
@@ -179,6 +175,10 @@ public final class NotificationEntry extends ListEntry {
     public boolean mRemoteEditImeAnimatingAway;
     public boolean mRemoteEditImeVisible;
     private boolean mExpandAnimationRunning;
+    /**
+     * Flag to determine if the entry is blockable by DnD filters
+     */
+    private boolean mBlockable;
 
     /**
      * @param sbn the StatusBarNotification from system server
@@ -257,6 +257,7 @@ public final class NotificationEntry extends ListEntry {
         }
 
         mRanking = ranking.withAudiblyAlertedInfo(mRanking);
+        updateIsBlockable();
     }
 
     /*
@@ -420,7 +421,7 @@ public final class NotificationEntry extends ListEntry {
      * Get the children that are actually attached to this notification's row.
      *
      * TODO: Seems like most callers here should probably be using
-     * {@link NotificationGroupManagerLegacy#getChildren}
+     * {@link GroupMembershipManager#getChildren(ListEntry)}
      */
     public @Nullable List<NotificationEntry> getAttachedNotifChildren() {
         if (row == null) {
@@ -475,11 +476,13 @@ public final class NotificationEntry extends ListEntry {
     /**
      * Abort all existing inflation tasks
      */
-    public void abortTask() {
+    public boolean abortTask() {
         if (mRunningTask != null) {
             mRunningTask.abort();
             mRunningTask = null;
+            return true;
         }
+        return false;
     }
 
     public void setInflationTask(InflationTask abortableTask) {
@@ -673,9 +676,6 @@ public final class NotificationEntry extends ListEntry {
         return row != null && row.areChildrenExpanded();
     }
 
-    public boolean keepInParent() {
-        return row != null && row.keepInParent();
-    }
 
     //TODO: probably less confusing to say "is group fully visible"
     public boolean isGroupNotFullyVisible() {
@@ -693,10 +693,6 @@ public final class NotificationEntry extends ListEntry {
 
     public boolean isSummaryWithChildren() {
         return row != null && row.isSummaryWithChildren();
-    }
-
-    public void setKeepInParent(boolean keep) {
-        if (row != null) row.setKeepInParent(keep);
     }
 
     public void onDensityOrFontScaleChanged() {
@@ -774,10 +770,31 @@ public final class NotificationEntry extends ListEntry {
         if (mSbn.getNotification().isMediaNotification()) {
             return true;
         }
-        if (mIsSystemNotification != null && mIsSystemNotification) {
+        if (!isBlockable()) {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Returns whether this row is considered blockable (i.e. it's not a system notif
+     * or is not in an allowList).
+     */
+    public boolean isBlockable() {
+        return mBlockable;
+    }
+
+    private void updateIsBlockable() {
+        if (getChannel() == null) {
+            mBlockable = false;
+            return;
+        }
+        if (getChannel().isImportanceLockedByCriticalDeviceFunction()
+                && !getChannel().isBlockable()) {
+            mBlockable = false;
+            return;
+        }
+        mBlockable = true;
     }
 
     private boolean shouldSuppressVisualEffect(int effect) {
@@ -855,38 +872,33 @@ public final class NotificationEntry extends ListEntry {
     }
 
     /**
-     * Whether or not this row represents a system notification. Note that if this is
-     * {@code null}, that means we were either unable to retrieve the info or have yet to
-     * retrieve the info.
-     */
-    public Boolean isSystemNotification() {
-        return mIsSystemNotification;
-    }
-
-    /**
-     * Returns the visibility of this notification on the lockscreen, taking into account both the
-     * notification's defined visibility, as well as the visibility override as determined by the
-     * device policy.
-     */
-    public int getLockscreenVisibility() {
-        int setting = mRanking.getLockscreenVisibilityOverride();
-        if (setting == Ranking.VISIBILITY_NO_OVERRIDE) {
-            setting = mSbn.getNotification().visibility;
-        }
-        return setting;
-    }
-
-    /**
-     * Does this notification contain sensitive content? If the user's settings specify, then this
-     * content would need to be redacted when the device this public.
+     * Set this notification to be sensitive.
      *
-     * NOTE: If the notification's visibility setting is VISIBILITY_SECRET, then this will return
-     * false; SECRET notifications are omitted entirely when the device is public, so effectively
-     * the contents of the notification are not sensitive whenever the notification is actually
-     * visible.
+     * @param sensitive true if the content of this notification is sensitive right now
+     * @param deviceSensitive true if the device in general is sensitive right now
      */
-    public boolean hasSensitiveContents() {
-        return getLockscreenVisibility() == Notification.VISIBILITY_PRIVATE;
+    public void setSensitive(boolean sensitive, boolean deviceSensitive) {
+        getRow().setSensitive(sensitive, deviceSensitive);
+        if (sensitive != mSensitive) {
+            mSensitive = sensitive;
+            for (int i = 0; i < mOnSensitivityChangedListeners.size(); i++) {
+                mOnSensitivityChangedListeners.get(i).onSensitivityChanged(this);
+            }
+        }
+    }
+
+    public boolean isSensitive() {
+        return mSensitive;
+    }
+
+    /** Add a listener to be notified when the entry's sensitivity changes. */
+    public void addOnSensitivityChangedListener(OnSensitivityChangedListener listener) {
+        mOnSensitivityChangedListeners.add(listener);
+    }
+
+    /** Remove a listener that was registered above. */
+    public void removeOnSensitivityChangedListener(OnSensitivityChangedListener listener) {
+        mOnSensitivityChangedListeners.remove(listener);
     }
 
     public boolean isPulseSuppressed() {
@@ -945,6 +957,12 @@ public final class NotificationEntry extends ListEntry {
             this.originalText = originalText;
             this.index = index;
         }
+    }
+
+    /** Listener interface for {@link #addOnSensitivityChangedListener} */
+    public interface OnSensitivityChangedListener {
+        /** Called when the sensitivity changes */
+        void onSensitivityChanged(@NonNull NotificationEntry entry);
     }
 
     /** @see #getDismissState() */

@@ -16,6 +16,8 @@
 
 package com.android.systemui.statusbar.notification.collection.render
 
+import javax.inject.Inject
+
 /** An interface by which the pipeline can make updates to the notification root view. */
 interface NotifStackController {
     /** Provides stats about the list of notifications attached to the shade */
@@ -28,21 +30,11 @@ data class NotifStats(
     val hasNonClearableAlertingNotifs: Boolean,
     val hasClearableAlertingNotifs: Boolean,
     val hasNonClearableSilentNotifs: Boolean,
-    val hasClearableSilentNotifs: Boolean,
-    val clearableAlertingSensitiveNotifUsers: Set<Int>,
-    val clearableSilentSensitiveNotifUsers: Set<Int>
+    val hasClearableSilentNotifs: Boolean
 ) {
     companion object {
         @JvmStatic
-        val empty = NotifStats(
-            numActiveNotifs = 0,
-            hasNonClearableAlertingNotifs = false,
-            hasClearableAlertingNotifs = false,
-            hasNonClearableSilentNotifs = false,
-            hasClearableSilentNotifs = false,
-            clearableAlertingSensitiveNotifUsers = emptySet(),
-            clearableSilentSensitiveNotifUsers = emptySet(),
-        )
+        val empty = NotifStats(0, false, false, false, false)
     }
 }
 
@@ -52,6 +44,6 @@ data class NotifStats(
  * methods, rather than forcing us to add no-op implementations in their implementation every time
  * a method is added.
  */
-open class DefaultNotifStackController : NotifStackController {
+open class DefaultNotifStackController @Inject constructor() : NotifStackController {
     override fun setNotifStats(stats: NotifStats) {}
 }

@@ -2709,7 +2709,7 @@ public class AppOpsManager {
             AppOpsManager.MODE_ALLOWED, // READ_ICC_SMS
             AppOpsManager.MODE_ALLOWED, // WRITE_ICC_SMS
             AppOpsManager.MODE_DEFAULT, // WRITE_SETTINGS
-            AppOpsManager.MODE_DEFAULT, // SYSTEM_ALERT_WINDOW /*Overridden in opToDefaultMode()*/
+            getSystemAlertWindowDefault(), // SYSTEM_ALERT_WINDOW
             AppOpsManager.MODE_ALLOWED, // ACCESS_NOTIFICATIONS
             AppOpsManager.MODE_ALLOWED, // CAMERA
             AppOpsManager.MODE_ALLOWED, // RECORD_AUDIO
@@ -3163,8 +3163,6 @@ public class AppOpsManager {
     private static final String DEBUG_LOGGING_OPS_PROP = "appops.logging_ops";
     private static final String DEBUG_LOGGING_TAG = "AppOpsManager";
 
-    private static volatile Integer sOpSystemAlertWindowDefaultMode;
-
     /**
      * Retrieve the op switch that controls the given operation.
      * @hide
@@ -3263,9 +3261,6 @@ public class AppOpsManager {
      * @hide
      */
     public static @Mode int opToDefaultMode(int op) {
-        if (op == OP_SYSTEM_ALERT_WINDOW) {
-            return getSystemAlertWindowDefault();
-        }
         return sOpDefaultMode[op];
     }
 
@@ -9139,8 +9134,9 @@ public class AppOpsManager {
      */
     public int startProxyOpNoThrow(int op, @NonNull AttributionSource attributionSource,
             @Nullable String message, boolean skipProxyOperation) {
-        return startProxyOpNoThrow(op, attributionSource, message, skipProxyOperation,
-                ATTRIBUTION_FLAGS_NONE, ATTRIBUTION_FLAGS_NONE, ATTRIBUTION_CHAIN_ID_NONE);
+        return startProxyOpNoThrow(attributionSource.getToken(), op, attributionSource, message,
+                skipProxyOperation, ATTRIBUTION_FLAGS_NONE, ATTRIBUTION_FLAGS_NONE,
+                ATTRIBUTION_CHAIN_ID_NONE);
     }
 
     /**
@@ -9152,7 +9148,8 @@ public class AppOpsManager {
      *
      * @hide
      */
-    public int startProxyOpNoThrow(int op, @NonNull AttributionSource attributionSource,
+    public int startProxyOpNoThrow(@NonNull IBinder clientId, int op,
+            @NonNull AttributionSource attributionSource,
             @Nullable String message, boolean skipProxyOperation, @AttributionFlags
             int proxyAttributionFlags, @AttributionFlags int proxiedAttributionFlags,
             int attributionChainId) {
@@ -9170,7 +9167,7 @@ public class AppOpsManager {
                 }
             }
 
-            SyncNotedAppOp syncOp = mService.startProxyOperation(op,
+            SyncNotedAppOp syncOp = mService.startProxyOperation(clientId, op,
                     attributionSource, false, collectionMode == COLLECT_ASYNC, message,
                     shouldCollectMessage, skipProxyOperation, proxyAttributionFlags,
                     proxiedAttributionFlags, attributionChainId);
@@ -9268,9 +9265,10 @@ public class AppOpsManager {
      */
     public void finishProxyOp(@NonNull String op, int proxiedUid,
             @NonNull String proxiedPackageName, @Nullable String proxiedAttributionTag) {
-        finishProxyOp(op, new AttributionSource(mContext.getAttributionSource(),
+        IBinder token = mContext.getAttributionSource().getToken();
+        finishProxyOp(token, op, new AttributionSource(mContext.getAttributionSource(),
                 new AttributionSource(proxiedUid, proxiedPackageName,  proxiedAttributionTag,
-                        mContext.getAttributionSource().getToken())), /*skipProxyOperation*/ false);
+                        token)), /*skipProxyOperation*/ false);
     }
 
     /**
@@ -9285,10 +9283,11 @@ public class AppOpsManager {
      *
      * @hide
      */
-    public void finishProxyOp(@NonNull String op, @NonNull AttributionSource attributionSource,
-            boolean skipProxyOperation) {
+    public void finishProxyOp(@NonNull IBinder clientId, @NonNull String op,
+            @NonNull AttributionSource attributionSource, boolean skipProxyOperation) {
         try {
-            mService.finishProxyOperation(strOpToOp(op), attributionSource, skipProxyOperation);
+            mService.finishProxyOperation(clientId, strOpToOp(op), attributionSource,
+                    skipProxyOperation);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
@@ -10283,11 +10282,6 @@ public class AppOpsManager {
     }
 
     private static int getSystemAlertWindowDefault() {
-        // This is indeed racy but we aren't expecting the result to change so it's not worth
-        // the synchronization.
-        if (sOpSystemAlertWindowDefaultMode != null) {
-            return sOpSystemAlertWindowDefaultMode;
-        }
         final Context context = ActivityThread.currentApplication();
         if (context == null) {
             return AppOpsManager.MODE_DEFAULT;
@@ -10298,11 +10292,10 @@ public class AppOpsManager {
         // TVs are constantly plugged in and has less concern for memory/power
         if (ActivityManager.isLowRamDeviceStatic()
                 && !pm.hasSystemFeature(PackageManager.FEATURE_LEANBACK, 0)) {
-            sOpSystemAlertWindowDefaultMode = AppOpsManager.MODE_IGNORED;
-        } else {
-            sOpSystemAlertWindowDefaultMode = AppOpsManager.MODE_DEFAULT;
+            return AppOpsManager.MODE_IGNORED;
         }
-        return sOpSystemAlertWindowDefaultMode;
+
+        return AppOpsManager.MODE_DEFAULT;
     }
 
     /**

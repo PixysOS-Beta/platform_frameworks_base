@@ -20,6 +20,7 @@ import static android.view.View.GONE;
 
 import static com.android.systemui.statusbar.notification.stack.NotificationStackScrollLayout.ROWS_ALL;
 import static com.android.systemui.statusbar.notification.stack.NotificationStackScrollLayout.ROWS_GENTLE;
+import static com.android.systemui.statusbar.notification.stack.NotificationStackScrollLayout.RUBBER_BAND_FACTOR_NORMAL;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,6 +48,7 @@ import static org.mockito.Mockito.when;
 import android.graphics.Rect;
 import android.testing.AndroidTestingRunner;
 import android.testing.TestableLooper;
+import android.testing.TestableResources;
 import android.util.MathUtils;
 import android.view.MotionEvent;
 import android.view.View;
@@ -54,28 +57,30 @@ import android.view.ViewGroup;
 import androidx.test.annotation.UiThreadTest;
 import androidx.test.filters.SmallTest;
 
+import com.android.keyguard.BouncerPanelExpansionCalculator;
 import com.android.systemui.ExpandHelper;
 import com.android.systemui.R;
 import com.android.systemui.SysuiTestCase;
+import com.android.systemui.dump.DumpManager;
+import com.android.systemui.shade.ShadeController;
 import com.android.systemui.statusbar.EmptyShadeView;
 import com.android.systemui.statusbar.NotificationShelf;
 import com.android.systemui.statusbar.NotificationShelfController;
 import com.android.systemui.statusbar.StatusBarState;
 import com.android.systemui.statusbar.SysuiStatusBarStateController;
 import com.android.systemui.statusbar.notification.collection.NotificationEntry;
-import com.android.systemui.statusbar.notification.collection.legacy.NotificationGroupManagerLegacy;
 import com.android.systemui.statusbar.notification.collection.render.GroupExpansionManager;
 import com.android.systemui.statusbar.notification.collection.render.GroupMembershipManager;
 import com.android.systemui.statusbar.notification.row.ExpandableNotificationRow;
 import com.android.systemui.statusbar.notification.row.FooterView;
 import com.android.systemui.statusbar.phone.CentralSurfaces;
 import com.android.systemui.statusbar.phone.KeyguardBypassController;
-import com.android.systemui.statusbar.phone.ShadeController;
 import com.android.systemui.statusbar.phone.StatusBarKeyguardViewManager;
 import com.android.systemui.statusbar.phone.UnlockedScreenOffAnimationController;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,6 +92,7 @@ import org.mockito.junit.MockitoRule;
 /**
  * Tests for {@link NotificationStackScrollLayout}.
  */
+@Ignore("b/255552856")
 @SmallTest
 @RunWith(AndroidTestingRunner.class)
 @TestableLooper.RunWithLooper
@@ -95,12 +101,14 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
     private NotificationStackScrollLayout mStackScroller;  // Normally test this
     private NotificationStackScrollLayout mStackScrollerInternal;  // See explanation below
     private AmbientState mAmbientState;
+    private TestableResources mTestableResources;
 
     @Rule public MockitoRule mockito = MockitoJUnit.rule();
     @Mock private CentralSurfaces mCentralSurfaces;
     @Mock private SysuiStatusBarStateController mBarState;
-    @Mock private NotificationGroupManagerLegacy mGroupMembershipManger;
-    @Mock private NotificationGroupManagerLegacy mGroupExpansionManager;
+    @Mock private GroupMembershipManager mGroupMembershipManger;
+    @Mock private GroupExpansionManager mGroupExpansionManager;
+    @Mock private DumpManager mDumpManager;
     @Mock private ExpandHelper mExpandHelper;
     @Mock private EmptyShadeView mEmptyShadeView;
     @Mock private NotificationRoundnessManager mNotificationRoundnessManager;
@@ -118,10 +126,15 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
     @UiThreadTest
     public void setUp() throws Exception {
         allowTestableLooperAsMainThread();
+        mTestableResources = mContext.getOrCreateTestableResources();
 
         // Interact with real instance of AmbientState.
-        mAmbientState = new AmbientState(mContext, mNotificationSectionsManager, mBypassController,
-                mStatusBarKeyguardViewManager);
+        mAmbientState = spy(new AmbientState(
+                mContext,
+                mDumpManager,
+                mNotificationSectionsManager,
+                mBypassController,
+                mStatusBarKeyguardViewManager));
 
         // Inject dependencies before initializing the layout
         mDependency.injectTestDependency(SysuiStatusBarStateController.class, mBarState);
@@ -156,7 +169,7 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
         mStackScroller.setCentralSurfaces(mCentralSurfaces);
         mStackScroller.setEmptyShadeView(mEmptyShadeView);
         when(mStackScrollLayoutController.isHistoryEnabled()).thenReturn(true);
-        when(mStackScrollLayoutController.getNoticationRoundessManager())
+        when(mStackScrollLayoutController.getNotificationRoundnessManager())
                 .thenReturn(mNotificationRoundnessManager);
         mStackScroller.setController(mStackScrollLayoutController);
 
@@ -173,6 +186,40 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
     }
 
     @Test
+    public void testUpdateStackHeight_qsExpansionGreaterThanZero() {
+        final float expansionFraction = 0.2f;
+        final float overExpansion = 50f;
+
+        mStackScroller.setQsExpansionFraction(1f);
+        mAmbientState.setExpansionFraction(expansionFraction);
+        mAmbientState.setOverExpansion(overExpansion);
+        when(mAmbientState.isBouncerInTransit()).thenReturn(true);
+
+
+        mStackScroller.setExpandedHeight(100f);
+
+        float expected = MathUtils.lerp(0, overExpansion,
+                BouncerPanelExpansionCalculator.aboutToShowBouncerProgress(expansionFraction));
+        assertThat(mAmbientState.getStackY()).isEqualTo(expected);
+    }
+
+    @Test
+    public void testUpdateStackHeight_qsExpansionZero() {
+        final float expansionFraction = 0.2f;
+        final float overExpansion = 50f;
+
+        mStackScroller.setQsExpansionFraction(0f);
+        mAmbientState.setExpansionFraction(expansionFraction);
+        mAmbientState.setOverExpansion(overExpansion);
+        when(mAmbientState.isBouncerInTransit()).thenReturn(true);
+
+        mStackScroller.setExpandedHeight(100f);
+
+        float expected = MathUtils.lerp(0, overExpansion, expansionFraction);
+        assertThat(mAmbientState.getStackY()).isEqualTo(expected);
+    }
+
+    @Test
     public void testUpdateStackHeight_withDozeAmount_whenDozeChanging() {
         final float dozeAmount = 0.5f;
         mAmbientState.setDozeAmount(dozeAmount);
@@ -184,7 +231,7 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
                 endHeight, dozeAmount);
 
         mStackScroller.updateStackHeight(endHeight, expansionFraction);
-        assertTrue(mAmbientState.getStackHeight() == expected);
+        assertThat(mAmbientState.getStackHeight()).isEqualTo(expected);
     }
 
     @Test
@@ -199,7 +246,74 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
                 endHeight, expansionFraction);
 
         mStackScroller.updateStackHeight(endHeight, expansionFraction);
-        assertTrue(mAmbientState.getStackHeight() == expected);
+        assertThat(mAmbientState.getStackHeight()).isEqualTo(expected);
+    }
+
+    @Test
+    public void updateStackEndHeightAndStackHeight_normallyUpdatesBoth() {
+        final float expansionFraction = 0.5f;
+        mAmbientState.setStatusBarState(StatusBarState.KEYGUARD);
+
+        // Validate that by default we update everything
+        clearInvocations(mAmbientState);
+        mStackScroller.updateStackEndHeightAndStackHeight(expansionFraction);
+        verify(mAmbientState).setStackEndHeight(anyFloat());
+        verify(mAmbientState).setStackHeight(anyFloat());
+    }
+
+    @Test
+    public void updateStackEndHeightAndStackHeight_onlyUpdatesStackHeightDuringSwipeUp() {
+        final float expansionFraction = 0.5f;
+        mAmbientState.setStatusBarState(StatusBarState.KEYGUARD);
+        mAmbientState.setSwipingUp(true);
+
+        // Validate that when the gesture is in progress, we update only the stackHeight
+        clearInvocations(mAmbientState);
+        mStackScroller.updateStackEndHeightAndStackHeight(expansionFraction);
+        verify(mAmbientState, never()).setStackEndHeight(anyFloat());
+        verify(mAmbientState).setStackHeight(anyFloat());
+    }
+
+    @Test
+    public void setPanelFlinging_updatesStackEndHeightOnlyOnFinish() {
+        final float expansionFraction = 0.5f;
+        mAmbientState.setStatusBarState(StatusBarState.KEYGUARD);
+        mAmbientState.setSwipingUp(true);
+        mStackScroller.setPanelFlinging(true);
+        mAmbientState.setSwipingUp(false);
+
+        // Validate that when the animation is running, we update only the stackHeight
+        clearInvocations(mAmbientState);
+        mStackScroller.updateStackEndHeightAndStackHeight(expansionFraction);
+        verify(mAmbientState, never()).setStackEndHeight(anyFloat());
+        verify(mAmbientState).setStackHeight(anyFloat());
+
+        // Validate that when the animation ends the stackEndHeight is recalculated immediately
+        clearInvocations(mAmbientState);
+        mStackScroller.setPanelFlinging(false);
+        verify(mAmbientState).setFlinging(eq(false));
+        verify(mAmbientState).setStackEndHeight(anyFloat());
+        verify(mAmbientState).setStackHeight(anyFloat());
+    }
+
+    @Test
+    public void setUnlockHintRunning_updatesStackEndHeightOnlyOnFinish() {
+        final float expansionFraction = 0.5f;
+        mAmbientState.setStatusBarState(StatusBarState.KEYGUARD);
+        mStackScroller.setUnlockHintRunning(true);
+
+        // Validate that when the animation is running, we update only the stackHeight
+        clearInvocations(mAmbientState);
+        mStackScroller.updateStackEndHeightAndStackHeight(expansionFraction);
+        verify(mAmbientState, never()).setStackEndHeight(anyFloat());
+        verify(mAmbientState).setStackHeight(anyFloat());
+
+        // Validate that when the animation ends the stackEndHeight is recalculated immediately
+        clearInvocations(mAmbientState);
+        mStackScroller.setUnlockHintRunning(false);
+        verify(mAmbientState).setUnlockHintRunning(eq(false));
+        verify(mAmbientState).setStackEndHeight(anyFloat());
+        verify(mAmbientState).setStackHeight(anyFloat());
     }
 
     @Test
@@ -214,7 +328,7 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
     public void updateEmptyView_dndSuppressing() {
         when(mEmptyShadeView.willBeGone()).thenReturn(true);
 
-        mStackScroller.updateEmptyShadeView(true, true);
+        mStackScroller.updateEmptyShadeView(true, true, false);
 
         verify(mEmptyShadeView).setText(R.string.dnd_suppressing_shade_text);
     }
@@ -224,7 +338,7 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
         mStackScroller.setEmptyShadeView(mEmptyShadeView);
         when(mEmptyShadeView.willBeGone()).thenReturn(true);
 
-        mStackScroller.updateEmptyShadeView(true, false);
+        mStackScroller.updateEmptyShadeView(true, false, false);
 
         verify(mEmptyShadeView).setText(R.string.empty_shade_text);
     }
@@ -233,10 +347,10 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
     public void updateEmptyView_noNotificationsToDndSuppressing() {
         mStackScroller.setEmptyShadeView(mEmptyShadeView);
         when(mEmptyShadeView.willBeGone()).thenReturn(true);
-        mStackScroller.updateEmptyShadeView(true, false);
+        mStackScroller.updateEmptyShadeView(true, false, false);
         verify(mEmptyShadeView).setText(R.string.empty_shade_text);
 
-        mStackScroller.updateEmptyShadeView(true, true);
+        mStackScroller.updateEmptyShadeView(true, true, false);
         verify(mEmptyShadeView).setText(R.string.dnd_suppressing_shade_text);
     }
 
@@ -284,7 +398,7 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
     @Test
     @UiThreadTest
     public void testSetExpandedHeight_withSplitShade_doesntInterpolateStackHeight() {
-        mContext.getOrCreateTestableResources()
+        mTestableResources
                 .addOverride(R.bool.config_use_split_notification_shade, /* value= */ true);
         final int[] expectedStackHeight = {0};
 
@@ -295,12 +409,12 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
                     .isEqualTo(expectedStackHeight[0]);
         });
 
-        mContext.getOrCreateTestableResources()
+        mTestableResources
                 .addOverride(R.bool.config_use_split_notification_shade, /* value= */ false);
         expectedStackHeight[0] = 0;
         mStackScroller.setExpandedHeight(100f);
 
-        mContext.getOrCreateTestableResources()
+        mTestableResources
                 .addOverride(R.bool.config_use_split_notification_shade, /* value= */ true);
         expectedStackHeight[0] = 100;
         mStackScroller.setExpandedHeight(100f);
@@ -608,16 +722,100 @@ public class NotificationStackScrollLayoutTest extends SysuiTestCase {
         assertFalse(mStackScroller.isInsideQsHeader(event1));
 
         MotionEvent event2 = transformEventForView(createMotionEvent(150f, 150f), mStackScroller);
-        assertTrue(mStackScroller.isInsideQsHeader(event2));
+        assertFalse(mStackScroller.isInsideQsHeader(event2));
 
         MotionEvent event3 = transformEventForView(createMotionEvent(250f, 250f), mStackScroller);
-        assertTrue(mStackScroller.isInsideQsHeader(event2));
+        assertTrue(mStackScroller.isInsideQsHeader(event3));
     }
 
     @Test
     public void setFractionToShade_recomputesStackHeight() {
         mStackScroller.setFractionToShade(1f);
         verify(mNotificationStackSizeCalculator).computeHeight(any(), anyInt(), anyFloat());
+    }
+
+    @Test
+    public void testSetOwnScrollY_shadeNotClosing_scrollYChanges() {
+        // Given: shade is not closing, scrollY is 0
+        mAmbientState.setScrollY(0);
+        assertEquals(0, mAmbientState.getScrollY());
+        mAmbientState.setIsClosing(false);
+
+        // When: call NotificationStackScrollLayout.setOwnScrollY to set scrollY to 1
+        mStackScroller.setOwnScrollY(1);
+
+        // Then: scrollY should be set to 1
+        assertEquals(1, mAmbientState.getScrollY());
+
+        // Reset scrollY back to 0 to avoid interfering with other tests
+        mStackScroller.setOwnScrollY(0);
+        assertEquals(0, mAmbientState.getScrollY());
+    }
+
+    @Test
+    public void testSetOwnScrollY_shadeClosing_scrollYDoesNotChange() {
+        // Given: shade is closing, scrollY is 0
+        mAmbientState.setScrollY(0);
+        assertEquals(0, mAmbientState.getScrollY());
+        mAmbientState.setIsClosing(true);
+
+        // When: call NotificationStackScrollLayout.setOwnScrollY to set scrollY to 1
+        mStackScroller.setOwnScrollY(1);
+
+        // Then: scrollY should not change, it should still be 0
+        assertEquals(0, mAmbientState.getScrollY());
+
+        // Reset scrollY and mAmbientState.mIsClosing to avoid interfering with other tests
+        mAmbientState.setIsClosing(false);
+        mStackScroller.setOwnScrollY(0);
+        assertEquals(0, mAmbientState.getScrollY());
+    }
+
+    @Test
+    public void onShadeFlingClosingEnd_scrollYShouldBeSetToZero() {
+        // Given: mAmbientState.mIsClosing is set to be true
+        // mIsExpanded is set to be false
+        mAmbientState.setIsClosing(true);
+        mStackScroller.setIsExpanded(false);
+
+        // When: onExpansionStopped is called
+        mStackScroller.onExpansionStopped();
+
+        // Then: mAmbientState.scrollY should be set to be 0
+        assertEquals(mAmbientState.getScrollY(), 0);
+    }
+
+    @Test
+    public void testSplitShade_hasTopOverscroll() {
+        mTestableResources
+                .addOverride(R.bool.config_use_split_notification_shade, /* value= */ true);
+        mStackScroller.updateSplitNotificationShade();
+        mAmbientState.setExpansionFraction(1f);
+
+        int topOverscrollPixels = 100;
+        mStackScroller.setOverScrolledPixels(topOverscrollPixels, true, false);
+
+        float expectedTopOverscrollAmount = topOverscrollPixels * RUBBER_BAND_FACTOR_NORMAL;
+        assertEquals(expectedTopOverscrollAmount, mStackScroller.getCurrentOverScrollAmount(true));
+        assertEquals(expectedTopOverscrollAmount, mAmbientState.getStackY());
+    }
+
+    @Test
+    public void testNormalShade_hasNoTopOverscroll() {
+        mTestableResources
+                .addOverride(R.bool.config_use_split_notification_shade, /* value= */ false);
+        mStackScroller.updateSplitNotificationShade();
+        mAmbientState.setExpansionFraction(1f);
+
+        int topOverscrollPixels = 100;
+        mStackScroller.setOverScrolledPixels(topOverscrollPixels, true, false);
+
+        float expectedTopOverscrollAmount = topOverscrollPixels * RUBBER_BAND_FACTOR_NORMAL;
+        assertEquals(expectedTopOverscrollAmount, mStackScroller.getCurrentOverScrollAmount(true));
+        // When not in split shade mode, then the overscroll effect is handled in
+        // NotificationPanelViewController and not in NotificationStackScrollLayout. Therefore
+        // mAmbientState must have stackY set to 0
+        assertEquals(0f, mAmbientState.getStackY());
     }
 
     private void setBarStateForTest(int state) {

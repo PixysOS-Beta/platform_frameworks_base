@@ -770,6 +770,10 @@ public class DevicePolicyManager {
      * <p>If this extra is set to {@code true}, the provisioning flow will still try to connect to
      * the internet, but if it fails it will start the offline provisioning flow.
      *
+     * <p>For T if this extra is set to {@code true}, the provisioning flow will be forced through
+     * the platform and there will be no attempt to download and install the device policy
+     * management role holder.
+     *
      * <p>The default value is {@code false}.
      *
      * <p>This extra is respected when provided via the provisioning intent actions such as {@link
@@ -1124,6 +1128,9 @@ public class DevicePolicyManager {
      * <p>Use only for device owner provisioning. This extra can be returned by the admin app when
      * performing the admin-integrated provisioning flow as a result of the {@link
      * #ACTION_GET_PROVISIONING_MODE} activity.
+     *
+     * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_TIME_ZONE
         = "android.app.extra.PROVISIONING_TIME_ZONE";
@@ -1135,6 +1142,9 @@ public class DevicePolicyManager {
      * <p>Use only for device owner provisioning. This extra can be returned by the admin app when
      * performing the admin-integrated provisioning flow as a result of the {@link
      * #ACTION_GET_PROVISIONING_MODE} activity.
+     *
+     * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_LOCAL_TIME
         = "android.app.extra.PROVISIONING_LOCAL_TIME";
@@ -1146,6 +1156,9 @@ public class DevicePolicyManager {
      * <p>Use only for device owner provisioning. This extra can be returned by the admin app when
      * performing the admin-integrated provisioning flow as a result of the {@link
      * #ACTION_GET_PROVISIONING_MODE} activity.
+     *
+     * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_LOCALE
         = "android.app.extra.PROVISIONING_LOCALE";
@@ -1155,7 +1168,7 @@ public class DevicePolicyManager {
      * owner provisioning for downloading the mobile device management application.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_WIFI_SSID
         = "android.app.extra.PROVISIONING_WIFI_SSID";
@@ -1165,7 +1178,7 @@ public class DevicePolicyManager {
      * is hidden or not.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_WIFI_HIDDEN
         = "android.app.extra.PROVISIONING_WIFI_HIDDEN";
@@ -1176,7 +1189,7 @@ public class DevicePolicyManager {
      * {@code WEP} or {@code EAP}.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_WIFI_SECURITY_TYPE
         = "android.app.extra.PROVISIONING_WIFI_SECURITY_TYPE";
@@ -1186,7 +1199,7 @@ public class DevicePolicyManager {
      * {@link #EXTRA_PROVISIONING_WIFI_SSID}.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_WIFI_PASSWORD =
             "android.app.extra.PROVISIONING_WIFI_PASSWORD";
@@ -1277,7 +1290,7 @@ public class DevicePolicyManager {
      * {@link #EXTRA_PROVISIONING_WIFI_SSID}.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_WIFI_PROXY_HOST
         = "android.app.extra.PROVISIONING_WIFI_PROXY_HOST";
@@ -1287,7 +1300,7 @@ public class DevicePolicyManager {
      * {@link #EXTRA_PROVISIONING_WIFI_SSID}.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_WIFI_PROXY_PORT
         = "android.app.extra.PROVISIONING_WIFI_PROXY_PORT";
@@ -1297,7 +1310,7 @@ public class DevicePolicyManager {
      * {@link #EXTRA_PROVISIONING_WIFI_SSID}.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_WIFI_PROXY_BYPASS
         = "android.app.extra.PROVISIONING_WIFI_PROXY_BYPASS";
@@ -1307,7 +1320,7 @@ public class DevicePolicyManager {
      * {@link #EXTRA_PROVISIONING_WIFI_SSID}.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_WIFI_PAC_URL
         = "android.app.extra.PROVISIONING_WIFI_PAC_URL";
@@ -1317,7 +1330,7 @@ public class DevicePolicyManager {
      * package. When not provided it is assumed that the device admin package is already installed.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION
         = "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION";
@@ -1397,7 +1410,7 @@ public class DevicePolicyManager {
      * installed package is less than this version code.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_DEVICE_ADMIN_MINIMUM_VERSION_CODE
         = "android.app.extra.PROVISIONING_DEVICE_ADMIN_MINIMUM_VERSION_CODE";
@@ -1407,7 +1420,7 @@ public class DevicePolicyManager {
      * url specified in {@link #EXTRA_PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION}.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_COOKIE_HEADER
         = "android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_COOKIE_HEADER";
@@ -1422,7 +1435,7 @@ public class DevicePolicyManager {
      * be asked to factory reset the device.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      *
      * <p><strong>Note:</strong> for devices running {@link android.os.Build.VERSION_CODES#LOLLIPOP}
      * and {@link android.os.Build.VERSION_CODES#LOLLIPOP_MR1} only SHA-1 hash is supported.
@@ -1468,7 +1481,7 @@ public class DevicePolicyManager {
      * the user will be asked to factory reset the device.
      *
      * <p>Use in an NFC record with {@link #MIME_TYPE_PROVISIONING_NFC} that starts device owner
-     * provisioning via an NFC bump.
+     * provisioning via an NFC bump. It can also be used for QR code provisioning.
      */
     public static final String EXTRA_PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM
         = "android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM";
@@ -2515,7 +2528,8 @@ public class DevicePolicyManager {
      * If another app already had delegated network logging access,
      * it will lose the delegation when a new app is delegated.
      *
-     * <p> Can only be granted by Device Owner or Profile Owner of a managed profile.
+     * <p> Device Owner can grant this access since Android 10. Profile Owner of a managed profile
+     * can grant this access since Android 12.
      */
     public static final String DELEGATION_NETWORK_LOGGING = "delegation-network-logging";
 
@@ -9262,6 +9276,21 @@ public class DevicePolicyManager {
     }
 
     /**
+     * Checks if the specified component is the supervision component.
+     * @hide
+     */
+    public boolean isSupervisionComponent(@NonNull ComponentName who) {
+        if (mService != null) {
+            try {
+                return getService().isSupervisionComponent(who);
+            } catch (RemoteException re) {
+                throw re.rethrowFromSystemServer();
+            }
+        }
+        return false;
+    }
+
+    /**
      * @hide
      * @return the human readable name of the organisation associated with this DPM or {@code null}
      *         if one is not set.
@@ -11210,7 +11239,9 @@ public class DevicePolicyManager {
      * for enterprise use.
      *
      * An example of a supported preferential network service is the Enterprise
-     * slice on 5G networks.
+     * slice on 5G networks. For devices on 4G networks, the profile owner needs to additionally
+     * configure enterprise APN to set up data call for the preferential network service.
+     * These APNs can be added using {@link #addOverrideApn}.
      *
      * By default, preferential network service is disabled on the work profile and
      * fully managed devices, on supported carriers and devices.
@@ -11260,7 +11291,9 @@ public class DevicePolicyManager {
      * {@see PreferentialNetworkServiceConfig}
      *
      * An example of a supported preferential network service is the Enterprise
-     * slice on 5G networks.
+     * slice on 5G networks. For devices on 4G networks, the profile owner needs to additionally
+     * configure enterprise APN to set up data call for the preferential network service.
+     * These APNs can be added using {@link #addOverrideApn}.
      *
      * By default, preferential network service is disabled on the work profile and fully managed
      * devices, on supported carriers and devices. Admins can explicitly enable it with this API.
@@ -11409,7 +11442,9 @@ public class DevicePolicyManager {
 
     /**
      * Called by a device owner or a profile owner of an organization-owned managed profile to
-     * control whether the user can change networks configured by the admin.
+     * control whether the user can change networks configured by the admin. When this lockdown is
+     * enabled, the user can still configure and connect to other Wi-Fi networks, or use other Wi-Fi
+     * capabilities such as tethering.
      * <p>
      * WiFi network configuration lockdown is controlled by a global settings
      * {@link android.provider.Settings.Global#WIFI_DEVICE_OWNER_CONFIGS_LOCKDOWN} and calling
@@ -12123,6 +12158,15 @@ public class DevicePolicyManager {
      * <p>
      * Attempts by the admin to grant these permissions, when the admin is restricted from doing
      * so, will be silently ignored (no exception will be thrown).
+     *
+     * Control over the following permissions are restricted for managed profile owners:
+     * <ul>
+     *  <li>Manifest.permission.READ_SMS</li>
+     * </ul>
+     * <p>
+     * A managed profile owner may not grant these permissions (i.e. call this method with any of
+     * the permissions listed above and {@code grantState} of
+     * {@code #PERMISSION_GRANT_STATE_GRANTED}), but may deny them.
      *
      * @param admin Which profile or device owner this request is associated with.
      * @param packageName The application to grant or revoke a permission to.
@@ -13249,9 +13293,11 @@ public class DevicePolicyManager {
      * Called by a device owner, profile owner of a managed profile or delegated app with
      * {@link #DELEGATION_NETWORK_LOGGING} to control the network logging feature.
      *
-     * <p> Supported for a device owner from Android 8. Supported for a profile owner of a managed
-     * profile from Android 12. When network logging is enabled by a profile owner, the network logs
-     * will only include work profile network activity, not activity on the personal profile.
+     * <p> Supported for a device owner from Android 8 and a delegated app granted by a device
+     * owner from Android 10. Supported for a profile owner of a managed profile and a delegated
+     * app granted by a profile owner from Android 12. When network logging is enabled by a
+     * profile owner, the network logs will only include work profile network activity, not
+     * activity on the personal profile.
      *
      * <p> Network logs contain DNS lookup and connect() library call events. The following library
      *     functions are recorded while network logging is active:
@@ -13782,18 +13828,13 @@ public class DevicePolicyManager {
     }
 
     /**
-     * Called by device owner or profile owner to add an override APN.
+     * Called by device owner or managed profile owner to add an override APN.
      *
      * <p>This method may returns {@code -1} if {@code apnSetting} conflicts with an existing
      * override APN. Update the existing conflicted APN with
      * {@link #updateOverrideApn(ComponentName, int, ApnSetting)} instead of adding a new entry.
      * <p>Two override APNs are considered to conflict when all the following APIs return
      * the same values on both override APNs:
-     * <p> Before Android version {@link android.os.Build.VERSION_CODES#TIRAMISU}:
-     * Only device owners can add APNs.
-     * <p> Starting from Android version {@link android.os.Build.VERSION_CODES#TIRAMISU}:
-     * Device and profile owners can add enterprise APNs
-     * ({@link ApnSetting#TYPE_ENTERPRISE}), while only device owners can add other type of APNs.
      * <ul>
      *   <li>{@link ApnSetting#getOperatorNumeric()}</li>
      *   <li>{@link ApnSetting#getApnName()}</li>
@@ -13807,6 +13848,15 @@ public class DevicePolicyManager {
      *   <li>{@link ApnSetting#getProtocol()}</li>
      *   <li>{@link ApnSetting#getRoamingProtocol()}</li>
      * </ul>
+     *
+     * <p> Before Android version {@link android.os.Build.VERSION_CODES#TIRAMISU}:
+     * Only device owners can add APNs.
+     * <p> Starting from Android version {@link android.os.Build.VERSION_CODES#TIRAMISU}:
+     * Both device owners and managed profile owners can add enterprise APNs
+     * ({@link ApnSetting#TYPE_ENTERPRISE}), while only device owners can add other type of APNs.
+     * Enterprise APNs are specific to the managed profile and do not override any user-configured
+     * VPNs. They are prerequisites for enabling preferential network service on the managed
+     * profile on 4G networks ({@link #setPreferentialNetworkServiceConfigs}).
      *
      * @param admin which {@link DeviceAdminReceiver} this request is associated with
      * @param apnSetting the override APN to insert
@@ -13830,7 +13880,7 @@ public class DevicePolicyManager {
     }
 
     /**
-     * Called by device owner or profile owner to update an override APN.
+     * Called by device owner or managed profile owner to update an override APN.
      *
      * <p>This method may returns {@code false} if there is no override APN with the given
      * {@code apnId}.
@@ -13840,7 +13890,7 @@ public class DevicePolicyManager {
      * <p> Before Android version {@link android.os.Build.VERSION_CODES#TIRAMISU}:
      * Only device owners can update APNs.
      * <p> Starting from Android version {@link android.os.Build.VERSION_CODES#TIRAMISU}:
-     * Device and profile owners can update enterprise APNs
+     * Both device owners and managed profile owners can update enterprise APNs
      * ({@link ApnSetting#TYPE_ENTERPRISE}), while only device owners can update other type of APNs.
      *
      * @param admin which {@link DeviceAdminReceiver} this request is associated with
@@ -13867,14 +13917,14 @@ public class DevicePolicyManager {
     }
 
     /**
-     * Called by device owner or profile owner to remove an override APN.
+     * Called by device owner or managed profile owner to remove an override APN.
      *
      * <p>This method may returns {@code false} if there is no override APN with the given
      * {@code apnId}.
      * <p> Before Android version {@link android.os.Build.VERSION_CODES#TIRAMISU}:
      * Only device owners can remove APNs.
      * <p> Starting from Android version {@link android.os.Build.VERSION_CODES#TIRAMISU}:
-     * Device and profile owners can remove enterprise APNs
+     * Both device owners and managed profile owners can remove enterprise APNs
      * ({@link ApnSetting#TYPE_ENTERPRISE}), while only device owners can remove other type of APNs.
      *
      * @param admin which {@link DeviceAdminReceiver} this request is associated with
@@ -13899,7 +13949,8 @@ public class DevicePolicyManager {
     }
 
     /**
-     * Called by device owner to get all override APNs inserted by device owner.
+     * Called by device owner or managed profile owner to get all override APNs inserted by
+     * device owner or managed profile owner previously using {@link #addOverrideApn}.
      *
      * @param admin which {@link DeviceAdminReceiver} this request is associated with
      * @return A list of override APNs inserted by device owner.
@@ -13924,6 +13975,9 @@ public class DevicePolicyManager {
      * <p> Override APNs are separated from other APNs on the device, and can only be inserted or
      * modified by the device owner. When enabled, only override APNs are in use, any other APNs
      * are ignored.
+     * <p>Note: Enterprise APNs added by managed profile owners do not need to be enabled by
+     * this API. They are part of the preferential network service config and is controlled by
+     * {@link #setPreferentialNetworkServiceConfigs}.
      *
      * @param admin which {@link DeviceAdminReceiver} this request is associated with
      * @param enabled {@code true} if override APNs should be enabled, {@code false} otherwise

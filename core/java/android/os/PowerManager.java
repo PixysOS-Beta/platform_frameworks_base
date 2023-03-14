@@ -345,6 +345,39 @@ public final class PowerManager {
     public static final int USER_ACTIVITY_EVENT_DEVICE_STATE = 6;
 
     /**
+     * @hide
+     */
+    @IntDef(prefix = { "USER_ACTIVITY_EVENT_" }, value = {
+            USER_ACTIVITY_EVENT_OTHER,
+            USER_ACTIVITY_EVENT_BUTTON,
+            USER_ACTIVITY_EVENT_TOUCH,
+            USER_ACTIVITY_EVENT_ACCESSIBILITY,
+            USER_ACTIVITY_EVENT_ATTENTION,
+            USER_ACTIVITY_EVENT_FACE_DOWN,
+            USER_ACTIVITY_EVENT_DEVICE_STATE,
+    })
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface UserActivityEvent{}
+
+    /**
+     *
+     * Convert the user activity event to a string for debugging purposes.
+     * @hide
+     */
+    public static String userActivityEventToString(@UserActivityEvent int userActivityEvent) {
+        switch (userActivityEvent) {
+            case USER_ACTIVITY_EVENT_OTHER: return "other";
+            case USER_ACTIVITY_EVENT_BUTTON: return "button";
+            case USER_ACTIVITY_EVENT_TOUCH: return "touch";
+            case USER_ACTIVITY_EVENT_ACCESSIBILITY: return "accessibility";
+            case USER_ACTIVITY_EVENT_ATTENTION: return "attention";
+            case USER_ACTIVITY_EVENT_FACE_DOWN: return "faceDown";
+            case USER_ACTIVITY_EVENT_DEVICE_STATE: return "deviceState";
+            default: return Integer.toString(userActivityEvent);
+        }
+    }
+
+    /**
      * User activity flag: If already dimmed, extend the dim timeout
      * but do not brighten.  This flag is useful for keeping the screen on
      * a little longer without causing a visible change such as when
@@ -463,21 +496,22 @@ public final class PowerManager {
     /**
      * @hide
      */
-    public static String sleepReasonToString(int sleepReason) {
+    public static String sleepReasonToString(@GoToSleepReason int sleepReason) {
         switch (sleepReason) {
+            case GO_TO_SLEEP_REASON_ACCESSIBILITY: return "accessibility";
             case GO_TO_SLEEP_REASON_APPLICATION: return "application";
             case GO_TO_SLEEP_REASON_DEVICE_ADMIN: return "device_admin";
-            case GO_TO_SLEEP_REASON_TIMEOUT: return "timeout";
-            case GO_TO_SLEEP_REASON_LID_SWITCH: return "lid_switch";
-            case GO_TO_SLEEP_REASON_POWER_BUTTON: return "power_button";
-            case GO_TO_SLEEP_REASON_HDMI: return "hdmi";
-            case GO_TO_SLEEP_REASON_SLEEP_BUTTON: return "sleep_button";
-            case GO_TO_SLEEP_REASON_ACCESSIBILITY: return "accessibility";
-            case GO_TO_SLEEP_REASON_FORCE_SUSPEND: return "force_suspend";
-            case GO_TO_SLEEP_REASON_INATTENTIVE: return "inattentive";
+            case GO_TO_SLEEP_REASON_DEVICE_FOLD: return "device_folded";
             case GO_TO_SLEEP_REASON_DISPLAY_GROUP_REMOVED: return "display_group_removed";
             case GO_TO_SLEEP_REASON_DISPLAY_GROUPS_TURNED_OFF: return "display_groups_turned_off";
-            case GO_TO_SLEEP_REASON_DEVICE_FOLD: return "device_folded";
+            case GO_TO_SLEEP_REASON_FORCE_SUSPEND: return "force_suspend";
+            case GO_TO_SLEEP_REASON_HDMI: return "hdmi";
+            case GO_TO_SLEEP_REASON_INATTENTIVE: return "inattentive";
+            case GO_TO_SLEEP_REASON_LID_SWITCH: return "lid_switch";
+            case GO_TO_SLEEP_REASON_POWER_BUTTON: return "power_button";
+            case GO_TO_SLEEP_REASON_QUIESCENT: return "quiescent";
+            case GO_TO_SLEEP_REASON_SLEEP_BUTTON: return "sleep_button";
+            case GO_TO_SLEEP_REASON_TIMEOUT: return "timeout";
             default: return Integer.toString(sleepReason);
         }
     }
@@ -487,6 +521,13 @@ public final class PowerManager {
      * @hide
      */
     public static final int GO_TO_SLEEP_FLAG_NO_DOZE = 1 << 0;
+
+    /**
+     * Go to sleep flag: Sleep softly, go to sleep only if there's no wakelock explicitly keeping
+     * the device awake.
+     * @hide
+     */
+    public static final int GO_TO_SLEEP_FLAG_SOFT_SLEEP = 1 << 1;
 
     /**
      * @hide
@@ -567,7 +608,10 @@ public final class PowerManager {
             WAKE_REASON_DISPLAY_GROUP_ADDED,
             WAKE_REASON_DISPLAY_GROUP_TURNED_ON,
             WAKE_REASON_UNFOLD_DEVICE,
-            WAKE_REASON_DREAM_FINISHED
+            WAKE_REASON_DREAM_FINISHED,
+            WAKE_REASON_TAP,
+            WAKE_REASON_LIFT,
+            WAKE_REASON_BIOMETRIC,
     })
     @Retention(RetentionPolicy.SOURCE)
     public @interface WakeReason{}
@@ -576,18 +620,20 @@ public final class PowerManager {
      * @hide
      */
     @IntDef(prefix = { "GO_TO_SLEEP_REASON_" }, value = {
+            GO_TO_SLEEP_REASON_ACCESSIBILITY,
             GO_TO_SLEEP_REASON_APPLICATION,
             GO_TO_SLEEP_REASON_DEVICE_ADMIN,
-            GO_TO_SLEEP_REASON_TIMEOUT,
+            GO_TO_SLEEP_REASON_DEVICE_FOLD,
+            GO_TO_SLEEP_REASON_DISPLAY_GROUP_REMOVED,
+            GO_TO_SLEEP_REASON_DISPLAY_GROUPS_TURNED_OFF,
+            GO_TO_SLEEP_REASON_FORCE_SUSPEND,
+            GO_TO_SLEEP_REASON_HDMI,
+            GO_TO_SLEEP_REASON_INATTENTIVE,
             GO_TO_SLEEP_REASON_LID_SWITCH,
             GO_TO_SLEEP_REASON_POWER_BUTTON,
-            GO_TO_SLEEP_REASON_HDMI,
-            GO_TO_SLEEP_REASON_SLEEP_BUTTON,
-            GO_TO_SLEEP_REASON_ACCESSIBILITY,
-            GO_TO_SLEEP_REASON_FORCE_SUSPEND,
-            GO_TO_SLEEP_REASON_INATTENTIVE,
             GO_TO_SLEEP_REASON_QUIESCENT,
-            GO_TO_SLEEP_REASON_DEVICE_FOLD
+            GO_TO_SLEEP_REASON_SLEEP_BUTTON,
+            GO_TO_SLEEP_REASON_TIMEOUT,
     })
     @Retention(RetentionPolicy.SOURCE)
     public @interface GoToSleepReason{}
@@ -617,8 +663,9 @@ public final class PowerManager {
     public static final int WAKE_REASON_PLUGGED_IN = 3;
 
     /**
-     * Wake up reason code: Waking up due to a user performed gesture (e.g. double tapping on the
-     * screen).
+     * Wake up reason code: Waking up due to a user performed gesture. This includes user
+     * interactions with UI on the screen such as the notification shade. This does not include
+     * {@link WAKE_REASON_TAP} or {@link WAKE_REASON_LIFT}.
      * @hide
      */
     public static final int WAKE_REASON_GESTURE = 4;
@@ -680,6 +727,26 @@ public final class PowerManager {
     public static final int WAKE_REASON_DREAM_FINISHED = 13;
 
     /**
+     * Wake up reason code: Waking up due to the user single or double tapping on the screen. This
+     * wake reason is used when the user is not tapping on a specific UI element; rather, the device
+     * wakes up due to a generic tap on the screen.
+     * @hide
+     */
+    public static final int WAKE_REASON_TAP = 15;
+
+    /**
+     * Wake up reason code: Waking up due to a user performed lift gesture.
+     * @hide
+     */
+    public static final int WAKE_REASON_LIFT = 16;
+
+    /**
+     * Wake up reason code: Waking up due to a user interacting with a biometric.
+     * @hide
+     */
+    public static final int WAKE_REASON_BIOMETRIC = 17;
+
+    /**
      * Convert the wake reason to a string for debugging purposes.
      * @hide
      */
@@ -699,11 +766,16 @@ public final class PowerManager {
             case WAKE_REASON_DISPLAY_GROUP_TURNED_ON: return "WAKE_REASON_DISPLAY_GROUP_TURNED_ON";
             case WAKE_REASON_UNFOLD_DEVICE: return "WAKE_REASON_UNFOLD_DEVICE";
             case WAKE_REASON_DREAM_FINISHED: return "WAKE_REASON_DREAM_FINISHED";
+            case WAKE_REASON_TAP: return "WAKE_REASON_TAP";
+            case WAKE_REASON_LIFT: return "WAKE_REASON_LIFT";
+            case WAKE_REASON_BIOMETRIC: return "WAKE_REASON_BIOMETRIC";
             default: return Integer.toString(wakeReason);
         }
     }
 
     /**
+     * Information related to the device waking up, triggered by {@link #wakeUp}.
+     *
      * @hide
      */
     public static class WakeData {
@@ -712,9 +784,9 @@ public final class PowerManager {
             this.wakeReason = wakeReason;
             this.sleepDuration = sleepDuration;
         }
-        public long wakeTime;
-        public @WakeReason int wakeReason;
-        public long sleepDuration;
+        public final long wakeTime;
+        public final @WakeReason int wakeReason;
+        public final long sleepDuration;
 
         @Override
         public boolean equals(@Nullable Object o) {
@@ -729,6 +801,35 @@ public final class PowerManager {
         @Override
         public int hashCode() {
             return Objects.hash(wakeTime, wakeReason, sleepDuration);
+        }
+    }
+
+    /**
+     * Information related to the device going to sleep, triggered by {@link #goToSleep}.
+     *
+     * @hide
+     */
+    public static class SleepData {
+        public SleepData(long goToSleepUptimeMillis, @GoToSleepReason int goToSleepReason) {
+            this.goToSleepUptimeMillis = goToSleepUptimeMillis;
+            this.goToSleepReason = goToSleepReason;
+        }
+        public final long goToSleepUptimeMillis;
+        public final @GoToSleepReason int goToSleepReason;
+
+        @Override
+        public boolean equals(@Nullable Object o) {
+            if (o instanceof SleepData) {
+                final SleepData other = (SleepData) o;
+                return goToSleepUptimeMillis == other.goToSleepUptimeMillis
+                        && goToSleepReason == other.goToSleepReason;
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(goToSleepUptimeMillis, goToSleepReason);
         }
     }
 
@@ -2644,6 +2745,7 @@ public final class PowerManager {
      *
      * @hide
      */
+    @GoToSleepReason
     public int getLastSleepReason() {
         try {
             return mService.getLastSleepReason();

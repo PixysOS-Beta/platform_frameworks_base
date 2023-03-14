@@ -50,12 +50,6 @@ public interface NotificationLockscreenUserManager {
     void addUserChangedListener(UserChangedListener listener);
 
     /**
-     * Registers a [KeyguardNotificationSuppressor] that will be consulted during
-     * {@link #shouldShowOnKeyguard(NotificationEntry)}
-     */
-    void addKeyguardNotificationSuppressor(KeyguardNotificationSuppressor suppressor);
-
-    /**
      * Removes a listener previously registered with
      * {@link #addUserChangedListener(UserChangedListener)}
      */
@@ -63,30 +57,19 @@ public interface NotificationLockscreenUserManager {
 
     SparseArray<UserInfo> getCurrentProfiles();
 
-    void setLockscreenPublicMode(boolean isProfilePublic, int userId);
-
     boolean shouldShowLockscreenNotifications();
-
-    boolean shouldHideNotifications(int userId);
-    boolean shouldHideNotifications(String key);
-    boolean shouldShowOnKeyguard(NotificationEntry entry);
-
-    void addOnNeedsRedactionInPublicChangedListener(Runnable listener);
-
-    void removeOnNeedsRedactionInPublicChangedListener(Runnable listener);
 
     boolean isAnyProfilePublicMode();
 
     void updatePublicMode();
 
-    /** Does this notification require redaction if it is displayed when the device is public? */
-    boolean notifNeedsRedactionInPublic(NotificationEntry entry);
+    boolean needsRedaction(NotificationEntry entry);
 
     /**
-     * Do all sensitive notifications belonging to the given user require redaction when they are
-     * displayed in public?
+     * Has the given user chosen to allow their private (full) notifications to be shown even
+     * when the lockscreen is in "public" (secure & locked) mode?
      */
-    boolean sensitiveNotifsNeedRedactionInPublic(int userId);
+    boolean userAllowsPrivateNotificationsInPublic(int currentUserId);
 
     /**
      * Has the given user chosen to allow notifications to be shown even when the lockscreen is in
@@ -94,14 +77,30 @@ public interface NotificationLockscreenUserManager {
      */
     boolean userAllowsNotificationsInPublic(int userId);
 
+    /**
+     * Adds a {@link NotificationStateChangedListener} to be notified of any state changes that
+     * would affect presentation of notifications.
+     */
+    void addNotificationStateChangedListener(NotificationStateChangedListener listener);
+
+    /**
+     * Removes a {@link NotificationStateChangedListener} that was previously registered with
+     * {@link #addNotificationStateChangedListener(NotificationStateChangedListener)}.
+     */
+    void removeNotificationStateChangedListener(NotificationStateChangedListener listener);
+
     /** Notified when the current user changes. */
     interface UserChangedListener {
         default void onUserChanged(int userId) {}
         default void onCurrentProfilesChanged(SparseArray<UserInfo> currentProfiles) {}
+        default void onUserRemoved(int userId) {}
     }
 
-    /** Used to hide notifications on the lockscreen */
-    interface KeyguardNotificationSuppressor {
-        boolean shouldSuppressOnKeyguard(NotificationEntry entry);
+    /**
+     * Notified when any state pertaining to Notifications has changed; any methods pertaining to
+     * notifications should be re-queried.
+     */
+    interface NotificationStateChangedListener {
+        void onNotificationStateChanged();
     }
 }

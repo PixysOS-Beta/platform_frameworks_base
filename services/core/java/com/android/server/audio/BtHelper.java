@@ -35,6 +35,7 @@ import android.media.BluetoothProfileConnectionInfo;
 import android.os.Binder;
 import android.os.UserHandle;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.internal.annotations.GuardedBy;
@@ -51,6 +52,8 @@ import java.util.Objects;
 public class BtHelper {
 
     private static final String TAG = "AS.BtHelper";
+
+    private static final int SOURCE_CODEC_TYPE_OPUS = 6; // TODO remove in U
 
     private final @NonNull AudioDeviceBroker mDeviceBroker;
 
@@ -409,9 +412,8 @@ public class BtHelper {
             }
             return;
         }
-        /* leaudio expect volume value in range 0 to 255
-         */
-        int volume = (index * (BT_LE_AUDIO_MAX_VOL - BT_LE_AUDIO_MIN_VOL)) / maxIndex ;
+        /* leaudio expect volume value in range 0 to 255 */
+        int volume = (int) Math.round((double) index * BT_LE_AUDIO_MAX_VOL / maxIndex);
 
         if (AudioService.DEBUG_VOL) {
             Log.i(TAG, "setLeAudioVolume: calling mLeAudio.setVolume idx="
@@ -422,7 +424,8 @@ public class BtHelper {
         mLeAudio.setVolume(volume);
     }
 
-    /*package*/ synchronized void setHearingAidVolume(int index, int streamType) {
+    /*package*/ synchronized void setHearingAidVolume(int index, int streamType,
+            boolean isHeadAidConnected) {
         if (mHearingAid == null) {
             if (AudioService.DEBUG_VOL) {
                 Log.i(TAG, "setHearingAidVolume: null mHearingAid");
@@ -439,8 +442,11 @@ public class BtHelper {
             Log.i(TAG, "setHearingAidVolume: calling mHearingAid.setVolume idx="
                     + index + " gain=" + gainDB);
         }
-        AudioService.sVolumeLogger.log(new AudioServiceEvents.VolumeEvent(
-                AudioServiceEvents.VolumeEvent.VOL_SET_HEARING_AID_VOL, index, gainDB));
+        // do not log when hearing aid is not connected to avoid confusion when reading dumpsys
+        if (isHeadAidConnected) {
+            AudioService.sVolumeLogger.log(new AudioServiceEvents.VolumeEvent(
+                    AudioServiceEvents.VolumeEvent.VOL_SET_HEARING_AID_VOL, index, gainDB));
+        }
         mHearingAid.setVolume(gainDB);
     }
 
@@ -906,8 +912,58 @@ public class BtHelper {
                 return "ENCODING_APTX_HD";
             case BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC:
                 return "ENCODING_LDAC";
+            case SOURCE_CODEC_TYPE_OPUS: // TODO update in U
+                return "ENCODING_OPUS";
             default:
                 return "ENCODING_BT_CODEC_TYPE(" + btCodecType + ")";
+        }
+    }
+
+    /**
+     * Returns the string equivalent for the btDeviceClass class.
+     */
+    public static String btDeviceClassToString(int btDeviceClass) {
+        switch (btDeviceClass) {
+            case BluetoothClass.Device.AUDIO_VIDEO_UNCATEGORIZED:
+                return "AUDIO_VIDEO_UNCATEGORIZED";
+            case BluetoothClass.Device.AUDIO_VIDEO_WEARABLE_HEADSET:
+                return "AUDIO_VIDEO_WEARABLE_HEADSET";
+            case BluetoothClass.Device.AUDIO_VIDEO_HANDSFREE:
+                return "AUDIO_VIDEO_HANDSFREE";
+            case 0x040C:
+                return "AUDIO_VIDEO_RESERVED_0x040C"; // uncommon
+            case BluetoothClass.Device.AUDIO_VIDEO_MICROPHONE:
+                return "AUDIO_VIDEO_MICROPHONE";
+            case BluetoothClass.Device.AUDIO_VIDEO_LOUDSPEAKER:
+                return "AUDIO_VIDEO_LOUDSPEAKER";
+            case BluetoothClass.Device.AUDIO_VIDEO_HEADPHONES:
+                return "AUDIO_VIDEO_HEADPHONES";
+            case BluetoothClass.Device.AUDIO_VIDEO_PORTABLE_AUDIO:
+                return "AUDIO_VIDEO_PORTABLE_AUDIO";
+            case BluetoothClass.Device.AUDIO_VIDEO_CAR_AUDIO:
+                return "AUDIO_VIDEO_CAR_AUDIO";
+            case BluetoothClass.Device.AUDIO_VIDEO_SET_TOP_BOX:
+                return "AUDIO_VIDEO_SET_TOP_BOX";
+            case BluetoothClass.Device.AUDIO_VIDEO_HIFI_AUDIO:
+                return "AUDIO_VIDEO_HIFI_AUDIO";
+            case BluetoothClass.Device.AUDIO_VIDEO_VCR:
+                return "AUDIO_VIDEO_VCR";
+            case BluetoothClass.Device.AUDIO_VIDEO_VIDEO_CAMERA:
+                return "AUDIO_VIDEO_VIDEO_CAMERA";
+            case BluetoothClass.Device.AUDIO_VIDEO_CAMCORDER:
+                return "AUDIO_VIDEO_CAMCORDER";
+            case BluetoothClass.Device.AUDIO_VIDEO_VIDEO_MONITOR:
+                return "AUDIO_VIDEO_VIDEO_MONITOR";
+            case BluetoothClass.Device.AUDIO_VIDEO_VIDEO_DISPLAY_AND_LOUDSPEAKER:
+                return "AUDIO_VIDEO_VIDEO_DISPLAY_AND_LOUDSPEAKER";
+            case BluetoothClass.Device.AUDIO_VIDEO_VIDEO_CONFERENCING:
+                return "AUDIO_VIDEO_VIDEO_CONFERENCING";
+            case 0x0444:
+                return "AUDIO_VIDEO_RESERVED_0x0444"; // uncommon
+            case BluetoothClass.Device.AUDIO_VIDEO_VIDEO_GAMING_TOY:
+                return "AUDIO_VIDEO_VIDEO_GAMING_TOY";
+            default: // other device classes printed as a hex string.
+                return TextUtils.formatSimple("0x%04x", btDeviceClass);
         }
     }
 
@@ -915,6 +971,13 @@ public class BtHelper {
     /*package*/ void dump(PrintWriter pw, String prefix) {
         pw.println("\n" + prefix + "mBluetoothHeadset: " + mBluetoothHeadset);
         pw.println(prefix + "mBluetoothHeadsetDevice: " + mBluetoothHeadsetDevice);
+        if (mBluetoothHeadsetDevice != null) {
+            final BluetoothClass bluetoothClass = mBluetoothHeadsetDevice.getBluetoothClass();
+            if (bluetoothClass != null) {
+                pw.println(prefix + "mBluetoothHeadsetDevice.DeviceClass: "
+                        + btDeviceClassToString(bluetoothClass.getDeviceClass()));
+            }
+        }
         pw.println(prefix + "mScoAudioState: " + scoAudioStateToString(mScoAudioState));
         pw.println(prefix + "mScoAudioMode: " + scoAudioModeToString(mScoAudioMode));
         pw.println("\n" + prefix + "mHearingAid: " + mHearingAid);

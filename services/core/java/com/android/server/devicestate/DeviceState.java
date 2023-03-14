@@ -22,6 +22,7 @@ import static android.hardware.devicestate.DeviceStateManager.MINIMUM_DEVICE_STA
 import android.annotation.IntDef;
 import android.annotation.IntRange;
 import android.annotation.NonNull;
+import android.hardware.devicestate.DeviceStateManager;
 
 import com.android.internal.util.Preconditions;
 
@@ -48,9 +49,25 @@ public final class DeviceState {
      */
     public static final int FLAG_CANCEL_OVERRIDE_REQUESTS = 1 << 0;
 
+    /**
+     * Flag that indicates this device state is inaccessible for applications to be placed in. This
+     * could be a device-state where the {@link DEFAULT_DISPLAY} is not enabled.
+     */
+    public static final int FLAG_APP_INACCESSIBLE = 1 << 1;
+
+    /**
+     * Some device states can be both entered through a physical configuration as well as emulation
+     * through {@link DeviceStateManager#requestState}, while some states can only be entered
+     * through emulation and have no physical configuration to match.
+     *
+     * This flag indicates that the corresponding state can only be entered through emulation.
+     */
+    public static final int FLAG_EMULATED_ONLY = 1 << 2;
+
     /** @hide */
     @IntDef(prefix = {"FLAG_"}, flag = true, value = {
             FLAG_CANCEL_OVERRIDE_REQUESTS,
+            FLAG_APP_INACCESSIBLE
     })
     @Retention(RetentionPolicy.SOURCE)
     public @interface DeviceStateFlags {}
@@ -97,7 +114,8 @@ public final class DeviceState {
 
     @Override
     public String toString() {
-        return "DeviceState{" + "identifier=" + mIdentifier + ", name='" + mName + '\'' + '}';
+        return "DeviceState{" + "identifier=" + mIdentifier + ", name='" + mName + '\''
+                + ", app_accessible=" + !hasFlag(FLAG_APP_INACCESSIBLE) + "}";
     }
 
     @Override

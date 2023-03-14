@@ -19,7 +19,6 @@ package android.window;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.content.Context;
-import android.os.Debug;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.os.SystemProperties;
@@ -31,6 +30,7 @@ import android.view.IWindowSession;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.TreeMap;
 
 /**
@@ -63,6 +63,11 @@ public class WindowOnBackInvokedDispatcher implements OnBackInvokedDispatcher {
     /** Holds all callbacks by priorities. */
     private final TreeMap<Integer, ArrayList<OnBackInvokedCallback>>
             mOnBackInvokedCallbacks = new TreeMap<>();
+    private final Checker mChecker;
+
+    public WindowOnBackInvokedDispatcher(boolean applicationCallBackEnabled) {
+        mChecker = new Checker(applicationCallBackEnabled);
+    }
 
     /**
      * Sends the pending top callback (if one exists) to WM when the view root
@@ -87,14 +92,16 @@ public class WindowOnBackInvokedDispatcher implements OnBackInvokedDispatcher {
     @Override
     public void registerOnBackInvokedCallback(
             @Priority int priority, @NonNull OnBackInvokedCallback callback) {
-        if (priority < 0) {
-            throw new IllegalArgumentException("Application registered OnBackInvokedCallback "
-                    + "cannot have negative priority. Priority: " + priority);
+        if (mChecker.checkApplicationCallbackRegistration(priority, callback)) {
+            registerOnBackInvokedCallbackUnchecked(callback, priority);
         }
-        registerOnBackInvokedCallbackUnchecked(callback, priority);
     }
 
-    private void registerOnBackInvokedCallbackUnchecked(
+    /**
+     * Register a callback bypassing platform checks. This is used to register compatibility
+     * callbacks.
+     */
+    public void registerOnBackInvokedCallbackUnchecked(
             @NonNull OnBackInvokedCallback callback, @Priority int priority) {
         if (mImeDispatcher != null) {
             mImeDispatcher.registerOnBackInvokedCallback(priority, callback);
@@ -157,15 +164,16 @@ public class WindowOnBackInvokedDispatcher implements OnBackInvokedDispatcher {
 
     /** Clears all registered callbacks on the instance. */
     public void clear() {
+        if (mImeDispatcher != null) {
+            mImeDispatcher.clear();
+            mImeDispatcher = null;
+        }
         if (!mAllCallbacks.isEmpty()) {
             // Clear binder references in WM.
             setTopOnBackInvokedCallback(null);
         }
         mAllCallbacks.clear();
         mOnBackInvokedCallbacks.clear();
-        if (mImeDispatcher != null) {
-            mImeDispatcher = null;
-        }
     }
 
     private void setTopOnBackInvokedCallback(@Nullable OnBackInvokedCallback callback) {
@@ -185,10 +193,6 @@ public class WindowOnBackInvokedDispatcher implements OnBackInvokedDispatcher {
                 callbackInfo = new OnBackInvokedCallbackInfo(iCallback, priority);
             }
             mWindowSession.setOnBackInvokedCallbackInfo(mWindow, callbackInfo);
-            if (DEBUG && callback == null) {
-                Log.d(TAG, TextUtils.formatSimple("setTopOnBackInvokedCallback(null) Callers:%s",
-                        Debug.getCallers(5, "  ")));
-            }
         } catch (RemoteException e) {
             Log.e(TAG, "Failed to set OnBackInvokedCallback to WM. Error: " + e);
         }
@@ -207,6 +211,16 @@ public class WindowOnBackInvokedDispatcher implements OnBackInvokedDispatcher {
         return null;
     }
 
+    /**
+     * Returns the checker used to check whether a callback can be registered
+     */
+    @NonNull
+    public Checker getChecker() {
+        return mChecker;
+    }
+    @NonNull
+    private static final BackProgressAnimator mProgressAnimator = new BackProgressAnimator();
+
     static class OnBackInvokedCallbackWrapper extends IOnBackInvokedCallback.Stub {
         private final WeakReference<OnBackInvokedCallback> mCallback;
 
@@ -215,11 +229,13 @@ public class WindowOnBackInvokedDispatcher implements OnBackInvokedDispatcher {
         }
 
         @Override
-        public void onBackStarted() {
+        public void onBackStarted(BackEvent backEvent) {
             Handler.getMain().post(() -> {
                 final OnBackAnimationCallback callback = getBackAnimationCallback();
                 if (callback != null) {
-                    callback.onBackStarted();
+                    mProgressAnimator.onBackStarted(backEvent, event ->
+                            callback.onBackProgressed(event));
+                    callback.onBackStarted(backEvent);
                 }
             });
         }
@@ -229,7 +245,7 @@ public class WindowOnBackInvokedDispatcher implements OnBackInvokedDispatcher {
             Handler.getMain().post(() -> {
                 final OnBackAnimationCallback callback = getBackAnimationCallback();
                 if (callback != null) {
-                    callback.onBackProgressed(backEvent);
+                    mProgressAnimator.onBackProgressed(backEvent);
                 }
             });
         }
@@ -237,6 +253,7 @@ public class WindowOnBackInvokedDispatcher implements OnBackInvokedDispatcher {
         @Override
         public void onBackCancelled() {
             Handler.getMain().post(() -> {
+                mProgressAnimator.reset();
                 final OnBackAnimationCallback callback = getBackAnimationCallback();
                 if (callback != null) {
                     callback.onBackCancelled();
@@ -247,11 +264,11 @@ public class WindowOnBackInvokedDispatcher implements OnBackInvokedDispatcher {
         @Override
         public void onBackInvoked() throws RemoteException {
             Handler.getMain().post(() -> {
+                mProgressAnimator.reset();
                 final OnBackInvokedCallback callback = mCallback.get();
                 if (callback == null) {
                     return;
                 }
-
                 callback.onBackInvoked();
             });
         }
@@ -292,5 +309,43 @@ public class WindowOnBackInvokedDispatcher implements OnBackInvokedDispatcher {
     public void setImeOnBackInvokedDispatcher(
             @NonNull ImeOnBackInvokedDispatcher imeDispatcher) {
         mImeDispatcher = imeDispatcher;
+    }
+
+
+    /**
+     * Class used to check whether a callback can be registered or not. This is meant to be
+     * shared with {@link ProxyOnBackInvokedDispatcher} which needs to do the same checks.
+     */
+    public static class Checker {
+
+        private final boolean mApplicationCallBackEnabled;
+
+        public Checker(boolean applicationCallBackEnabled) {
+            mApplicationCallBackEnabled = applicationCallBackEnabled;
+        }
+
+        /**
+         * Checks whether the given callback can be registered with the given priority.
+         * @return true if the callback can be added.
+         * @throws IllegalArgumentException if the priority is negative.
+         */
+        public boolean checkApplicationCallbackRegistration(int priority,
+                OnBackInvokedCallback callback) {
+            if (!mApplicationCallBackEnabled
+                    && !(callback instanceof CompatOnBackInvokedCallback)
+                    && !ALWAYS_ENFORCE_PREDICTIVE_BACK) {
+                Log.w("OnBackInvokedCallback",
+                        "OnBackInvokedCallback is not enabled for the application."
+                                + "\nSet 'android:enableOnBackInvokedCallback=\"true\"' in the"
+                                + " application manifest.");
+                return false;
+            }
+            if (priority < 0) {
+                throw new IllegalArgumentException("Application registered OnBackInvokedCallback "
+                        + "cannot have negative priority. Priority: " + priority);
+            }
+            Objects.requireNonNull(callback);
+            return true;
+        }
     }
 }

@@ -60,6 +60,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.UserInfo;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
@@ -68,6 +69,7 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.FileUtils;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -77,9 +79,12 @@ import android.os.RemoteException;
 import android.os.ResultReceiver;
 import android.os.ServiceManager;
 import android.os.ShellCallback;
+import android.os.UserManager;
 import android.provider.DeviceConfig;
 import android.provider.DeviceConfig.Properties;
+import android.text.TextUtils;
 import android.util.ArrayMap;
+import android.util.AtomicFile;
 import android.util.AttributeSet;
 import android.util.KeyValueListParser;
 import android.util.Slog;
@@ -90,6 +95,7 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.compat.CompatibilityOverrideConfig;
 import com.android.internal.compat.IPlatformCompat;
 import com.android.internal.os.BackgroundThread;
+import com.android.internal.util.ArrayUtils;
 import com.android.internal.util.FrameworkStatsLog;
 import com.android.server.LocalServices;
 import com.android.server.ServiceThread;
@@ -99,10 +105,19 @@ import com.android.server.SystemService.TargetUser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Service to manage game related features.
@@ -122,6 +137,7 @@ public final class GameManagerService extends IGameManagerService.Stub {
     static final int POPULATE_GAME_MODE_SETTINGS = 3;
     static final int SET_GAME_STATE = 4;
     static final int CANCEL_GAME_LOADING_MODE = 5;
+    static final int WRITE_GAME_MODE_INTERVENTION_LIST_FILE = 6;
     static final int WRITE_SETTINGS_DELAY = 10 * 1000;  // 10 seconds
     static final int LOADING_BOOST_MAX_DURATION = 5 * 1000;  // 5 seconds
 
@@ -131,6 +147,8 @@ public final class GameManagerService extends IGameManagerService.Stub {
             .build();
     private static final String PACKAGE_NAME_MSG_KEY = "packageName";
     private static final String USER_ID_MSG_KEY = "userId";
+    private static final String GAME_MODE_INTERVENTION_LIST_FILE_NAME =
+            "game_mode_intervention.list";
 
     private final Context mContext;
     private final Object mLock = new Object();
@@ -138,8 +156,12 @@ public final class GameManagerService extends IGameManagerService.Stub {
     private final Object mOverrideConfigLock = new Object();
     private final Handler mHandler;
     private final PackageManager mPackageManager;
+    private final UserManager mUserManager;
     private final IPlatformCompat mPlatformCompat;
     private final PowerManagerInternal mPowerManagerInternal;
+    private final File mSystemDir;
+    @VisibleForTesting
+    final AtomicFile mGameModeInterventionListFile;
     private DeviceConfigListener mDeviceConfigListener;
     @GuardedBy("mLock")
     private final ArrayMap<Integer, GameManagerSettings> mSettings = new ArrayMap<>();
@@ -158,9 +180,53 @@ public final class GameManagerService extends IGameManagerService.Stub {
         mContext = context;
         mHandler = new SettingsHandler(looper);
         mPackageManager = mContext.getPackageManager();
+        mUserManager = mContext.getSystemService(UserManager.class);
         mPlatformCompat = IPlatformCompat.Stub.asInterface(
                 ServiceManager.getService(Context.PLATFORM_COMPAT_SERVICE));
         mPowerManagerInternal = LocalServices.getService(PowerManagerInternal.class);
+        mSystemDir = new File(Environment.getDataDirectory(), "system");
+        mSystemDir.mkdirs();
+        FileUtils.setPermissions(mSystemDir.toString(),
+                FileUtils.S_IRWXU | FileUtils.S_IRWXG | FileUtils.S_IROTH | FileUtils.S_IXOTH,
+                -1, -1);
+        mGameModeInterventionListFile = new AtomicFile(new File(mSystemDir,
+                                                     GAME_MODE_INTERVENTION_LIST_FILE_NAME));
+        FileUtils.setPermissions(mGameModeInterventionListFile.getBaseFile().getAbsolutePath(),
+                FileUtils.S_IRUSR | FileUtils.S_IWUSR
+                        | FileUtils.S_IRGRP | FileUtils.S_IWGRP,
+                -1, -1);
+        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_GAME_SERVICE)) {
+            mGameServiceController = new GameServiceController(
+                    context, BackgroundThread.getExecutor(),
+                    new GameServiceProviderSelectorImpl(
+                            context.getResources(),
+                            context.getPackageManager()),
+                    new GameServiceProviderInstanceFactoryImpl(context));
+        } else {
+            mGameServiceController = null;
+        }
+    }
+
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+    GameManagerService(Context context, Looper looper, File dataDir) {
+        mContext = context;
+        mHandler = new SettingsHandler(looper);
+        mPackageManager = mContext.getPackageManager();
+        mUserManager = mContext.getSystemService(UserManager.class);
+        mPlatformCompat = IPlatformCompat.Stub.asInterface(
+                ServiceManager.getService(Context.PLATFORM_COMPAT_SERVICE));
+        mPowerManagerInternal = LocalServices.getService(PowerManagerInternal.class);
+        mSystemDir = new File(dataDir, "system");
+        mSystemDir.mkdirs();
+        FileUtils.setPermissions(mSystemDir.toString(),
+                FileUtils.S_IRWXU | FileUtils.S_IRWXG | FileUtils.S_IROTH | FileUtils.S_IXOTH,
+                -1, -1);
+        mGameModeInterventionListFile = new AtomicFile(new File(mSystemDir,
+                GAME_MODE_INTERVENTION_LIST_FILE_NAME));
+        FileUtils.setPermissions(mGameModeInterventionListFile.getBaseFile().getAbsolutePath(),
+                FileUtils.S_IRUSR | FileUtils.S_IWUSR
+                        | FileUtils.S_IRGRP | FileUtils.S_IWGRP,
+                -1, -1);
         if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_GAME_SERVICE)) {
             mGameServiceController = new GameServiceController(
                     context, BackgroundThread.getExecutor(),
@@ -268,7 +334,7 @@ public final class GameManagerService extends IGameManagerService.Stub {
                     removeMessages(POPULATE_GAME_MODE_SETTINGS, msg.obj);
                     final int userId = (int) msg.obj;
                     final String[] packageNames = getInstalledGamePackageNames(userId);
-                    updateConfigsForUser(userId, packageNames);
+                    updateConfigsForUser(userId, false /*checkGamePackage*/, packageNames);
                     break;
                 }
                 case SET_GAME_STATE: {
@@ -306,6 +372,22 @@ public final class GameManagerService extends IGameManagerService.Stub {
                     mPowerManagerInternal.setPowerMode(Mode.GAME_LOADING, false);
                     break;
                 }
+                case WRITE_GAME_MODE_INTERVENTION_LIST_FILE: {
+                    final int userId = (int) msg.obj;
+                    if (userId < 0) {
+                        Slog.wtf(TAG, "Attempt to write setting for invalid user: " + userId);
+                        synchronized (mLock) {
+                            removeMessages(WRITE_GAME_MODE_INTERVENTION_LIST_FILE, null);
+                        }
+                        break;
+                    }
+
+                    Process.setThreadPriority(Process.THREAD_PRIORITY_DEFAULT);
+                    removeMessages(WRITE_GAME_MODE_INTERVENTION_LIST_FILE, null);
+                    writeGameModeInterventionsToFile(userId);
+                    Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                    break;
+                }
             }
         }
     }
@@ -321,7 +403,8 @@ public final class GameManagerService extends IGameManagerService.Stub {
         @Override
         public void onPropertiesChanged(Properties properties) {
             final String[] packageNames = properties.getKeyset().toArray(new String[0]);
-            updateConfigsForUser(ActivityManager.getCurrentUser(), packageNames);
+            updateConfigsForUser(ActivityManager.getCurrentUser(), true /*checkGamePackage*/,
+                    packageNames);
         }
 
         @Override
@@ -472,32 +555,32 @@ public final class GameManagerService extends IGameManagerService.Stub {
 
         private static final String GAME_MODE_CONFIG_NODE_NAME = "game-mode-config";
         private final String mPackageName;
-        private final ArrayMap<Integer, GameModeConfiguration> mModeConfigs;
-        private boolean mPerfModeOptedIn;
-        private boolean mBatteryModeOptedIn;
-        private boolean mAllowDownscale;
-        private boolean mAllowAngle;
-        private boolean mAllowFpsOverride;
+        private final Object mModeConfigLock = new Object();
+        @GuardedBy("mModeConfigLock")
+        private final ArrayMap<Integer, GameModeConfiguration> mModeConfigs = new ArrayMap<>();
+        // if adding new properties or make any of the below overridable, the method
+        // copyAndApplyOverride should be updated accordingly
+        private boolean mPerfModeOptedIn = false;
+        private boolean mBatteryModeOptedIn = false;
+        private boolean mAllowDownscale = true;
+        private boolean mAllowAngle = true;
+        private boolean mAllowFpsOverride = true;
+
+        GamePackageConfiguration(String packageName) {
+            mPackageName = packageName;
+        }
 
         GamePackageConfiguration(String packageName, int userId) {
             mPackageName = packageName;
-            mModeConfigs = new ArrayMap<>();
+
             try {
                 final ApplicationInfo ai = mPackageManager.getApplicationInfoAsUser(packageName,
                         PackageManager.GET_META_DATA, userId);
-                if (!parseInterventionFromXml(ai, packageName)) {
-                    if (ai.metaData != null) {
-                        mPerfModeOptedIn = ai.metaData.getBoolean(METADATA_PERFORMANCE_MODE_ENABLE);
-                        mBatteryModeOptedIn = ai.metaData.getBoolean(METADATA_BATTERY_MODE_ENABLE);
-                        mAllowDownscale = ai.metaData.getBoolean(METADATA_WM_ALLOW_DOWNSCALE, true);
-                        mAllowAngle = ai.metaData.getBoolean(METADATA_ANGLE_ALLOW_ANGLE, true);
-                    } else {
-                        mPerfModeOptedIn = false;
-                        mBatteryModeOptedIn = false;
-                        mAllowDownscale = true;
-                        mAllowAngle = true;
-                        mAllowFpsOverride = true;
-                    }
+                if (!parseInterventionFromXml(ai, packageName) && ai.metaData != null) {
+                    mPerfModeOptedIn = ai.metaData.getBoolean(METADATA_PERFORMANCE_MODE_ENABLE);
+                    mBatteryModeOptedIn = ai.metaData.getBoolean(METADATA_BATTERY_MODE_ENABLE);
+                    mAllowDownscale = ai.metaData.getBoolean(METADATA_WM_ALLOW_DOWNSCALE, true);
+                    mAllowAngle = ai.metaData.getBoolean(METADATA_ANGLE_ALLOW_ANGLE, true);
                 }
             } catch (NameNotFoundException e) {
                 // Not all packages are installed, hence ignore those that are not installed yet.
@@ -560,10 +643,23 @@ public final class GameManagerService extends IGameManagerService.Stub {
                     }
                 }
             } catch (NameNotFoundException | XmlPullParserException | IOException ex) {
+                // set flag back to default values when parsing fails
+                mPerfModeOptedIn = false;
+                mBatteryModeOptedIn = false;
+                mAllowDownscale = true;
+                mAllowAngle = true;
+                mAllowFpsOverride = true;
                 Slog.e(TAG, "Error while parsing XML meta-data for "
                         + METADATA_GAME_MODE_CONFIG);
             }
             return xmlFound;
+        }
+
+        GameModeConfiguration getOrAddDefaultGameModeConfiguration(int gameMode) {
+            synchronized (mModeConfigLock) {
+                mModeConfigs.putIfAbsent(gameMode, new GameModeConfiguration(gameMode));
+                return mModeConfigs.get(gameMode);
+            }
         }
 
         /**
@@ -578,14 +674,22 @@ public final class GameManagerService extends IGameManagerService.Stub {
             public static final String FPS_KEY = "fps";
             public static final String DEFAULT_SCALING = "1.0";
             public static final String DEFAULT_FPS = "";
+            public static final boolean DEFAULT_USE_ANGLE = false;
+            public static final int DEFAULT_LOADING_BOOST_DURATION = -1;
             public static final String ANGLE_KEY = "useAngle";
             public static final String LOADING_BOOST_KEY = "loadingBoost";
 
             private final @GameMode int mGameMode;
-            private String mScaling;
-            private String mFps;
+            private String mScaling = DEFAULT_SCALING;
+            private String mFps = DEFAULT_FPS;
             private final boolean mUseAngle;
             private final int mLoadingBoostDuration;
+
+            GameModeConfiguration(int gameMode) {
+                mGameMode = gameMode;
+                mUseAngle = DEFAULT_USE_ANGLE;
+                mLoadingBoostDuration = DEFAULT_LOADING_BOOST_DURATION;
+            }
 
             GameModeConfiguration(KeyValueListParser parser) {
                 mGameMode = parser.getInt(MODE_KEY, GameManager.GAME_MODE_UNSUPPORTED);
@@ -613,11 +717,11 @@ public final class GameManagerService extends IGameManagerService.Stub {
                 return mGameMode;
             }
 
-            public String getScaling() {
+            public synchronized String getScaling() {
                 return mScaling;
             }
 
-            public int getFps() {
+            public synchronized int getFps() {
                 return GameManagerService.getFpsInt(mFps);
             }
 
@@ -629,15 +733,15 @@ public final class GameManagerService extends IGameManagerService.Stub {
                 return mLoadingBoostDuration;
             }
 
-            public void setScaling(String scaling) {
+            public synchronized void setScaling(String scaling) {
                 mScaling = scaling;
             }
 
-            public void setFpsStr(String fpsStr) {
+            public synchronized void setFpsStr(String fpsStr) {
                 mFps = fpsStr;
             }
 
-            public boolean isValid() {
+            public boolean isActive() {
                 return (mGameMode == GameManager.GAME_MODE_STANDARD
                         || mGameMode == GameManager.GAME_MODE_PERFORMANCE
                         || mGameMode == GameManager.GAME_MODE_BATTERY)
@@ -680,8 +784,10 @@ public final class GameManagerService extends IGameManagerService.Stub {
 
         private int getAvailableGameModesBitfield() {
             int field = 0;
-            for (final int mode : mModeConfigs.keySet()) {
-                field |= modeToBitmask(mode);
+            synchronized (mModeConfigLock) {
+                for (final int mode : mModeConfigs.keySet()) {
+                    field |= modeToBitmask(mode);
+                }
             }
             if (mBatteryModeOptedIn) {
                 field |= modeToBitmask(GameManager.GAME_MODE_BATTERY);
@@ -722,27 +828,71 @@ public final class GameManagerService extends IGameManagerService.Stub {
          * @return The package's GameModeConfiguration for the provided mode or null if absent
          */
         public GameModeConfiguration getGameModeConfiguration(@GameMode int gameMode) {
-            return mModeConfigs.get(gameMode);
+            synchronized (mModeConfigLock) {
+                return mModeConfigs.get(gameMode);
+            }
         }
 
         /**
          * Insert a new GameModeConfiguration
          */
         public void addModeConfig(GameModeConfiguration config) {
-            if (config.isValid()) {
-                mModeConfigs.put(config.getGameMode(), config);
+            if (config.isActive()) {
+                synchronized (mModeConfigLock) {
+                    mModeConfigs.put(config.getGameMode(), config);
+                }
             } else {
-                Slog.w(TAG, "Invalid game mode config for "
+                Slog.w(TAG, "Attempt to add inactive game mode config for "
                         + mPackageName + ":" + config.toString());
             }
         }
 
-        public boolean isValid() {
-            return mModeConfigs.size() > 0 || mBatteryModeOptedIn || mPerfModeOptedIn;
+        public boolean isActive() {
+            synchronized (mModeConfigLock) {
+                return mModeConfigs.size() > 0 || mBatteryModeOptedIn || mPerfModeOptedIn;
+            }
+        }
+
+        GamePackageConfiguration copyAndApplyOverride(GamePackageConfiguration overrideConfig) {
+            GamePackageConfiguration copy = new GamePackageConfiguration(mPackageName);
+            // if a game mode is overridden, we treat it with the highest priority and reset any
+            // opt-in game modes so that interventions are always executed.
+            copy.mPerfModeOptedIn = mPerfModeOptedIn && !(overrideConfig != null
+                    && overrideConfig.getGameModeConfiguration(GameManager.GAME_MODE_PERFORMANCE)
+                    != null);
+            copy.mBatteryModeOptedIn = mBatteryModeOptedIn && !(overrideConfig != null
+                    && overrideConfig.getGameModeConfiguration(GameManager.GAME_MODE_BATTERY)
+                    != null);
+
+            // if any game mode is overridden, we will consider all interventions forced-active,
+            // this can be done more granular by checking if a specific intervention is
+            // overridden under each game mode override, but only if necessary.
+            copy.mAllowDownscale = mAllowDownscale || overrideConfig != null;
+            copy.mAllowAngle = mAllowAngle || overrideConfig != null;
+            copy.mAllowFpsOverride = mAllowFpsOverride || overrideConfig != null;
+            if (overrideConfig != null) {
+                synchronized (copy.mModeConfigLock) {
+                    synchronized (mModeConfigLock) {
+                        for (Map.Entry<Integer, GameModeConfiguration> entry :
+                                mModeConfigs.entrySet()) {
+                            copy.mModeConfigs.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+                    synchronized (overrideConfig.mModeConfigLock) {
+                        for (Map.Entry<Integer, GameModeConfiguration> entry :
+                                overrideConfig.mModeConfigs.entrySet()) {
+                            copy.mModeConfigs.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+                }
+            }
+            return copy;
         }
 
         public String toString() {
-            return "[Name:" + mPackageName + " Modes: " + mModeConfigs.toString() + "]";
+            synchronized (mModeConfigLock) {
+                return "[Name:" + mPackageName + " Modes: " + mModeConfigs.toString() + "]";
+            }
         }
     }
 
@@ -813,15 +963,7 @@ public final class GameManagerService extends IGameManagerService.Stub {
     }
 
     private @GameMode int[] getAvailableGameModesUnchecked(String packageName) {
-        GamePackageConfiguration config = null;
-        synchronized (mOverrideConfigLock) {
-            config = mOverrideConfigs.get(packageName);
-        }
-        if (config == null) {
-            synchronized (mDeviceConfigLock) {
-                config = mConfigs.get(packageName);
-            }
-        }
+        final GamePackageConfiguration config = getConfig(packageName);
         if (config == null) {
             return new int[]{};
         }
@@ -955,6 +1097,11 @@ public final class GameManagerService extends IGameManagerService.Stub {
             }
         }
         updateInterventions(packageName, gameMode, userId);
+        final Message msg = mHandler.obtainMessage(WRITE_GAME_MODE_INTERVENTION_LIST_FILE);
+        msg.obj = userId;
+        if (!mHandler.hasEqualMessages(WRITE_GAME_MODE_INTERVENTION_LIST_FILE, userId)) {
+            mHandler.sendMessage(msg);
+        }
     }
 
     /**
@@ -969,19 +1116,19 @@ public final class GameManagerService extends IGameManagerService.Stub {
         if (gameMode == GameManager.GAME_MODE_UNSUPPORTED) {
             return false;
         }
-
+        final GamePackageConfiguration config;
         synchronized (mDeviceConfigLock) {
-            final GamePackageConfiguration config = mConfigs.get(packageName);
+            config = mConfigs.get(packageName);
             if (config == null) {
                 return false;
             }
-            GamePackageConfiguration.GameModeConfiguration gameModeConfiguration =
-                    config.getGameModeConfiguration(gameMode);
-            if (gameModeConfiguration == null) {
-                return false;
-            }
-            return gameModeConfiguration.getUseAngle();
         }
+        GamePackageConfiguration.GameModeConfiguration gameModeConfiguration =
+                config.getGameModeConfiguration(gameMode);
+        if (gameModeConfiguration == null) {
+            return false;
+        }
+        return gameModeConfiguration.getUseAngle();
     }
 
     /**
@@ -996,19 +1143,19 @@ public final class GameManagerService extends IGameManagerService.Stub {
         if (gameMode == GameManager.GAME_MODE_UNSUPPORTED) {
             return -1;
         }
-
+        final GamePackageConfiguration config;
         synchronized (mDeviceConfigLock) {
-            final GamePackageConfiguration config = mConfigs.get(packageName);
-            if (config == null) {
-                return -1;
-            }
-            GamePackageConfiguration.GameModeConfiguration gameModeConfiguration =
-                    config.getGameModeConfiguration(gameMode);
-            if (gameModeConfiguration == null) {
-                return -1;
-            }
-            return gameModeConfiguration.getLoadingBoostDuration();
+            config = mConfigs.get(packageName);
         }
+        if (config == null) {
+            return -1;
+        }
+        GamePackageConfiguration.GameModeConfiguration gameModeConfiguration =
+                config.getGameModeConfiguration(gameMode);
+        if (gameModeConfiguration == null) {
+            return -1;
+        }
+        return gameModeConfiguration.getLoadingBoostDuration();
     }
 
     /**
@@ -1129,20 +1276,12 @@ public final class GameManagerService extends IGameManagerService.Stub {
 
     void onUserSwitching(TargetUser from, TargetUser to) {
         final int toUserId = to.getUserIdentifier();
-        if (from != null) {
-            synchronized (mLock) {
-                final int fromUserId = from.getUserIdentifier();
-                if (mSettings.containsKey(fromUserId)) {
-                    final Message msg = mHandler.obtainMessage(REMOVE_SETTINGS);
-                    msg.obj = fromUserId;
-                    mHandler.sendMessage(msg);
-                }
-            }
-        }
+        // we want to re-populate the setting when switching user as the device config may have
+        // changed, which will only update for the previous user, see
+        // DeviceConfigListener#onPropertiesChanged.
         final Message msg = mHandler.obtainMessage(POPULATE_GAME_MODE_SETTINGS);
         msg.obj = toUserId;
         mHandler.sendMessage(msg);
-
         if (mGameServiceController != null) {
             mGameServiceController.notifyNewForegroundUser(to);
         }
@@ -1177,7 +1316,7 @@ public final class GameManagerService extends IGameManagerService.Stub {
         try {
             final float fps = 0.0f;
             final int uid = mPackageManager.getPackageUidAsUser(packageName, userId);
-            nativeSetOverrideFrameRate(uid, fps);
+            setOverrideFrameRate(uid, fps);
         } catch (PackageManager.NameNotFoundException e) {
             return;
         }
@@ -1263,7 +1402,7 @@ public final class GameManagerService extends IGameManagerService.Stub {
         try {
             final float fps = modeConfig.getFps();
             final int uid = mPackageManager.getPackageUidAsUser(packageName, userId);
-            nativeSetOverrideFrameRate(uid, fps);
+            setOverrideFrameRate(uid, fps);
         } catch (PackageManager.NameNotFoundException e) {
             return;
         }
@@ -1272,34 +1411,20 @@ public final class GameManagerService extends IGameManagerService.Stub {
 
     private void updateInterventions(String packageName,
             @GameMode int gameMode, @UserIdInt int userId) {
+        final GamePackageConfiguration packageConfig = getConfig(packageName);
         if (gameMode == GameManager.GAME_MODE_STANDARD
-                || gameMode == GameManager.GAME_MODE_UNSUPPORTED) {
+                || gameMode == GameManager.GAME_MODE_UNSUPPORTED || packageConfig == null
+                || packageConfig.willGamePerformOptimizations(gameMode)) {
             disableCompatScale(packageName);
             resetFps(packageName, userId);
-            return;
-        }
-        GamePackageConfiguration packageConfig = null;
-
-        synchronized (mOverrideConfigLock) {
-            packageConfig = mOverrideConfigs.get(packageName);
-        }
-
-        if (packageConfig == null) {
-            synchronized (mDeviceConfigLock) {
-                packageConfig = mConfigs.get(packageName);
+            if (packageConfig == null) {
+                Slog.v(TAG, "Package configuration not found for " + packageName);
+                return;
             }
+        } else {
+            updateFps(packageConfig, packageName, gameMode, userId);
+            updateCompatModeDownscale(packageConfig, packageName, gameMode);
         }
-
-        if (packageConfig == null) {
-            disableCompatScale(packageName);
-            Slog.v(TAG, "Package configuration not found for " + packageName);
-            return;
-        }
-        if (packageConfig.willGamePerformOptimizations(gameMode)) {
-            return;
-        }
-        updateCompatModeDownscale(packageConfig, packageName, gameMode);
-        updateFps(packageConfig, packageName, gameMode, userId);
         updateUseAngle(packageName, gameMode);
     }
 
@@ -1318,34 +1443,34 @@ public final class GameManagerService extends IGameManagerService.Stub {
             }
         }
         // Adding override game mode configuration of the given package name
+        GamePackageConfiguration overrideConfig;
         synchronized (mOverrideConfigLock) {
             // look for the existing override GamePackageConfiguration
-            GamePackageConfiguration overrideConfig = mOverrideConfigs.get(packageName);
+            overrideConfig = mOverrideConfigs.get(packageName);
             if (overrideConfig == null) {
-                overrideConfig = new GamePackageConfiguration(packageName, userId);
+                overrideConfig = new GamePackageConfiguration(packageName);
                 mOverrideConfigs.put(packageName, overrideConfig);
             }
-
-            // modify GameModeConfiguration intervention settings
-            GamePackageConfiguration.GameModeConfiguration overrideModeConfig =
-                    overrideConfig.getGameModeConfiguration(gameMode);
-
-            if (fpsStr != null) {
-                overrideModeConfig.setFpsStr(fpsStr);
-            } else {
-                overrideModeConfig.setFpsStr(
-                        GamePackageConfiguration.GameModeConfiguration.DEFAULT_FPS);
-            }
-            if (scaling != null) {
-                overrideModeConfig.setScaling(scaling);
-            } else {
-                overrideModeConfig.setScaling(
-                        GamePackageConfiguration.GameModeConfiguration.DEFAULT_SCALING);
-            }
-            Slog.i(TAG, "Package Name: " + packageName
-                    + " FPS: " + String.valueOf(overrideModeConfig.getFps())
-                    + " Scaling: " + overrideModeConfig.getScaling());
         }
+        // modify GameModeConfiguration intervention settings
+        GamePackageConfiguration.GameModeConfiguration overrideModeConfig =
+                overrideConfig.getOrAddDefaultGameModeConfiguration(gameMode);
+
+        if (fpsStr != null) {
+            overrideModeConfig.setFpsStr(fpsStr);
+        } else {
+            overrideModeConfig.setFpsStr(
+                    GamePackageConfiguration.GameModeConfiguration.DEFAULT_FPS);
+        }
+        if (scaling != null) {
+            overrideModeConfig.setScaling(scaling);
+        } else {
+            overrideModeConfig.setScaling(
+                    GamePackageConfiguration.GameModeConfiguration.DEFAULT_SCALING);
+        }
+        Slog.i(TAG, "Package Name: " + packageName
+                + " FPS: " + String.valueOf(overrideModeConfig.getFps())
+                + " Scaling: " + overrideModeConfig.getScaling());
         setGameMode(packageName, gameMode, userId);
     }
 
@@ -1411,15 +1536,7 @@ public final class GameManagerService extends IGameManagerService.Stub {
         // If not, set the game mode to standard
         int gameMode = getGameMode(packageName, userId);
 
-        GamePackageConfiguration config = null;
-        synchronized (mOverrideConfigLock) {
-            config = mOverrideConfigs.get(packageName);
-        }
-        if (config == null) {
-            synchronized (mDeviceConfigLock) {
-                config = mConfigs.get(packageName);
-            }
-        }
+        final GamePackageConfiguration config = getConfig(packageName);
         final int newGameMode = getNewGameMode(gameMode, config);
         if (gameMode != newGameMode) {
             setGameMode(packageName, GameManager.GAME_MODE_STANDARD, userId);
@@ -1458,18 +1575,8 @@ public final class GameManagerService extends IGameManagerService.Stub {
      * Returns the string listing all the interventions currently set to a game.
      */
     public String getInterventionList(String packageName) {
-        GamePackageConfiguration packageConfig = null;
-        synchronized (mOverrideConfigLock) {
-            packageConfig = mOverrideConfigs.get(packageName);
-        }
-
-        if (packageConfig == null) {
-            synchronized (mDeviceConfigLock) {
-                packageConfig = mConfigs.get(packageName);
-            }
-        }
-
-        StringBuilder listStrSb = new StringBuilder();
+        final GamePackageConfiguration packageConfig = getConfig(packageName);
+        final StringBuilder listStrSb = new StringBuilder();
         if (packageConfig == null) {
             listStrSb.append("\n No intervention found for package ")
                     .append(packageName);
@@ -1484,20 +1591,27 @@ public final class GameManagerService extends IGameManagerService.Stub {
      * @hide
      */
     @VisibleForTesting
-    void updateConfigsForUser(@UserIdInt int userId, String... packageNames) {
+    void updateConfigsForUser(@UserIdInt int userId, boolean checkGamePackage,
+            String... packageNames) {
+        if (checkGamePackage) {
+            packageNames = Arrays.stream(packageNames).filter(
+                    p -> isPackageGame(p, userId)).toArray(String[]::new);
+        }
         try {
             synchronized (mDeviceConfigLock) {
                 for (final String packageName : packageNames) {
                     final GamePackageConfiguration config =
                             new GamePackageConfiguration(packageName, userId);
-                    if (config.isValid()) {
+                    if (config.isActive()) {
                         if (DEBUG) {
                             Slog.i(TAG, "Adding config: " + config.toString());
                         }
                         mConfigs.put(packageName, config);
                     } else {
-                        Slog.w(TAG, "Invalid package config for "
-                                + config.getPackageName() + ":" + config.toString());
+                        if (DEBUG) {
+                            Slog.w(TAG, "Inactive package config for "
+                                    + config.getPackageName() + ":" + config.toString());
+                        }
                         mConfigs.remove(packageName);
                     }
                 }
@@ -1520,15 +1634,98 @@ public final class GameManagerService extends IGameManagerService.Stub {
                 final int newGameMode = getNewGameMode(gameMode, config);
                 if (newGameMode != gameMode) {
                     setGameMode(packageName, newGameMode, userId);
+                } else {
+                    // Make sure we handle the case when the interventions are changed while
+                    // the game mode remains the same. We call only updateInterventions() here.
+                    updateInterventions(packageName, gameMode, userId);
                 }
-                updateInterventions(packageName, gameMode, userId);
             }
         } catch (Exception e) {
             Slog.e(TAG, "Failed to update compat modes for user " + userId + ": " + e);
         }
+
+        final Message msg = mHandler.obtainMessage(WRITE_GAME_MODE_INTERVENTION_LIST_FILE);
+        msg.obj = userId;
+        if (!mHandler.hasEqualMessages(WRITE_GAME_MODE_INTERVENTION_LIST_FILE, userId)) {
+            mHandler.sendMessage(msg);
+        }
     }
 
-    private String[] getInstalledGamePackageNames(int userId) {
+    /*
+     Write the interventions and mode of each game to file /system/data/game_mode_intervention.list
+     Each line will contain the information of each game, separated by tab.
+     The format of the output is:
+     <package name> <UID> <current mode> <game mode 1> <interventions> <game mode 2> <interventions>
+     For example:
+     com.android.app1   1425    1   2   angle=0,scaling=1.0,fps=60  3   angle=1,scaling=0.5,fps=30
+     */
+    private void writeGameModeInterventionsToFile(@UserIdInt int userId) {
+        FileOutputStream fileOutputStream = null;
+        BufferedWriter bufferedWriter;
+        try {
+            fileOutputStream = mGameModeInterventionListFile.startWrite();
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream,
+                    Charset.defaultCharset()));
+
+            final StringBuilder sb = new StringBuilder();
+            final List<String> installedGamesList = getInstalledGamePackageNamesByAllUsers(userId);
+            for (final String packageName : installedGamesList) {
+                GamePackageConfiguration packageConfig = getConfig(packageName);
+                if (packageConfig == null) {
+                    continue;
+                }
+                sb.append(packageName);
+                sb.append("\t");
+                sb.append(mPackageManager.getPackageUidAsUser(packageName, userId));
+                sb.append("\t");
+                sb.append(getGameMode(packageName, userId));
+                sb.append("\t");
+                final int[] modes = packageConfig.getAvailableGameModes();
+                for (int mode : modes) {
+                    final GamePackageConfiguration.GameModeConfiguration gameModeConfiguration =
+                            packageConfig.getGameModeConfiguration(mode);
+                    if (gameModeConfiguration == null) {
+                        continue;
+                    }
+                    sb.append(mode);
+                    sb.append("\t");
+                    final int useAngle = gameModeConfiguration.getUseAngle() ? 1 : 0;
+                    sb.append(TextUtils.formatSimple("angle=%d", useAngle));
+                    sb.append(",");
+                    final String scaling = gameModeConfiguration.getScaling();
+                    sb.append("scaling=");
+                    sb.append(scaling);
+                    sb.append(",");
+                    final int fps = gameModeConfiguration.getFps();
+                    sb.append(TextUtils.formatSimple("fps=%d", fps));
+                    sb.append("\t");
+                }
+                sb.append("\n");
+            }
+            bufferedWriter.append(sb);
+            bufferedWriter.flush();
+            FileUtils.sync(fileOutputStream);
+            mGameModeInterventionListFile.finishWrite(fileOutputStream);
+        } catch (Exception e) {
+            mGameModeInterventionListFile.failWrite(fileOutputStream);
+            Slog.wtf(TAG, "Failed to write game_mode_intervention.list, exception " + e);
+        }
+        return;
+    }
+
+    private int[] getAllUserIds(@UserIdInt int currentUserId) {
+        final List<UserInfo> users = mUserManager.getUsers();
+        int[] userIds = new int[users.size()];
+        for (int i = 0; i < userIds.length; ++i) {
+            userIds[i] = users.get(i).id;
+        }
+        if (currentUserId != -1) {
+            userIds = ArrayUtils.appendInt(userIds, currentUserId);
+        }
+        return userIds;
+    }
+
+    private String[] getInstalledGamePackageNames(@UserIdInt int userId) {
         final List<PackageInfo> packages =
                 mPackageManager.getInstalledPackagesAsUser(0, userId);
         return packages.stream().filter(e -> e.applicationInfo != null && e.applicationInfo.category
@@ -1537,21 +1734,34 @@ public final class GameManagerService extends IGameManagerService.Stub {
                 .toArray(String[]::new);
     }
 
+    private List<String> getInstalledGamePackageNamesByAllUsers(@UserIdInt int currentUserId) {
+        HashSet<String> packageSet = new HashSet<>();
+
+        final int[] userIds = getAllUserIds(currentUserId);
+        for (int userId : userIds) {
+            packageSet.addAll(Arrays.asList(getInstalledGamePackageNames(userId)));
+        }
+
+        return new ArrayList<>(packageSet);
+    }
+
     /**
      * @hide
      */
     @VisibleForTesting
     public GamePackageConfiguration getConfig(String packageName) {
-        GamePackageConfiguration packageConfig = null;
+        GamePackageConfiguration overrideConfig = null;
+        GamePackageConfiguration config;
+        synchronized (mDeviceConfigLock) {
+            config = mConfigs.get(packageName);
+        }
         synchronized (mOverrideConfigLock) {
-            packageConfig = mOverrideConfigs.get(packageName);
+            overrideConfig = mOverrideConfigs.get(packageName);
         }
-        if (packageConfig == null) {
-            synchronized (mDeviceConfigLock) {
-                packageConfig = mConfigs.get(packageName);
-            }
+        if (overrideConfig == null || config == null) {
+            return overrideConfig == null ? config : overrideConfig;
         }
-        return packageConfig;
+        return config.copyAndApplyOverride(overrideConfig);
     }
 
     private void registerPackageReceiver() {
@@ -1581,7 +1791,7 @@ public final class GameManagerService extends IGameManagerService.Stub {
                     }
                     switch (intent.getAction()) {
                         case ACTION_PACKAGE_ADDED:
-                            updateConfigsForUser(userId, packageName);
+                            updateConfigsForUser(userId, true /*checkGamePackage*/, packageName);
                             break;
                         case ACTION_PACKAGE_REMOVED:
                             disableCompatScale(packageName);
@@ -1653,6 +1863,11 @@ public final class GameManagerService extends IGameManagerService.Stub {
                 Process.THREAD_PRIORITY_BACKGROUND, true /*allowIo*/);
         handlerThread.start();
         return handlerThread;
+    }
+
+    @VisibleForTesting
+    void setOverrideFrameRate(int uid, float frameRate) {
+        nativeSetOverrideFrameRate(uid, frameRate);
     }
 
     /**

@@ -26,6 +26,7 @@ import com.android.systemui.R
 import com.android.systemui.dagger.SysUISingleton
 import com.android.systemui.dump.DumpManager
 import com.android.systemui.plugins.statusbar.StatusBarStateController
+import com.android.systemui.shade.ShadeExpansionStateManager
 import com.android.systemui.statusbar.NotificationLockscreenUserManager
 import com.android.systemui.statusbar.StatusBarState
 import com.android.systemui.statusbar.notification.stack.StackScrollAlgorithm
@@ -43,7 +44,6 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
     private var hasFaceFeature: Boolean
     private var pendingUnlock: PendingUnlock? = null
     private val listeners = mutableListOf<OnBypassStateChangedListener>()
-    var userHasDeviceEntryIntent: Boolean = false // ie: attempted udfps auth
 
     private val faceAuthEnabledChangedCallback = object : KeyguardStateController.Callback {
         override fun onFaceAuthEnabledChanged() = notifyListeners()
@@ -96,14 +96,7 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
     var bouncerShowing: Boolean = false
     var altBouncerShowing: Boolean = false
     var launchingAffordance: Boolean = false
-    var qSExpanded = false
-        set(value) {
-            val changed = field != value
-            field = value
-            if (changed && !value) {
-                maybePerformPendingUnlock()
-            }
-        }
+    var qsExpanded = false
 
     @Inject
     constructor(
@@ -112,6 +105,7 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
         statusBarStateController: StatusBarStateController,
         lockscreenUserManager: NotificationLockscreenUserManager,
         keyguardStateController: KeyguardStateController,
+        shadeExpansionStateManager: ShadeExpansionStateManager,
         dumpManager: DumpManager
     ) {
         this.mKeyguardStateController = keyguardStateController
@@ -132,6 +126,14 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
                 }
             }
         })
+
+        shadeExpansionStateManager.addQsExpansionListener { isQsExpanded ->
+            val changed = qsExpanded != isQsExpanded
+            qsExpanded = isQsExpanded
+            if (changed && !isQsExpanded) {
+                maybePerformPendingUnlock()
+            }
+        }
 
         val dismissByDefault = if (context.resources.getBoolean(
                         com.android.internal.R.bool.config_faceAuthDismissesKeyguard)) 1 else 0
@@ -161,7 +163,7 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
     ): Boolean {
         if (biometricSourceType == BiometricSourceType.FACE && bypassEnabled) {
             val can = canBypass()
-            if (!can && (isPulseExpanding || qSExpanded)) {
+            if (!can && (isPulseExpanding || qsExpanded)) {
                 pendingUnlock = PendingUnlock(biometricSourceType, isStrongBiometric)
             }
             return can
@@ -190,21 +192,7 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
                 altBouncerShowing -> true
                 statusBarStateController.state != StatusBarState.KEYGUARD -> false
                 launchingAffordance -> false
-                isPulseExpanding || qSExpanded -> false
-                else -> true
-            }
-        }
-        return false
-    }
-
-    /**
-     * If shorter animations should be played when unlocking.
-     */
-    fun canPlaySubtleWindowAnimations(): Boolean {
-        if (bypassEnabled) {
-            return when {
-                statusBarStateController.state != StatusBarState.KEYGUARD -> false
-                qSExpanded -> false
+                isPulseExpanding || qsExpanded -> false
                 else -> true
             }
         }
@@ -229,9 +217,8 @@ open class KeyguardBypassController : Dumpable, StackScrollAlgorithm.BypassContr
         pw.println("  altBouncerShowing: $altBouncerShowing")
         pw.println("  isPulseExpanding: $isPulseExpanding")
         pw.println("  launchingAffordance: $launchingAffordance")
-        pw.println("  qSExpanded: $qSExpanded")
+        pw.println("  qSExpanded: $qsExpanded")
         pw.println("  hasFaceFeature: $hasFaceFeature")
-        pw.println("  userHasDeviceEntryIntent: $userHasDeviceEntryIntent")
     }
 
     /** Registers a listener for bypass state changes. */

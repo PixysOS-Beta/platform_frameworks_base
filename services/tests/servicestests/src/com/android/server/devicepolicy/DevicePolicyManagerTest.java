@@ -132,7 +132,6 @@ import android.os.IpcDataCache;
 import android.os.Process;
 import android.os.UserHandle;
 import android.os.UserManager;
-import android.platform.test.annotations.FlakyTest;
 import android.platform.test.annotations.Presubmit;
 import android.provider.Settings;
 import android.security.KeyChain;
@@ -144,6 +143,7 @@ import android.util.ArraySet;
 import android.util.Log;
 import android.util.Pair;
 
+import androidx.test.filters.FlakyTest;
 import androidx.test.filters.SmallTest;
 
 import com.android.internal.R;
@@ -3322,19 +3322,50 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
-    public void testIsActiveSupervisionApp() throws Exception {
-        when(mServiceContext.resources
-                .getString(R.string.config_defaultSupervisionProfileOwnerComponent))
-                .thenReturn(admin1.flattenToString());
+    public void testSupervisionConfig() throws Exception {
+        final int uid = UserHandle.getUid(15, 19436);
+        addManagedProfile(admin1, uid, admin1);
+        mContext.binder.callingUid = uid;
 
-        final int PROFILE_USER = 15;
-        final int PROFILE_ADMIN = UserHandle.getUid(PROFILE_USER, 19436);
-        addManagedProfile(admin1, PROFILE_ADMIN, admin1);
-        mContext.binder.callingUid = PROFILE_ADMIN;
+        verifySupervisionConfig(uid, null, null);
+        verifySupervisionConfig(uid, "", null);
+        verifySupervisionConfig(uid, null, "");
+        verifySupervisionConfig(uid, "", "");
 
+        verifySupervisionConfig(uid, admin1.flattenToString(), null);
+        verifySupervisionConfig(uid, admin1.flattenToString(), "");
+
+        verifySupervisionConfig(uid, null, admin1.getPackageName());
+        verifySupervisionConfig(uid, "", admin1.getPackageName());
+    }
+
+    private void verifySupervisionConfig(
+            int uid , String configComponentName, String configPackageName) {
+        final boolean isAdmin = admin1.flattenToString().equals(configComponentName)
+                || admin1.getPackageName().equals(configPackageName);
+
+        final UserHandle user = UserHandle.getUserHandleForUid(uid);
         final DevicePolicyManagerInternal dpmi =
                 LocalServices.getService(DevicePolicyManagerInternal.class);
-        assertThat(dpmi.isActiveSupervisionApp(PROFILE_ADMIN)).isTrue();
+
+        when(mServiceContext.resources
+                .getString(R.string.config_defaultSupervisionProfileOwnerComponent))
+                .thenReturn(configComponentName);
+
+        when(mServiceContext.resources
+                .getString(R.string.config_systemSupervision))
+                .thenReturn(configPackageName);
+
+        if (isAdmin) {
+            assertThat(dpmi.isActiveSupervisionApp(uid)).isTrue();
+            assertThat(dpm.getProfileOwnerOrDeviceOwnerSupervisionComponent(user))
+                        .isEqualTo(admin1);
+            assertThat(dpm.isSupervisionComponent(admin1)).isTrue();
+        } else {
+            assertThat(dpmi.isActiveSupervisionApp(uid)).isFalse();
+            assertThat(dpm.getProfileOwnerOrDeviceOwnerSupervisionComponent(user)).isNull();
+            assertThat(dpm.isSupervisionComponent(admin1)).isFalse();
+        }
     }
 
     // Test if lock timeout on managed profile is handled correctly depending on whether profile
@@ -4751,6 +4782,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    @FlakyTest(bugId = 260145949)
     public void testLockTaskPolicyForProfileOwner() throws Exception {
         mockPolicyExemptApps();
         mockVendorPolicyExemptApps();
@@ -4786,6 +4818,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    @FlakyTest(bugId = 260145949)
     public void testLockTaskFeatures_IllegalArgumentException() throws Exception {
         // Setup a device owner.
         mContext.binder.callingUid = DpmMockContext.CALLER_SYSTEM_USER_UID;
@@ -7781,6 +7814,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    @FlakyTest(bugId = 260145949)
     public void testSetLockTaskFeatures_financeDo_validLockTaskFeatures_lockTaskFeaturesSet()
             throws Exception {
         int validLockTaskFeatures = LOCK_TASK_FEATURE_SYSTEM_INFO | LOCK_TASK_FEATURE_KEYGUARD
@@ -7796,6 +7830,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    @FlakyTest(bugId = 260145949)
     public void testSetLockTaskFeatures_financeDo_invalidLockTaskFeatures_throwsException()
             throws Exception {
         int invalidLockTaskFeatures = LOCK_TASK_FEATURE_NONE | LOCK_TASK_FEATURE_OVERVIEW
@@ -7812,6 +7847,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    @FlakyTest(bugId = 260145949)
     public void testIsUninstallBlocked_financeDo_success() throws Exception {
         String packageName = "com.android.foo.package";
         setDeviceOwner();
@@ -7912,6 +7948,7 @@ public class DevicePolicyManagerTest extends DpmTestBase {
     }
 
     @Test
+    @FlakyTest(bugId = 260145949)
     public void testSetLockTaskPackages_financeDo_success() throws Exception {
         String[] packages = {"com.android.foo.package"};
         mockEmptyPolicyExemptApps();

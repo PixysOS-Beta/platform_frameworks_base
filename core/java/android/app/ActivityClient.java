@@ -17,6 +17,7 @@
 package android.app;
 
 import android.annotation.Nullable;
+import android.annotation.RequiresPermission;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -52,6 +53,15 @@ public class ActivityClient {
     public void activityResumed(IBinder token, boolean handleSplashScreenExit) {
         try {
             getActivityClientController().activityResumed(token, handleSplashScreenExit);
+        } catch (RemoteException e) {
+            e.rethrowFromSystemServer();
+        }
+    }
+
+    /** Reports {@link android.app.servertransaction.RefreshCallbackItem} is executed. */
+    public void activityRefreshed(IBinder token) {
+        try {
+            getActivityClientController().activityRefreshed(token);
         } catch (RemoteException e) {
             e.rethrowFromSystemServer();
         }
@@ -98,6 +108,15 @@ public class ActivityClient {
         }
     }
 
+    /** Reports the activity starts local relaunch. */
+    public void activityLocalRelaunch(IBinder token) {
+        try {
+            getActivityClientController().activityLocalRelaunch(token);
+        } catch (RemoteException e) {
+            e.rethrowFromSystemServer();
+        }
+    }
+
     /** Reports the activity has completed relaunched. */
     public void activityRelaunched(IBinder token) {
         try {
@@ -131,11 +150,11 @@ public class ActivityClient {
         }
     }
 
-    boolean navigateUpTo(IBinder token, Intent destIntent, int resultCode,
+    boolean navigateUpTo(IBinder token, Intent destIntent, String resolvedType, int resultCode,
             Intent resultData) {
         try {
-            return getActivityClientController().navigateUpTo(token, destIntent, resultCode,
-                    resultData);
+            return getActivityClientController().navigateUpTo(token, destIntent, resolvedType,
+                    resultCode, resultData);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
@@ -175,6 +194,15 @@ public class ActivityClient {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.MANAGE_MEDIA_PROJECTION)
+    void setForceSendResultForMediaProjection(IBinder token) {
+        try {
+            getActivityClientController().setForceSendResultForMediaProjection(token);
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
     public boolean isTopOfTask(IBinder token) {
         try {
             return getActivityClientController().isTopOfTask(token);
@@ -202,6 +230,19 @@ public class ActivityClient {
     public int getTaskForActivity(IBinder token, boolean onlyRoot) {
         try {
             return getActivityClientController().getTaskForActivity(token, onlyRoot);
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
+    /**
+     * Returns the {@link Configuration} of the task which hosts the Activity, or {@code null} if
+     * the task {@link Configuration} cannot be obtained.
+     */
+    @Nullable
+    public Configuration getTaskConfiguration(IBinder activityToken) {
+        try {
+            return getActivityClientController().getTaskConfiguration(activityToken);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
@@ -494,9 +535,9 @@ public class ActivityClient {
         }
     }
 
-    void onBackPressedOnTaskRoot(IBinder token, IRequestFinishCallback callback) {
+    void onBackPressed(IBinder token, IRequestFinishCallback callback) {
         try {
-            getActivityClientController().onBackPressedOnTaskRoot(token, callback);
+            getActivityClientController().onBackPressed(token, callback);
         } catch (RemoteException e) {
             e.rethrowFromSystemServer();
         }

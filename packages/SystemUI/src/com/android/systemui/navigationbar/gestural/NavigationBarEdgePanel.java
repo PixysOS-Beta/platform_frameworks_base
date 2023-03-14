@@ -43,7 +43,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
-import android.window.BackEvent;
 
 import androidx.core.graphics.ColorUtils;
 import androidx.dynamicanimation.animation.DynamicAnimation;
@@ -53,16 +52,17 @@ import androidx.dynamicanimation.animation.SpringForce;
 
 import com.android.internal.util.LatencyTracker;
 import com.android.settingslib.Utils;
-import com.android.systemui.Dependency;
 import com.android.systemui.R;
 import com.android.systemui.animation.Interpolators;
+import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.plugins.NavigationEdgeBackPlugin;
 import com.android.systemui.shared.navigationbar.RegionSamplingHelper;
 import com.android.systemui.statusbar.VibratorHelper;
-import com.android.wm.shell.back.BackAnimation;
 
 import java.io.PrintWriter;
 import java.util.concurrent.Executor;
+
+import javax.inject.Inject;
 
 public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPlugin {
 
@@ -283,15 +283,17 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
                 }
             };
     private BackCallback mBackCallback;
-    private BackAnimation mBackAnimation;
 
-    public NavigationBarEdgePanel(Context context,
-            BackAnimation backAnimation, LatencyTracker latencyTracker) {
+    @Inject
+    public NavigationBarEdgePanel(
+            Context context,
+            LatencyTracker latencyTracker,
+            VibratorHelper vibratorHelper,
+            @Background Executor backgroundExecutor) {
         super(context);
 
         mWindowManager = context.getSystemService(WindowManager.class);
-        mBackAnimation = backAnimation;
-        mVibratorHelper = Dependency.get(VibratorHelper.class);
+        mVibratorHelper = vibratorHelper;
 
         mDensity = context.getResources().getDisplayMetrics().density;
 
@@ -360,11 +362,9 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
                 .getDimension(R.dimen.navigation_edge_action_drag_threshold);
         mSwipeProgressThreshold = context.getResources()
                 .getDimension(R.dimen.navigation_edge_action_progress_threshold);
-        initializeBackAnimation();
 
         setVisibility(GONE);
 
-        Executor backgroundExecutor = Dependency.get(Dependency.BACKGROUND_EXECUTOR);
         boolean isPrimaryDisplay = mContext.getDisplayId() == DEFAULT_DISPLAY;
         mRegionSamplingHelper = new RegionSamplingHelper(this,
                 new RegionSamplingHelper.SamplingCallback() {
@@ -386,17 +386,6 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
         mRegionSamplingHelper.setWindowVisible(true);
         mShowProtection = !isPrimaryDisplay;
         mLatencyTracker = latencyTracker;
-    }
-
-    public void setBackAnimation(BackAnimation backAnimation) {
-        mBackAnimation = backAnimation;
-        initializeBackAnimation();
-    }
-
-    private void initializeBackAnimation() {
-        if (mBackAnimation != null) {
-            mBackAnimation.setSwipeThresholds(mSwipeTriggerThreshold, mSwipeProgressThreshold);
-        }
     }
 
     @Override
@@ -484,12 +473,6 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
 
     @Override
     public void onMotionEvent(MotionEvent event) {
-        if (mBackAnimation != null) {
-            mBackAnimation.onBackMotion(
-                    event,
-                    event.getActionMasked(),
-                    mIsLeftPanel ? BackEvent.EDGE_LEFT : BackEvent.EDGE_RIGHT);
-        }
         if (mVelocityTracker == null) {
             mVelocityTracker = VelocityTracker.obtain();
         }
@@ -903,9 +886,7 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
             // Whenever the trigger back state changes the existing translation animation should be
             // cancelled
             mTranslationAnimation.cancel();
-            if (mBackAnimation != null) {
-                mBackAnimation.setTriggerBack(triggerBack);
-            }
+            mBackCallback.setTriggerBack(mTriggerBack);
         }
     }
 

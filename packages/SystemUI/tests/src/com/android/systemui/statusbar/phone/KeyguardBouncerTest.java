@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.hardware.biometrics.BiometricSourceType;
 import android.os.Handler;
 import android.testing.AndroidTestingRunner;
 import android.testing.TestableLooper;
@@ -58,7 +59,7 @@ import com.android.systemui.SysuiTestCase;
 import com.android.systemui.classifier.FalsingCollector;
 import com.android.systemui.keyguard.DismissCallbackRegistry;
 import com.android.systemui.plugins.ActivityStarter.OnDismissAction;
-import com.android.systemui.statusbar.phone.KeyguardBouncer.BouncerExpansionCallback;
+import com.android.systemui.statusbar.phone.KeyguardBouncer.PrimaryBouncerExpansionCallback;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
 
 import org.junit.Assert;
@@ -86,7 +87,7 @@ public class KeyguardBouncerTest extends SysuiTestCase {
     @Mock
     private KeyguardHostViewController mKeyguardHostViewController;
     @Mock
-    private BouncerExpansionCallback mExpansionCallback;
+    private KeyguardBouncer.PrimaryBouncerExpansionCallback mExpansionCallback;
     @Mock
     private KeyguardUpdateMonitor mKeyguardUpdateMonitor;
     @Mock
@@ -227,6 +228,15 @@ public class KeyguardBouncerTest extends SysuiTestCase {
         mBouncer.setExpansion(0);
         verify(mKeyguardHostViewController).onResume();
         verify(mContainer).announceForAccessibility(any());
+    }
+
+    @Test
+    public void show_notifiesKeyguardViewController() {
+        mBouncer.ensureView();
+
+        mBouncer.show(/* resetSecuritySelection= */ false);
+
+        verify(mKeyguardHostViewController).onBouncerVisibilityChanged(View.VISIBLE);
     }
 
     @Test
@@ -389,6 +399,8 @@ public class KeyguardBouncerTest extends SysuiTestCase {
 
     @Test
     public void testShow_delaysIfFaceAuthIsRunning() {
+        when(mKeyguardUpdateMonitor.isUnlockingWithBiometricAllowed(BiometricSourceType.FACE))
+                .thenReturn(true);
         when(mKeyguardStateController.isFaceAuthEnabled()).thenReturn(true);
         mBouncer.show(true /* reset */);
 
@@ -401,9 +413,29 @@ public class KeyguardBouncerTest extends SysuiTestCase {
     }
 
     @Test
-    public void testShow_delaysIfFaceAuthIsRunning_unlessBypass() {
+    public void testShow_doesNotDelaysIfFaceAuthIsNotAllowed() {
+        when(mKeyguardStateController.isFaceAuthEnabled()).thenReturn(true);
+        when(mKeyguardUpdateMonitor.isUnlockingWithBiometricAllowed(BiometricSourceType.FACE))
+                .thenReturn(false);
+        mBouncer.show(true /* reset */);
+
+        verify(mHandler, never()).postDelayed(any(), anyLong());
+    }
+
+    @Test
+    public void testShow_delaysIfFaceAuthIsRunning_unlessBypassEnabled() {
         when(mKeyguardStateController.isFaceAuthEnabled()).thenReturn(true);
         when(mKeyguardBypassController.getBypassEnabled()).thenReturn(true);
+        mBouncer.show(true /* reset */);
+
+        verify(mHandler, never()).postDelayed(any(), anyLong());
+    }
+
+    @Test
+    public void testShow_delaysIfFaceAuthIsRunning_unlessFingerprintEnrolled() {
+        when(mKeyguardStateController.isFaceAuthEnabled()).thenReturn(true);
+        when(mKeyguardUpdateMonitor.getCachedIsUnlockWithFingerprintPossible(0))
+                .thenReturn(true);
         mBouncer.show(true /* reset */);
 
         verify(mHandler, never()).postDelayed(any(), anyLong());
@@ -448,7 +480,8 @@ public class KeyguardBouncerTest extends SysuiTestCase {
         mBouncer.ensureView();
         mBouncer.setExpansion(0.5f);
 
-        final BouncerExpansionCallback callback = mock(BouncerExpansionCallback.class);
+        final PrimaryBouncerExpansionCallback callback =
+                mock(PrimaryBouncerExpansionCallback.class);
         mBouncer.addBouncerExpansionCallback(callback);
 
         mBouncer.setExpansion(EXPANSION_HIDDEN);
@@ -474,5 +507,20 @@ public class KeyguardBouncerTest extends SysuiTestCase {
         bouncerHideAmount = 0.5f;
         mBouncer.setExpansion(bouncerHideAmount);
         verify(callback, never()).onExpansionChanged(bouncerHideAmount);
+    }
+
+    @Test
+    public void testOnResumeCalledForFullscreenBouncerOnSecondShow() {
+        // GIVEN a security mode which requires fullscreen bouncer
+        when(mKeyguardSecurityModel.getSecurityMode(anyInt()))
+                .thenReturn(KeyguardSecurityModel.SecurityMode.SimPin);
+        mBouncer.show(true);
+
+        // WHEN a second call to show occurs, the bouncer will already by visible
+        reset(mKeyguardHostViewController);
+        mBouncer.show(true);
+
+        // THEN ensure the ViewController is told to resume
+        verify(mKeyguardHostViewController).onResume();
     }
 }

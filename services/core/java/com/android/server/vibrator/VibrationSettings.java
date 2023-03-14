@@ -52,13 +52,16 @@ import android.os.Vibrator;
 import android.os.Vibrator.VibrationIntensity;
 import android.os.vibrator.VibrationConfig;
 import android.provider.Settings;
+import android.util.Slog;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.util.proto.ProtoOutputStream;
+import android.view.Display;
 
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.server.LocalServices;
+import com.android.server.companion.virtual.VirtualDeviceManagerInternal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,7 +100,9 @@ final class VibrationSettings {
             Arrays.asList(
                     USAGE_RINGTONE,
                     USAGE_ALARM,
-                    USAGE_COMMUNICATION_REQUEST));
+                    USAGE_COMMUNICATION_REQUEST,
+                    USAGE_PHYSICAL_EMULATION,
+                    USAGE_HARDWARE_FEEDBACK));
 
     /**
      * Usage allowed for vibrations when {@link Settings.System#VIBRATE_ON} is disabled.
@@ -121,6 +126,19 @@ final class VibrationSettings {
                     USAGE_PHYSICAL_EMULATION,
                     USAGE_HARDWARE_FEEDBACK));
 
+    /**
+     * Set of reasons for {@link PowerManager} going to sleep events that allows vibrations to
+     * continue running.
+     *
+     * <p>Some examples are timeout and inattentive, which indicates automatic screen off events.
+     * When a vibration is playing during one of these screen off events then it will not be
+     * cancelled by the service.
+     */
+    private static final Set<Integer> POWER_MANAGER_SLEEP_REASON_ALLOWLIST = new HashSet<>(
+            Arrays.asList(
+                    PowerManager.GO_TO_SLEEP_REASON_INATTENTIVE,
+                    PowerManager.GO_TO_SLEEP_REASON_TIMEOUT));
+
     private static final IntentFilter USER_SWITCHED_INTENT_FILTER =
             new IntentFilter(Intent.ACTION_USER_SWITCHED);
     private static final IntentFilter INTERNAL_RINGER_MODE_CHANGED_INTENT_FILTER =
@@ -135,11 +153,13 @@ final class VibrationSettings {
     private final Object mLock = new Object();
     private final Context mContext;
     private final String mSystemUiPackage;
-    private final SettingsContentObserver mSettingObserver;
+    @VisibleForTesting
+    final SettingsContentObserver mSettingObserver;
     @VisibleForTesting
     final UidObserver mUidObserver;
     @VisibleForTesting
     final SettingsBroadcastReceiver mSettingChangeReceiver;
+    final VirtualDeviceListener mVirtualDeviceListener;
 
     @GuardedBy("mLock")
     private final List<OnVibratorSettingsChanged> mListeners = new ArrayList<>();
@@ -150,6 +170,9 @@ final class VibrationSettings {
     @GuardedBy("mLock")
     @Nullable
     private AudioManager mAudioManager;
+    @GuardedBy("mLock")
+    @Nullable
+    private PowerManagerInternal mPowerManagerInternal;
 
     @GuardedBy("mLock")
     private boolean mVibrateInputDevices;
@@ -173,6 +196,7 @@ final class VibrationSettings {
         mSettingObserver = new SettingsContentObserver(handler);
         mUidObserver = new UidObserver();
         mSettingChangeReceiver = new SettingsBroadcastReceiver();
+        mVirtualDeviceListener = new VirtualDeviceListener();
 
         mSystemUiPackage = LocalServices.getService(PackageManagerInternal.class)
                 .getSystemUiServiceComponent().getPackageName();
@@ -199,10 +223,16 @@ final class VibrationSettings {
     }
 
     public void onSystemReady() {
+        PowerManagerInternal pm = LocalServices.getService(PowerManagerInternal.class);
+        AudioManager am = mContext.getSystemService(AudioManager.class);
+        int ringerMode = am.getRingerModeInternal();
+
         synchronized (mLock) {
-            mAudioManager = mContext.getSystemService(AudioManager.class);
-            mRingerMode = mAudioManager.getRingerModeInternal();
+            mPowerManagerInternal = pm;
+            mAudioManager = am;
+            mRingerMode = ringerMode;
         }
+
         try {
             ActivityManager.getService().registerUidObserver(mUidObserver,
                     ActivityManager.UID_OBSERVER_PROCSTATE | ActivityManager.UID_OBSERVER_GONE,
@@ -211,7 +241,6 @@ final class VibrationSettings {
             // ignored; both services live in system_server
         }
 
-        PowerManagerInternal pm = LocalServices.getService(PowerManagerInternal.class);
         pm.registerLowPowerModeObserver(
                 new PowerManagerInternal.LowPowerModeListener() {
                     @Override
@@ -231,6 +260,13 @@ final class VibrationSettings {
                         }
                     }
                 });
+
+        VirtualDeviceManagerInternal vdm = LocalServices.getService(
+                VirtualDeviceManagerInternal.class);
+        if (vdm != null) {
+            vdm.registerVirtualDisplayListener(mVirtualDeviceListener);
+            vdm.registerAppsOnVirtualDeviceListener(mVirtualDeviceListener);
+        }
 
         registerSettingsChangeReceiver(USER_SWITCHED_INTENT_FILTER);
         registerSettingsChangeReceiver(INTERNAL_RINGER_MODE_CHANGED_INTENT_FILTER);
@@ -339,12 +375,16 @@ final class VibrationSettings {
      * null otherwise.
      */
     @Nullable
-    public Vibration.Status shouldIgnoreVibration(int uid, VibrationAttributes attrs) {
+    public Vibration.Status shouldIgnoreVibration(int uid, int displayId,
+            VibrationAttributes attrs) {
         final int usage = attrs.getUsage();
         synchronized (mLock) {
             if (!mUidObserver.isUidForeground(uid)
                     && !BACKGROUND_PROCESS_USAGE_ALLOWLIST.contains(usage)) {
                 return Vibration.Status.IGNORED_BACKGROUND;
+            }
+            if (mVirtualDeviceListener.isAppOrDisplayOnAnyVirtualDevice(uid, displayId)) {
+                return Vibration.Status.IGNORED_FROM_VIRTUAL_DEVICE;
             }
 
             if (mBatterySaverMode && !BATTERY_SAVER_USAGE_ALLOWLIST.contains(usage)) {
@@ -381,7 +421,27 @@ final class VibrationSettings {
      * @return true if the vibration should be cancelled when the screen goes off, false otherwise.
      */
     public boolean shouldCancelVibrationOnScreenOff(int uid, String opPkg,
-            @VibrationAttributes.Usage int usage) {
+            @VibrationAttributes.Usage int usage, long vibrationStartUptimeMillis) {
+        PowerManagerInternal pm;
+        synchronized (mLock) {
+            pm = mPowerManagerInternal;
+        }
+        if (pm != null) {
+            // The SleepData from PowerManager may refer to a more recent sleep than the broadcast
+            // that triggered this method call. That's ok because only automatic sleeps would be
+            // ignored here and not cancel a vibration, and those are usually triggered by timeout
+            // or inactivity, so it's unlikely that it will override a more active goToSleep reason.
+            PowerManager.SleepData sleepData = pm.getLastGoToSleep();
+            if ((sleepData.goToSleepUptimeMillis < vibrationStartUptimeMillis)
+                    || POWER_MANAGER_SLEEP_REASON_ALLOWLIST.contains(sleepData.goToSleepReason)) {
+                // Ignore screen off events triggered before the vibration started, and all
+                // automatic "go to sleep" events from allowlist.
+                Slog.d(TAG, "Ignoring screen off event triggered at uptime "
+                        + sleepData.goToSleepUptimeMillis + " for reason "
+                        + PowerManager.sleepReasonToString(sleepData.goToSleepReason));
+                return false;
+            }
+        }
         if (!SYSTEM_VIBRATION_SCREEN_OFF_USAGE_ALLOWLIST.contains(usage)) {
             // Usages not allowed even for system vibrations should always be cancelled.
             return true;
@@ -628,7 +688,8 @@ final class VibrationSettings {
     }
 
     /** Implementation of {@link ContentObserver} to be registered to a setting {@link Uri}. */
-    private final class SettingsContentObserver extends ContentObserver {
+    @VisibleForTesting
+    final class SettingsContentObserver extends ContentObserver {
         SettingsContentObserver(Handler handler) {
             super(handler);
         }
@@ -694,5 +755,74 @@ final class VibrationSettings {
         @Override
         public void onUidProcAdjChanged(int uid) {
         }
+    }
+
+    /**
+     * Implementation of Virtual Device listeners for the changes of virtual displays and of apps
+     * running on any virtual device.
+     */
+    final class VirtualDeviceListener implements
+            VirtualDeviceManagerInternal.VirtualDisplayListener,
+            VirtualDeviceManagerInternal.AppsOnVirtualDeviceListener {
+        @GuardedBy("mLock")
+        private final Set<Integer> mVirtualDisplays = new HashSet<>();
+        @GuardedBy("mLock")
+        private final Set<Integer> mAppsOnVirtualDevice = new HashSet<>();
+
+
+        @Override
+        public void onVirtualDisplayCreated(int displayId) {
+            synchronized (mLock) {
+                mVirtualDisplays.add(displayId);
+            }
+        }
+
+        @Override
+        public void onVirtualDisplayRemoved(int displayId) {
+            synchronized (mLock) {
+                mVirtualDisplays.remove(displayId);
+            }
+        }
+
+
+        @Override
+        public void onAppsOnAnyVirtualDeviceChanged(Set<Integer> allRunningUids) {
+            synchronized (mLock) {
+                mAppsOnVirtualDevice.clear();
+                mAppsOnVirtualDevice.addAll(allRunningUids);
+            }
+        }
+
+        /**
+         * @param uid:       uid of the calling app.
+         * @param displayId: the id of a Display.
+         * @return Returns true if:
+         * <ul>
+         *   <li> the displayId is valid, and it's owned by a virtual device.</li>
+         *   <li> the displayId is invalid, and the calling app (uid) is running on a virtual
+         *        device.</li>
+         * </ul>
+         */
+        public boolean isAppOrDisplayOnAnyVirtualDevice(int uid, int displayId) {
+            if (displayId == Display.DEFAULT_DISPLAY) {
+                // The default display is the primary physical display on the phone.
+                return false;
+            }
+
+            synchronized (mLock) {
+                if (displayId == Display.INVALID_DISPLAY) {
+                    // There is no Display object associated with the Context of calling
+                    // {@link SystemVibratorManager}, checking the calling UID instead.
+                    return mAppsOnVirtualDevice.contains(uid);
+                } else {
+                    // Other valid display IDs representing valid logical displays will be
+                    // checked
+                    // against the active virtual displays set built with the registered
+                    // {@link VirtualDisplayListener}.
+                    return mVirtualDisplays.contains(displayId);
+                }
+            }
+        }
+
     }
 }

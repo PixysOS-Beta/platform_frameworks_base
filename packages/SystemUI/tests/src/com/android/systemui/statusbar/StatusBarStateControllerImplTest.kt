@@ -16,6 +16,7 @@
 
 package com.android.systemui.statusbar
 
+import android.animation.ObjectAnimator
 import android.testing.AndroidTestingRunner
 import android.testing.TestableLooper
 import androidx.test.filters.SmallTest
@@ -24,6 +25,7 @@ import com.android.internal.logging.testing.UiEventLoggerFake
 import com.android.systemui.SysuiTestCase
 import com.android.systemui.dump.DumpManager
 import com.android.systemui.plugins.statusbar.StatusBarStateController
+import com.android.systemui.shade.ShadeExpansionStateManager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -37,8 +39,8 @@ import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
 import org.mockito.Mockito.`when` as whenever
+import org.mockito.MockitoAnnotations
 
 @SmallTest
 @RunWith(AndroidTestingRunner::class)
@@ -46,6 +48,8 @@ import org.mockito.Mockito.`when` as whenever
 class StatusBarStateControllerImplTest : SysuiTestCase() {
 
     @Mock lateinit var interactionJankMonitor: InteractionJankMonitor
+    @Mock private lateinit var mockDarkAnimator: ObjectAnimator
+    @Mock private lateinit var shadeExpansionStateManager: ShadeExpansionStateManager
 
     private lateinit var controller: StatusBarStateControllerImpl
     private lateinit var uiEventLogger: UiEventLoggerFake
@@ -57,11 +61,13 @@ class StatusBarStateControllerImplTest : SysuiTestCase() {
         whenever(interactionJankMonitor.end(anyInt())).thenReturn(true)
 
         uiEventLogger = UiEventLoggerFake()
-        controller = StatusBarStateControllerImpl(
+        controller = object : StatusBarStateControllerImpl(
             uiEventLogger,
             mock(DumpManager::class.java),
-            interactionJankMonitor
-        )
+            interactionJankMonitor, shadeExpansionStateManager
+        ) {
+            override fun createDarkAnimator(): ObjectAnimator { return mockDarkAnimator }
+        }
     }
 
     @Test
@@ -85,8 +91,8 @@ class StatusBarStateControllerImplTest : SysuiTestCase() {
         val listener = mock(StatusBarStateController.StateListener::class.java)
         controller.addCallback(listener)
 
-        controller.setDozeAmount(0.5f, false /* animated */)
-        controller.setDozeAmount(0.5f, false /* animated */)
+        controller.setAndInstrumentDozeAmount(null, 0.5f, false /* animated */)
+        controller.setAndInstrumentDozeAmount(null, 0.5f, false /* animated */)
         verify(listener).onDozeAmountChanged(eq(0.5f), anyFloat())
     }
 
@@ -126,5 +132,24 @@ class StatusBarStateControllerImplTest : SysuiTestCase() {
 
         // Double check that we can still force it to happen.
         assertTrue(controller.setState(StatusBarState.SHADE, true /* force */))
+    }
+
+    @Test
+    fun testSetDozeAmount_immediatelyChangesDozeAmount_lockscreenTransitionFromAod() {
+        // Put controller in AOD state
+        controller.setAndInstrumentDozeAmount(null, 1f, false)
+
+        // When waking from doze, CentralSurfaces#updateDozingState will update the dozing state
+        // before the doze amount changes
+        controller.setIsDozing(false)
+
+        // Animate the doze amount to 0f, as would normally happen
+        controller.setAndInstrumentDozeAmount(null, 0f, true)
+
+        // Check that the doze amount is immediately set to a value slightly less than 1f. This is
+        // to ensure that any scrim implementation changes its opacity immediately rather than
+        // waiting an extra frame. Waiting an extra frame will cause a relayout (which is expensive)
+        // and cause us to drop a frame during the LOCKSCREEN_TRANSITION_FROM_AOD CUJ.
+        assertEquals(0.99f, controller.dozeAmount, 0.009f)
     }
 }

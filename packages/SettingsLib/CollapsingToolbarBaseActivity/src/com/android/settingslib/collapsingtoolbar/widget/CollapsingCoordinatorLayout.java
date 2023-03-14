@@ -16,10 +16,13 @@
 
 package com.android.settingslib.collapsingtoolbar.widget;
 
+import static android.text.Layout.HYPHENATION_FREQUENCY_NORMAL_FAST;
+
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.text.LineBreakConfig;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -34,7 +37,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
-import com.android.settingslib.collapsingtoolbar.R;
+import com.android.settingslib.widget.R;
 
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
@@ -106,6 +109,15 @@ public class CollapsingCoordinatorLayout extends CoordinatorLayout {
         mAppBarLayout = findViewById(R.id.app_bar);
         if (mCollapsingToolbarLayout != null) {
             mCollapsingToolbarLayout.setLineSpacingMultiplier(TOOLBAR_LINE_SPACING_MULTIPLIER);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                mCollapsingToolbarLayout.setHyphenationFrequency(HYPHENATION_FREQUENCY_NORMAL_FAST);
+                mCollapsingToolbarLayout.setStaticLayoutBuilderConfigurer(builder ->
+                        builder.setLineBreakConfig(
+                                new LineBreakConfig.Builder()
+                                        .setLineBreakWordStyle(
+                                                LineBreakConfig.LINE_BREAK_WORD_STYLE_PHRASE)
+                                        .build()));
+            }
             if (!TextUtils.isEmpty(mToolbarTitle)) {
                 mCollapsingToolbarLayout.setTitle(mToolbarTitle);
             }

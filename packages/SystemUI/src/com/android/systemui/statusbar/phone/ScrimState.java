@@ -90,11 +90,14 @@ public enum ScrimState {
     AUTH_SCRIMMED_SHADE {
         @Override
         public void prepare(ScrimState previousState) {
-            // notif & behind scrim alpha values are determined by ScrimController#applyState
+            // notif scrim alpha values are determined by ScrimController#applyState
             // based on the shade expansion
 
             mFrontTint = Color.BLACK;
             mFrontAlpha = .66f;
+
+            mBehindTint = Color.BLACK;
+            mBehindAlpha = 1f;
         }
     },
 
@@ -143,17 +146,11 @@ public enum ScrimState {
             mBehindAlpha = mClipQsScrim ? 1 : mDefaultScrimAlpha;
             mNotifAlpha = 1f;
             mFrontAlpha = 0f;
-            mBehindTint = Color.BLACK;
+            mBehindTint = mClipQsScrim ? Color.TRANSPARENT : Color.BLACK;
 
             if (mClipQsScrim) {
                 updateScrimColor(mScrimBehind, 1f /* alpha */, Color.BLACK);
             }
-        }
-
-        // to make sure correct color is returned before "prepare" is called
-        @Override
-        public int getBehindTint() {
-            return Color.BLACK;
         }
     },
 
@@ -203,6 +200,11 @@ public enum ScrimState {
         public boolean isLowPowerState() {
             return true;
         }
+
+        @Override
+        public boolean shouldBlendWithMainColor() {
+            return false;
+        }
     },
 
     /**
@@ -247,7 +249,7 @@ public enum ScrimState {
             mBehindTint = Color.BLACK;
             mBlankScreen = false;
 
-            if (previousState == ScrimState.AOD) {
+            if (mDisplayRequiresBlanking && previousState == ScrimState.AOD) {
                 // Set all scrims black, before they fade transparent.
                 updateScrimColor(mScrimInFront, 1f /* alpha */, Color.BLACK /* tint */);
                 updateScrimColor(mScrimBehind, 1f /* alpha */, Color.BLACK /* tint */);
@@ -323,6 +325,13 @@ public enum ScrimState {
 
     /** Prepare state for transition. */
     public void prepare(ScrimState previousState) {
+    }
+
+    /**
+     * Whether a particular state should enable blending with extracted theme colors.
+     */
+    public boolean shouldBlendWithMainColor() {
+        return true;
     }
 
     public float getFrontAlpha() {

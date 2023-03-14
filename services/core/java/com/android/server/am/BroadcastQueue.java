@@ -24,6 +24,11 @@ import static android.text.TextUtils.formatSimple;
 import static com.android.internal.util.FrameworkStatsLog.BOOT_COMPLETED_BROADCAST_COMPLETION_LATENCY_REPORTED;
 import static com.android.internal.util.FrameworkStatsLog.BOOT_COMPLETED_BROADCAST_COMPLETION_LATENCY_REPORTED__EVENT__BOOT_COMPLETED;
 import static com.android.internal.util.FrameworkStatsLog.BOOT_COMPLETED_BROADCAST_COMPLETION_LATENCY_REPORTED__EVENT__LOCKED_BOOT_COMPLETED;
+import static com.android.internal.util.FrameworkStatsLog.BROADCAST_DELIVERY_EVENT_REPORTED;
+import static com.android.internal.util.FrameworkStatsLog.BROADCAST_DELIVERY_EVENT_REPORTED__PROC_START_TYPE__PROCESS_START_TYPE_COLD;
+import static com.android.internal.util.FrameworkStatsLog.BROADCAST_DELIVERY_EVENT_REPORTED__PROC_START_TYPE__PROCESS_START_TYPE_WARM;
+import static com.android.internal.util.FrameworkStatsLog.BROADCAST_DELIVERY_EVENT_REPORTED__RECEIVER_TYPE__MANIFEST;
+import static com.android.internal.util.FrameworkStatsLog.BROADCAST_DELIVERY_EVENT_REPORTED__RECEIVER_TYPE__RUNTIME;
 import static com.android.server.am.ActivityManagerDebugConfig.DEBUG_BROADCAST;
 import static com.android.server.am.ActivityManagerDebugConfig.DEBUG_BROADCAST_DEFERRAL;
 import static com.android.server.am.ActivityManagerDebugConfig.DEBUG_BROADCAST_LIGHT;
@@ -31,6 +36,8 @@ import static com.android.server.am.ActivityManagerDebugConfig.DEBUG_MU;
 import static com.android.server.am.ActivityManagerDebugConfig.DEBUG_PERMISSIONS_REVIEW;
 import static com.android.server.am.ActivityManagerDebugConfig.POSTFIX_BROADCAST;
 import static com.android.server.am.ActivityManagerDebugConfig.POSTFIX_MU;
+import static com.android.server.am.OomAdjuster.OOM_ADJ_REASON_FINISH_RECEIVER;
+import static com.android.server.am.OomAdjuster.OOM_ADJ_REASON_START_RECEIVER;
 
 
 import android.annotation.NonNull;
@@ -38,10 +45,10 @@ import android.annotation.Nullable;
 import android.app.ActivityManager;
 import android.app.AppGlobals;
 import android.app.AppOpsManager;
+import android.app.ApplicationExitInfo;
 import android.app.BroadcastOptions;
 import android.app.IApplicationThread;
 import android.app.PendingIntent;
-import android.app.RemoteServiceException.CannotDeliverBroadcastException;
 import android.app.usage.UsageEvents.Event;
 import android.app.usage.UsageStatsManagerInternal;
 import android.content.ComponentName;
@@ -342,7 +349,7 @@ public final class BroadcastQueue {
         // Force an update, even if there are other pending requests, overall it still saves time,
         // because time(updateOomAdj(N apps)) <= N * time(updateOomAdj(1 app)).
         mService.enqueueOomAdjTargetLocked(app);
-        mService.updateOomAdjPendingTargetsLocked(OomAdjuster.OOM_ADJ_REASON_START_RECEIVER);
+        mService.updateOomAdjPendingTargetsLocked(OOM_ADJ_REASON_START_RECEIVER);
 
         // Tell the application to launch this receiver.
         maybeReportBroadcastDispatchedEventLocked(r, r.curReceiver.applicationInfo.uid);
@@ -398,6 +405,7 @@ public final class BroadcastQueue {
             }
             try {
                 mPendingBroadcast = null;
+                br.mIsReceiverAppRunning = false;
                 processCurBroadcastLocked(br, app);
                 didSomething = true;
             } catch (Exception e) {
@@ -506,6 +514,22 @@ public final class BroadcastQueue {
         final long finishTime = SystemClock.uptimeMillis();
         final long elapsed = finishTime - r.receiverTime;
         r.state = BroadcastRecord.IDLE;
+        final int curIndex = r.nextReceiver - 1;
+        if (curIndex >= 0 && curIndex < r.receivers.size() && r.curApp != null) {
+            final Object curReceiver = r.receivers.get(curIndex);
+            FrameworkStatsLog.write(BROADCAST_DELIVERY_EVENT_REPORTED, r.curApp.uid,
+                    r.callingUid == -1 ? Process.SYSTEM_UID : r.callingUid,
+                    r.intent.getAction(),
+                    curReceiver instanceof BroadcastFilter
+                    ? BROADCAST_DELIVERY_EVENT_REPORTED__RECEIVER_TYPE__RUNTIME
+                    : BROADCAST_DELIVERY_EVENT_REPORTED__RECEIVER_TYPE__MANIFEST,
+                    r.mIsReceiverAppRunning
+                    ? BROADCAST_DELIVERY_EVENT_REPORTED__PROC_START_TYPE__PROCESS_START_TYPE_WARM
+                    : BROADCAST_DELIVERY_EVENT_REPORTED__PROC_START_TYPE__PROCESS_START_TYPE_COLD,
+                    r.dispatchTime - r.enqueueTime,
+                    r.receiverTime - r.dispatchTime,
+                    finishTime - r.receiverTime);
+        }
         if (state == BroadcastRecord.IDLE) {
             Slog.w(TAG_BROADCAST, "finishReceiver [" + mQueueName + "] called but state is IDLE");
         }
@@ -628,8 +652,9 @@ public final class BroadcastQueue {
 
     void performReceiveLocked(ProcessRecord app, IIntentReceiver receiver,
             Intent intent, int resultCode, String data, Bundle extras,
-            boolean ordered, boolean sticky, int sendingUser)
-            throws RemoteException {
+            boolean ordered, boolean sticky, int sendingUser,
+            int receiverUid, int callingUid, long dispatchDelay,
+            long receiveDelay) throws RemoteException {
         // Send the intent to the receiver asynchronously using one-way binder calls.
         if (app != null) {
             final IApplicationThread thread = app.getThread();
@@ -640,18 +665,14 @@ public final class BroadcastQueue {
                     thread.scheduleRegisteredReceiver(receiver, intent, resultCode,
                             data, extras, ordered, sticky, sendingUser,
                             app.mState.getReportedProcState());
-                // TODO: Uncomment this when (b/28322359) is fixed and we aren't getting
-                // DeadObjectException when the process isn't actually dead.
-                //} catch (DeadObjectException ex) {
-                // Failed to call into the process.  It's dying so just let it die and move on.
-                //    throw ex;
                 } catch (RemoteException ex) {
                     // Failed to call into the process. It's either dying or wedged. Kill it gently.
                     synchronized (mService) {
-                        Slog.w(TAG, "Can't deliver broadcast to " + app.processName
-                                + " (pid " + app.getPid() + "). Crashing it.");
-                        app.scheduleCrashLocked("can't deliver broadcast",
-                                CannotDeliverBroadcastException.TYPE_ID, /* extras=*/ null);
+                        final String msg = "Failed to schedule " + intent + " to " + receiver
+                                + " via " + app + ": " + ex;
+                        Slog.w(TAG, msg);
+                        app.killLocked("Can't deliver broadcast", ApplicationExitInfo.REASON_OTHER,
+                                ApplicationExitInfo.SUBREASON_UNDELIVERED_BROADCAST, true);
                     }
                     throw ex;
                 }
@@ -662,6 +683,15 @@ public final class BroadcastQueue {
         } else {
             receiver.performReceive(intent, resultCode, data, extras, ordered,
                     sticky, sendingUser);
+        }
+        if (!ordered) {
+            FrameworkStatsLog.write(BROADCAST_DELIVERY_EVENT_REPORTED,
+                    receiverUid == -1 ? Process.SYSTEM_UID : receiverUid,
+                    callingUid == -1 ? Process.SYSTEM_UID : callingUid,
+                    intent.getAction(),
+                    BROADCAST_DELIVERY_EVENT_REPORTED__RECEIVER_TYPE__RUNTIME,
+                    BROADCAST_DELIVERY_EVENT_REPORTED__PROC_START_TYPE__PROCESS_START_TYPE_WARM,
+                    dispatchDelay, receiveDelay, 0 /* finish_delay */);
         }
     }
 
@@ -943,10 +973,11 @@ public final class BroadcastQueue {
                 filter.receiverList.app.mReceivers.addCurReceiver(r);
                 mService.enqueueOomAdjTargetLocked(r.curApp);
                 mService.updateOomAdjPendingTargetsLocked(
-                        OomAdjuster.OOM_ADJ_REASON_START_RECEIVER);
+                        OOM_ADJ_REASON_START_RECEIVER);
             }
         } else if (filter.receiverList.app != null) {
-            mService.mOomAdjuster.mCachedAppOptimizer.unfreezeTemporarily(filter.receiverList.app);
+            mService.mOomAdjuster.mCachedAppOptimizer.unfreezeTemporarily(filter.receiverList.app,
+                    OOM_ADJ_REASON_START_RECEIVER);
         }
 
         try {
@@ -965,7 +996,10 @@ public final class BroadcastQueue {
                 maybeReportBroadcastDispatchedEventLocked(r, filter.owningUid);
                 performReceiveLocked(filter.receiverList.app, filter.receiverList.receiver,
                         new Intent(r.intent), r.resultCode, r.resultData,
-                        r.resultExtras, r.ordered, r.initialSticky, r.userId);
+                        r.resultExtras, r.ordered, r.initialSticky, r.userId,
+                        filter.receiverList.uid, r.callingUid,
+                        r.dispatchTime - r.enqueueTime,
+                        r.receiverTime - r.dispatchTime);
                 // parallel broadcasts are fire-and-forget, not bookended by a call to
                 // finishReceiverLocked(), so we manage their activity-start token here
                 if (filter.receiverList.app != null
@@ -1148,6 +1182,7 @@ public final class BroadcastQueue {
             r.dispatchTime = SystemClock.uptimeMillis();
             r.dispatchRealTime = SystemClock.elapsedRealtime();
             r.dispatchClockTime = System.currentTimeMillis();
+            r.mIsReceiverAppRunning = true;
 
             if (Trace.isTagEnabled(Trace.TRACE_TAG_ACTIVITY_MANAGER)) {
                 Trace.asyncTraceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER,
@@ -1226,7 +1261,7 @@ public final class BroadcastQueue {
                     // make sure all processes have correct oom and sched
                     // adjustments.
                     mService.updateOomAdjPendingTargetsLocked(
-                            OomAdjuster.OOM_ADJ_REASON_START_RECEIVER);
+                            OOM_ADJ_REASON_START_RECEIVER);
                 }
 
                 // when we have no more ordered broadcast on this queue, stop logging
@@ -1308,16 +1343,25 @@ public final class BroadcastQueue {
                     if (sendResult) {
                         if (r.callerApp != null) {
                             mService.mOomAdjuster.mCachedAppOptimizer.unfreezeTemporarily(
-                                    r.callerApp);
+                                    r.callerApp, OOM_ADJ_REASON_FINISH_RECEIVER);
                         }
                         try {
                             if (DEBUG_BROADCAST) {
                                 Slog.i(TAG_BROADCAST, "Finishing broadcast [" + mQueueName + "] "
                                         + r.intent.getAction() + " app=" + r.callerApp);
                             }
+                            if (r.dispatchTime == 0) {
+                                // The dispatch time here could be 0, in case it's a parallel
+                                // broadcast but it has a result receiver. Set it to now.
+                                r.dispatchTime = now;
+                            }
+                            r.mIsReceiverAppRunning = true;
                             performReceiveLocked(r.callerApp, r.resultTo,
                                     new Intent(r.intent), r.resultCode,
-                                    r.resultData, r.resultExtras, false, false, r.userId);
+                                    r.resultData, r.resultExtras, false, false, r.userId,
+                                    r.callingUid, r.callingUid,
+                                    r.dispatchTime - r.enqueueTime,
+                                    now - r.dispatchTime);
                             logBootCompletedBroadcastCompletionLatencyIfPossible(r);
                             // Set this to null so that the reference
                             // (local and remote) isn't kept in the mBroadcastHistory.
@@ -1474,6 +1518,7 @@ public final class BroadcastQueue {
                     "Delivering ordered ["
                     + mQueueName + "] to registered "
                     + filter + ": " + r);
+            r.mIsReceiverAppRunning = true;
             deliverToRegisteredReceiverLocked(r, filter, r.ordered, recIdx);
             if (r.receiver == null || !r.ordered) {
                 // The receiver has already finished, so schedule to
@@ -1837,11 +1882,15 @@ public final class BroadcastQueue {
                 app.addPackage(info.activityInfo.packageName,
                         info.activityInfo.applicationInfo.longVersionCode, mService.mProcessStats);
                 maybeAddAllowBackgroundActivityStartsToken(app, r);
+                r.mIsReceiverAppRunning = true;
                 processCurBroadcastLocked(r, app);
                 return;
             } catch (RemoteException e) {
-                Slog.w(TAG, "Exception when sending broadcast to "
-                      + r.curComponent, e);
+                final String msg = "Failed to schedule " + r.intent + " to " + info
+                        + " via " + app + ": " + e;
+                Slog.w(TAG, msg);
+                app.killLocked("Can't deliver broadcast", ApplicationExitInfo.REASON_OTHER,
+                        ApplicationExitInfo.SUBREASON_UNDELIVERED_BROADCAST, true);
             } catch (RuntimeException e) {
                 Slog.wtf(TAG, "Failed sending broadcast to "
                         + r.curComponent + " with " + r.intent, e);
@@ -1870,8 +1919,9 @@ public final class BroadcastQueue {
         r.curApp = mService.startProcessLocked(targetProcess,
                 info.activityInfo.applicationInfo, true,
                 r.intent.getFlags() | Intent.FLAG_FROM_BACKGROUND,
-                new HostingRecord("broadcast", r.curComponent), isActivityCapable
-                ? ZYGOTE_POLICY_FLAG_LATENCY_SENSITIVE : ZYGOTE_POLICY_FLAG_EMPTY,
+                new HostingRecord(HostingRecord.HOSTING_TYPE_BROADCAST, r.curComponent,
+                        r.intent.getAction(), getHostingRecordTriggerType(r)),
+                isActivityCapable ? ZYGOTE_POLICY_FLAG_LATENCY_SENSITIVE : ZYGOTE_POLICY_FLAG_EMPTY,
                 (r.intent.getFlags() & Intent.FLAG_RECEIVER_BOOT_UPGRADE) != 0, false);
         if (r.curApp == null) {
             // Ah, this recipient is unavailable.  Finish it if necessary,
@@ -1893,6 +1943,16 @@ public final class BroadcastQueue {
         mPendingBroadcastRecvIndex = recIdx;
     }
 
+    private String getHostingRecordTriggerType(BroadcastRecord r) {
+        if (r.alarm) {
+            return HostingRecord.TRIGGER_TYPE_ALARM;
+        } else if (r.pushMessage) {
+            return HostingRecord.TRIGGER_TYPE_PUSH_MESSAGE;
+        } else if (r.pushMessageOverQuota) {
+            return HostingRecord.TRIGGER_TYPE_PUSH_MESSAGE_OVER_QUOTA;
+        }
+        return HostingRecord.TRIGGER_TYPE_UNKNOWN;
+    }
 
     @Nullable
     private String getTargetPackage(BroadcastRecord r) {

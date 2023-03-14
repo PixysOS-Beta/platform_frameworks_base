@@ -113,6 +113,24 @@ public class SystemConfig {
 
     final ArrayList<SplitPermissionInfo> mSplitPermissions = new ArrayList<>();
 
+    private static boolean isAtLeastSdkLevel(String version) {
+        try {
+            return UnboundedSdkLevel.isAtLeast(version);
+        } catch (IllegalArgumentException e) {
+            // UnboundedSdkLevel throws when it sees a known old codename
+            return false;
+        }
+    }
+
+    private static boolean isAtMostSdkLevel(String version) {
+        try {
+            return UnboundedSdkLevel.isAtMost(version);
+        } catch (IllegalArgumentException e) {
+            // UnboundedSdkLevel throws when it sees a known old codename
+            return true;
+        }
+    }
+
     public static final class SharedLibraryEntry {
         public final String name;
         public final String filename;
@@ -180,9 +198,9 @@ public class SystemConfig {
             // - onBootclasspathBefore is set and we are before that SDK
             canBeSafelyIgnored =
                     (this.onBootclasspathSince != null
-                            && UnboundedSdkLevel.isAtLeast(this.onBootclasspathSince))
+                            && isAtLeastSdkLevel(this.onBootclasspathSince))
                             || (this.onBootclasspathBefore != null
-                            && !UnboundedSdkLevel.isAtLeast(this.onBootclasspathBefore));
+                            && !isAtLeastSdkLevel(this.onBootclasspathBefore));
         }
     }
 
@@ -321,6 +339,8 @@ public class SystemConfig {
     // A map from package name of vendor APEXes that can be updated to an installer package name
     // allowed to install updates for it.
     private final ArrayMap<String, String> mAllowedVendorApexes = new ArrayMap<>();
+    // A set of package names that are allowed to use <install-constraints> manifest tag.
+    private final Set<String> mInstallConstraintsAllowlist = new ArraySet<>();
 
     private String mModulesInstallerPackageName;
 
@@ -517,6 +537,10 @@ public class SystemConfig {
         return mAllowedVendorApexes;
     }
 
+    public Set<String> getInstallConstraintsAllowlist() {
+        return mInstallConstraintsAllowlist;
+    }
+
     public String getModulesInstallerPackageName() {
         return mModulesInstallerPackageName;
     }
@@ -682,7 +706,6 @@ public class SystemConfig {
             readPermissions(parser, Environment.buildPath(f, "etc", "permissions"),
                     apexPermissionFlag);
         }
-        pruneVendorApexPrivappAllowlists();
     }
 
     @VisibleForTesting
@@ -886,11 +909,9 @@ public class SystemConfig {
                                         + parser.getPositionDescription());
                             } else {
                                 boolean allowedMinSdk =
-                                        minDeviceSdk == null || UnboundedSdkLevel.isAtLeast(
-                                                minDeviceSdk);
+                                        minDeviceSdk == null || isAtLeastSdkLevel(minDeviceSdk);
                                 boolean allowedMaxSdk =
-                                        maxDeviceSdk == null || UnboundedSdkLevel.isAtMost(
-                                                maxDeviceSdk);
+                                        maxDeviceSdk == null || isAtMostSdkLevel(maxDeviceSdk);
                                 final boolean exists = new File(lfile).exists();
                                 if (allowedMinSdk && allowedMaxSdk && exists) {
                                     String bcpSince = parser.getAttributeValue(null,
@@ -1440,6 +1461,20 @@ public class SystemConfig {
                         }
                         XmlUtils.skipCurrentTag(parser);
                     } break;
+                    case "install-constraints-allowed": {
+                        if (allowAppConfigs) {
+                            String packageName = parser.getAttributeValue(null, "package");
+                            if (packageName == null) {
+                                Slog.w(TAG, "<" + name + "> without package in " + permFile
+                                        + " at " + parser.getPositionDescription());
+                            } else {
+                                mInstallConstraintsAllowlist.add(packageName);
+                            }
+                        } else {
+                            logNotAllowedInPartition(name, permFile, parser);
+                        }
+                        XmlUtils.skipCurrentTag(parser);
+                    } break;
                     default: {
                         Slog.w(TAG, "Tag " + name + " is unknown in "
                                 + permFile + " at " + parser.getPositionDescription());
@@ -1595,21 +1630,6 @@ public class SystemConfig {
         grantMap.put(packageName, permissions);
         if (denyPermissions != null) {
             denyMap.put(packageName, denyPermissions);
-        }
-    }
-
-    /**
-     * Prunes out any privileged permission allowlists bundled in vendor apexes.
-     */
-    @VisibleForTesting
-    public void pruneVendorApexPrivappAllowlists() {
-        for (String moduleName: mAllowedVendorApexes.keySet()) {
-            if (mApexPrivAppPermissions.containsKey(moduleName)
-                    || mApexPrivAppDenyPermissions.containsKey(moduleName)) {
-                Slog.w(TAG, moduleName + " is a vendor apex, ignore its priv-app allowlist");
-                mApexPrivAppPermissions.remove(moduleName);
-                mApexPrivAppDenyPermissions.remove(moduleName);
-            }
         }
     }
 

@@ -22,8 +22,8 @@ import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSET;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
-import static android.view.InsetsState.ITYPE_LOCAL_NAVIGATION_BAR_1;
-import static android.view.InsetsState.ITYPE_LOCAL_NAVIGATION_BAR_2;
+import static android.view.InsetsState.ITYPE_BOTTOM_GENERIC_OVERLAY;
+import static android.view.InsetsState.ITYPE_TOP_GENERIC_OVERLAY;
 import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 import static android.view.WindowManager.LayoutParams.TYPE_BASE_APPLICATION;
 import static android.view.WindowManager.TRANSIT_CLOSE;
@@ -662,13 +662,13 @@ public class WindowContainerTests extends WindowTestsBase {
     public void testSetOrientation() {
         final TestWindowContainer root = spy(new TestWindowContainerBuilder(mWm).build());
         final TestWindowContainer child = spy(root.addChildWindow());
-        doReturn(true).when(root).handlesOrientationChangeFromDescendant();
+        doReturn(true).when(root).handlesOrientationChangeFromDescendant(anyInt());
         child.getWindowConfiguration().setWindowingMode(WINDOWING_MODE_FULLSCREEN);
         child.setOrientation(SCREEN_ORIENTATION_PORTRAIT);
         // The ancestor should decide whether to dispatch the configuration change.
         verify(child, never()).onConfigurationChanged(any());
 
-        doReturn(false).when(root).handlesOrientationChangeFromDescendant();
+        doReturn(false).when(root).handlesOrientationChangeFromDescendant(anyInt());
         child.setOrientation(SCREEN_ORIENTATION_LANDSCAPE);
         // The ancestor doesn't handle the request so the descendant applies the change directly.
         verify(child).onConfigurationChanged(any());
@@ -843,11 +843,14 @@ public class WindowContainerTests extends WindowTestsBase {
         final TestWindowContainerBuilder builder = new TestWindowContainerBuilder(mWm);
         final TestWindowContainer root = spy(builder.build());
 
-        final TestWindowContainer child = root.addChildWindow();
-        assertFalse(child.handlesOrientationChangeFromDescendant());
+        // We use an orientation that is not an exception for the ignoreOrientationRequest flag
+        final int orientation = SCREEN_ORIENTATION_PORTRAIT;
 
-        Mockito.doReturn(true).when(root).handlesOrientationChangeFromDescendant();
-        assertTrue(child.handlesOrientationChangeFromDescendant());
+        final TestWindowContainer child = root.addChildWindow();
+        assertFalse(child.handlesOrientationChangeFromDescendant(orientation));
+
+        Mockito.doReturn(true).when(root).handlesOrientationChangeFromDescendant(anyInt());
+        assertTrue(child.handlesOrientationChangeFromDescendant(orientation));
     }
 
     @Test
@@ -866,6 +869,28 @@ public class WindowContainerTests extends WindowTestsBase {
         assertEquals(newDc, rootTask.mDisplayContent);
         assertEquals(newDc, task.mDisplayContent);
         assertEquals(newDc, activity.mDisplayContent);
+    }
+
+    @Test
+    public void testOnDisplayChanged_cleanupChanging() {
+        final Task task = createTask(mDisplayContent);
+        spyOn(task.mSurfaceFreezer);
+        mDisplayContent.mChangingContainers.add(task);
+
+        // Don't remove the changing transition of this window when it is still the old display.
+        // This happens on display info changed.
+        task.onDisplayChanged(mDisplayContent);
+
+        assertTrue(mDisplayContent.mChangingContainers.contains(task));
+        verify(task.mSurfaceFreezer, never()).unfreeze(any());
+
+        // Remove the changing transition of this window when it is moved or reparented from the old
+        // display.
+        final DisplayContent newDc = createNewDisplay();
+        task.onDisplayChanged(newDc);
+
+        assertFalse(mDisplayContent.mChangingContainers.contains(task));
+        verify(task.mSurfaceFreezer).unfreeze(any());
     }
 
     @Test
@@ -979,7 +1004,7 @@ public class WindowContainerTests extends WindowTestsBase {
                     }
 
                     @Override
-                    public void onAnimationCancelled() {
+                    public void onAnimationCancelled(boolean isKeyguardOccluded) {
                     }
                 }, 0, 0, false);
         adapter.setCallingPidUid(123, 456);
@@ -1302,40 +1327,42 @@ public class WindowContainerTests extends WindowTestsBase {
                 TYPE_BASE_APPLICATION);
         attrs2.setTitle("AppWindow2");
         activity2.addWindow(createWindowState(attrs2, activity2));
-        Rect navigationBarInsetsRect1 = new Rect(0, 200, 1080, 700);
-        Rect navigationBarInsetsRect2 = new Rect(0, 0, 1080, 200);
+        Rect genericOverlayInsetsRect1 = new Rect(0, 200, 1080, 700);
+        Rect genericOverlayInsetsRect2 = new Rect(0, 0, 1080, 200);
 
-        rootTask.addLocalRectInsetsSourceProvider(navigationBarInsetsRect1,
-                new int[]{ITYPE_LOCAL_NAVIGATION_BAR_1});
-        container.addLocalRectInsetsSourceProvider(navigationBarInsetsRect2,
-                new int[]{ITYPE_LOCAL_NAVIGATION_BAR_2});
+        rootTask.addLocalRectInsetsSourceProvider(genericOverlayInsetsRect1,
+                new int[]{ITYPE_TOP_GENERIC_OVERLAY});
+        container.addLocalRectInsetsSourceProvider(genericOverlayInsetsRect2,
+                new int[]{ITYPE_BOTTOM_GENERIC_OVERLAY});
 
-        InsetsSource navigationBarInsetsProvider1Source = new InsetsSource(
-                ITYPE_LOCAL_NAVIGATION_BAR_1);
-        navigationBarInsetsProvider1Source.setFrame(navigationBarInsetsRect1);
-        navigationBarInsetsProvider1Source.setVisible(true);
-        InsetsSource navigationBarInsetsProvider2Source = new InsetsSource(
-                ITYPE_LOCAL_NAVIGATION_BAR_2);
-        navigationBarInsetsProvider2Source.setFrame(navigationBarInsetsRect2);
-        navigationBarInsetsProvider2Source.setVisible(true);
+        InsetsSource genericOverlayInsetsProvider1Source = new InsetsSource(
+                ITYPE_TOP_GENERIC_OVERLAY);
+        genericOverlayInsetsProvider1Source.setFrame(genericOverlayInsetsRect1);
+        genericOverlayInsetsProvider1Source.setVisible(true);
+        InsetsSource genericOverlayInsetsProvider2Source = new InsetsSource(
+                ITYPE_BOTTOM_GENERIC_OVERLAY);
+        genericOverlayInsetsProvider2Source.setFrame(genericOverlayInsetsRect2);
+        genericOverlayInsetsProvider2Source.setVisible(true);
 
         activity0.forAllWindows(window -> {
-            assertEquals(navigationBarInsetsRect1,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_1).getFrame());
+            assertEquals(genericOverlayInsetsRect1,
+                    window.getInsetsState().peekSource(ITYPE_TOP_GENERIC_OVERLAY).getFrame());
             assertEquals(null,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_2));
+                    window.getInsetsState().peekSource(ITYPE_BOTTOM_GENERIC_OVERLAY));
         }, true);
         activity1.forAllWindows(window -> {
-            assertEquals(navigationBarInsetsRect1,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_1).getFrame());
-            assertEquals(navigationBarInsetsRect2,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_2).getFrame());
+            assertEquals(genericOverlayInsetsRect1,
+                    window.getInsetsState().peekSource(ITYPE_TOP_GENERIC_OVERLAY).getFrame());
+            assertEquals(genericOverlayInsetsRect2,
+                    window.getInsetsState().peekSource(ITYPE_BOTTOM_GENERIC_OVERLAY)
+                            .getFrame());
         }, true);
         activity2.forAllWindows(window -> {
-            assertEquals(navigationBarInsetsRect1,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_1).getFrame());
-            assertEquals(navigationBarInsetsRect2,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_2).getFrame());
+            assertEquals(genericOverlayInsetsRect1,
+                    window.getInsetsState().peekSource(ITYPE_TOP_GENERIC_OVERLAY).getFrame());
+            assertEquals(genericOverlayInsetsRect2,
+                    window.getInsetsState().peekSource(ITYPE_BOTTOM_GENERIC_OVERLAY)
+                            .getFrame());
         }, true);
     }
 
@@ -1344,7 +1371,7 @@ public class WindowContainerTests extends WindowTestsBase {
          /*
                 ___ rootTask ________________________________________
                |                  |                                  |
-          activity0      navigationBarInsetsProvider1    navigationBarInsetsProvider2
+          activity0      genericOverlayInsetsProvider1    genericOverlayInsetsProvider2
          */
         final Task rootTask = createTask(mDisplayContent);
 
@@ -1355,22 +1382,22 @@ public class WindowContainerTests extends WindowTestsBase {
         attrs.setTitle("AppWindow0");
         activity0.addWindow(createWindowState(attrs, activity0));
 
-        Rect navigationBarInsetsRect1 = new Rect(0, 200, 1080, 700);
-        Rect navigationBarInsetsRect2 = new Rect(0, 0, 1080, 200);
+        Rect genericOverlayInsetsRect1 = new Rect(0, 200, 1080, 700);
+        Rect genericOverlayInsetsRect2 = new Rect(0, 0, 1080, 200);
 
-        rootTask.addLocalRectInsetsSourceProvider(navigationBarInsetsRect1,
-                new int[]{ITYPE_LOCAL_NAVIGATION_BAR_1});
+        rootTask.addLocalRectInsetsSourceProvider(genericOverlayInsetsRect1,
+                new int[]{ITYPE_TOP_GENERIC_OVERLAY});
         activity0.forAllWindows(window -> {
-            assertEquals(navigationBarInsetsRect1,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_1).getFrame());
+            assertEquals(genericOverlayInsetsRect1,
+                    window.getInsetsState().peekSource(ITYPE_TOP_GENERIC_OVERLAY).getFrame());
         }, true);
 
-        rootTask.addLocalRectInsetsSourceProvider(navigationBarInsetsRect2,
-                new int[]{ITYPE_LOCAL_NAVIGATION_BAR_1});
+        rootTask.addLocalRectInsetsSourceProvider(genericOverlayInsetsRect2,
+                new int[]{ITYPE_TOP_GENERIC_OVERLAY});
 
         activity0.forAllWindows(window -> {
-            assertEquals(navigationBarInsetsRect2,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_1).getFrame());
+            assertEquals(genericOverlayInsetsRect2,
+                    window.getInsetsState().peekSource(ITYPE_TOP_GENERIC_OVERLAY).getFrame());
         }, true);
     }
 
@@ -1412,30 +1439,32 @@ public class WindowContainerTests extends WindowTestsBase {
         Rect navigationBarInsetsRect2 = new Rect(0, 0, 1080, 200);
 
         rootTask.addLocalRectInsetsSourceProvider(navigationBarInsetsRect1,
-                new int[]{ITYPE_LOCAL_NAVIGATION_BAR_1});
+                new int[]{ITYPE_TOP_GENERIC_OVERLAY});
         container.addLocalRectInsetsSourceProvider(navigationBarInsetsRect2,
-                new int[]{ITYPE_LOCAL_NAVIGATION_BAR_2});
+                new int[]{ITYPE_BOTTOM_GENERIC_OVERLAY});
         mDisplayContent.getInsetsStateController().onPostLayout();
-        rootTask.removeLocalInsetsSourceProvider(new int[]{ITYPE_LOCAL_NAVIGATION_BAR_1});
+        rootTask.removeLocalInsetsSourceProvider(new int[]{ITYPE_TOP_GENERIC_OVERLAY});
         mDisplayContent.getInsetsStateController().onPostLayout();
 
         activity0.forAllWindows(window -> {
             assertEquals(null,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_1));
+                    window.getInsetsState().peekSource(ITYPE_TOP_GENERIC_OVERLAY));
             assertEquals(null,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_2));
+                    window.getInsetsState().peekSource(ITYPE_BOTTOM_GENERIC_OVERLAY));
         }, true);
         activity1.forAllWindows(window -> {
             assertEquals(null,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_1));
+                    window.getInsetsState().peekSource(ITYPE_TOP_GENERIC_OVERLAY));
             assertEquals(navigationBarInsetsRect2,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_2).getFrame());
+                    window.getInsetsState().peekSource(ITYPE_BOTTOM_GENERIC_OVERLAY)
+                                    .getFrame());
         }, true);
         activity2.forAllWindows(window -> {
             assertEquals(null,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_1));
+                    window.getInsetsState().peekSource(ITYPE_TOP_GENERIC_OVERLAY));
             assertEquals(navigationBarInsetsRect2,
-                    window.getInsetsState().peekSource(ITYPE_LOCAL_NAVIGATION_BAR_2).getFrame());
+                    window.getInsetsState().peekSource(ITYPE_BOTTOM_GENERIC_OVERLAY)
+                            .getFrame());
         }, true);
     }
 

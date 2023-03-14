@@ -15,12 +15,10 @@
  */
 package com.android.systemui.biometrics
 
-import com.android.systemui.broadcast.BroadcastSender
 import com.android.systemui.dump.DumpManager
 import com.android.systemui.plugins.statusbar.StatusBarStateController
+import com.android.systemui.shade.ShadeExpansionStateManager
 import com.android.systemui.statusbar.phone.SystemUIDialogManager
-import com.android.systemui.statusbar.phone.panelstate.PanelExpansionListener
-import com.android.systemui.statusbar.phone.panelstate.PanelExpansionStateManager
 
 /**
  * Class that coordinates non-HBM animations for biometric prompt.
@@ -28,41 +26,15 @@ import com.android.systemui.statusbar.phone.panelstate.PanelExpansionStateManage
 class UdfpsBpViewController(
     view: UdfpsBpView,
     statusBarStateController: StatusBarStateController,
-    panelExpansionStateManager: PanelExpansionStateManager,
+    shadeExpansionStateManager: ShadeExpansionStateManager,
     systemUIDialogManager: SystemUIDialogManager,
-    val broadcastSender: BroadcastSender,
     dumpManager: DumpManager
 ) : UdfpsAnimationViewController<UdfpsBpView>(
     view,
     statusBarStateController,
-    panelExpansionStateManager,
+    shadeExpansionStateManager,
     systemUIDialogManager,
     dumpManager
 ) {
     override val tag = "UdfpsBpViewController"
-    private val bpPanelExpansionListener = PanelExpansionListener { event ->
-        // Notification shade can be expanded but not visible (fraction: 0.0), for example
-        // when a heads-up notification (HUN) is showing.
-        notificationShadeVisible = event.expanded && event.fraction > 0f
-        view.onExpansionChanged(event.fraction)
-        cancelAuth()
-    }
-
-    fun cancelAuth() {
-        if (shouldPauseAuth()) {
-            broadcastSender.closeSystemDialogs()
-        }
-    }
-
-    override fun onViewAttached() {
-        super.onViewAttached()
-
-        panelExpansionStateManager.addExpansionListener(bpPanelExpansionListener)
-    }
-
-    override fun onViewDetached() {
-        super.onViewDetached()
-
-        panelExpansionStateManager.removeExpansionListener(bpPanelExpansionListener)
-    }
 }

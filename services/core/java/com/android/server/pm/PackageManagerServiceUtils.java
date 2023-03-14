@@ -19,6 +19,7 @@ package com.android.server.pm;
 import static android.content.pm.PackageManager.INSTALL_FAILED_SHARED_USER_INCOMPATIBLE;
 import static android.content.pm.PackageManager.INSTALL_FAILED_UPDATE_INCOMPATIBLE;
 import static android.content.pm.PackageManager.INSTALL_FAILED_VERSION_DOWNGRADE;
+import static android.content.pm.SigningDetails.CertCapabilities.SHARED_USER_ID;
 import static android.system.OsConstants.O_CREAT;
 import static android.system.OsConstants.O_RDWR;
 
@@ -35,10 +36,12 @@ import static com.android.server.pm.PackageManagerService.TAG;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.UserIdInt;
+import android.app.ActivityManager;
 import android.compat.annotation.ChangeId;
 import android.compat.annotation.EnabledSince;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ComponentInfo;
@@ -135,6 +138,11 @@ public class PackageManagerServiceUtils {
 
     public final static Predicate<PackageStateInternal> REMOVE_IF_NULL_PKG =
             pkgSetting -> pkgSetting.getPkg() == null;
+
+    // This is a horrible hack to workaround b/240373119, specifically for fixing the T branch.
+    // A proper fix should be implemented in master instead.
+    public static final ThreadLocal<Boolean> DISABLE_ENFORCE_INTENTS_TO_MATCH_INTENT_FILTERS =
+            ThreadLocal.withInitial(() -> false);
 
     /**
      * Components of apps targeting Android T and above will stop receiving intents from
@@ -564,13 +572,8 @@ public class PackageManagerServiceUtils {
             // the older ones.  We check to see if either the new package is signed by an older cert
             // with which the current sharedUser is ok, or if it is signed by a newer one, and is ok
             // with being sharedUser with the existing signing cert.
-            boolean match =
-                    parsedSignatures.checkCapability(
-                            sharedUserSetting.getSigningDetails(),
-                            SigningDetails.CertCapabilities.SHARED_USER_ID)
-                    || sharedUserSetting.getSigningDetails().checkCapability(
-                            parsedSignatures,
-                            SigningDetails.CertCapabilities.SHARED_USER_ID);
+            boolean match = canJoinSharedUserId(parsedSignatures,
+                    sharedUserSetting.getSigningDetails());
             // Special case: if the sharedUserId capability check failed it could be due to this
             // being the only package in the sharedUserId so far and the lineage being updated to
             // deny the sharedUserId capability of the previous key in the lineage.
@@ -642,6 +645,28 @@ public class PackageManagerServiceUtils {
             }
         }
         return compatMatch;
+    }
+
+    /**
+     * Returns whether the package with {@code packageSigningDetails} can join the sharedUserId
+     * with {@code sharedUserSigningDetails}.
+     * <p>
+     * A sharedUserId maintains a shared {@link SigningDetails} containing the full lineage and
+     * capabilities for each package in the sharedUserId. A package can join the sharedUserId if
+     * its current signer is the same as the shared signer, or if the current signer of either
+     * is in the signing lineage of the other with the {@link
+     * SigningDetails.CertCapabilities#SHARED_USER_ID} capability granted to that previous signer
+     * in the lineage.
+     *
+     * @param packageSigningDetails the {@code SigningDetails} of the package seeking to join the
+     *                             sharedUserId
+     * @param sharedUserSigningDetails the {@code SigningDetails} of the sharedUserId
+     * @return true if the package seeking to join the sharedUserId meets the requirements
+     */
+    public static boolean canJoinSharedUserId(@NonNull SigningDetails packageSigningDetails,
+            @NonNull SigningDetails sharedUserSigningDetails) {
+        return packageSigningDetails.checkCapability(sharedUserSigningDetails, SHARED_USER_ID)
+                || sharedUserSigningDetails.checkCapability(packageSigningDetails, SHARED_USER_ID);
     }
 
     /**
@@ -1050,7 +1075,7 @@ public class PackageManagerServiceUtils {
             if (ArrayUtils.isEmpty(hashInfo.rawRootHash)) {
                 throw new IOException("Root has not present");
             }
-            return hashInfo.rawRootHash;
+            return ApkChecksums.verityHashForFile(new File(filename), hashInfo.rawRootHash);
         } catch (IOException ignore) {
             Slog.e(TAG, "ERROR: could not load root hash from incremental install");
         }
@@ -1070,11 +1095,7 @@ public class PackageManagerServiceUtils {
             PlatformCompat compat, ComponentResolverApi resolver,
             List<ResolveInfo> resolveInfos, boolean isReceiver,
             Intent intent, String resolvedType, int filterCallingUid) {
-        // Do not enforce filter matching when the caller is system or root.
-        // see ActivityManager#checkComponentPermission(String, int, int, boolean)
-        if (filterCallingUid == Process.ROOT_UID || filterCallingUid == Process.SYSTEM_UID) {
-            return;
-        }
+        if (DISABLE_ENFORCE_INTENTS_TO_MATCH_INTENT_FILTERS.get()) return;
 
         final Printer logPrinter = DEBUG_INTENT_MATCHING
                 ? new LogPrinter(Log.VERBOSE, TAG, Log.LOG_ID_SYSTEM)
@@ -1083,8 +1104,9 @@ public class PackageManagerServiceUtils {
         for (int i = resolveInfos.size() - 1; i >= 0; --i) {
             final ComponentInfo info = resolveInfos.get(i).getComponentInfo();
 
-            // Do not enforce filter matching when the caller is the same app
-            if (info.applicationInfo.uid == filterCallingUid) {
+            // Do not enforce filter matching when the caller is system, root, or the same app
+            if (ActivityManager.checkComponentPermission(null, filterCallingUid,
+                    info.applicationInfo.uid, false) == PackageManager.PERMISSION_GRANTED) {
                 continue;
             }
 
@@ -1108,13 +1130,18 @@ public class PackageManagerServiceUtils {
                 throw new IllegalArgumentException("Unsupported component type");
             }
 
-            if (comp.getIntents().isEmpty()) {
+            if (comp == null || comp.getIntents().isEmpty()) {
                 continue;
             }
 
-            final boolean match = comp.getIntents().stream().anyMatch(
-                    f -> IntentResolver.intentMatchesFilter(f.getIntentFilter(), intent,
-                            resolvedType));
+            boolean match = false;
+            for (int j = 0, size = comp.getIntents().size(); j < size; ++j) {
+                IntentFilter intentFilter = comp.getIntents().get(j).getIntentFilter();
+                if (IntentResolver.intentMatchesFilter(intentFilter, intent, resolvedType)) {
+                    match = true;
+                    break;
+                }
+            }
             if (!match) {
                 Slog.w(TAG, "Intent does not match component's intent filter: " + intent);
                 Slog.w(TAG, "Access blocked: " + comp.getComponentName());

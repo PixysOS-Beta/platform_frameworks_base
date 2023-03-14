@@ -135,6 +135,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.window.CompatOnBackInvokedCallback;
 import android.window.ImeOnBackInvokedDispatcher;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
@@ -147,6 +148,7 @@ import com.android.internal.inputmethod.ImeTracing;
 import com.android.internal.inputmethod.InputMethodNavButtonFlags;
 import com.android.internal.inputmethod.InputMethodPrivilegedOperations;
 import com.android.internal.inputmethod.InputMethodPrivilegedOperationsRegistry;
+import com.android.internal.inputmethod.SoftInputShowHideReason;
 import com.android.internal.util.RingBuffer;
 import com.android.internal.view.IInlineSuggestionsRequestCallback;
 import com.android.internal.view.IInputContext;
@@ -350,7 +352,7 @@ public class InputMethodService extends AbstractInputMethodService {
     private RingBuffer<MotionEvent> mPendingEvents;
     private ImeOnBackInvokedDispatcher mImeDispatcher;
     private Boolean mBackCallbackRegistered = false;
-    private final OnBackInvokedCallback mCompatBackCallback = this::compatHandleBack;
+    private final CompatOnBackInvokedCallback mCompatBackCallback = this::compatHandleBack;
 
     /**
      * Returns whether {@link InputMethodService} is responsible for rendering the back button and
@@ -592,7 +594,7 @@ public class InputMethodService extends AbstractInputMethodService {
 
     private InlineSuggestionSessionController mInlineSuggestionSessionController;
 
-    private boolean mAutomotiveHideNavBarForKeyboard;
+    private boolean mHideNavBarForKeyboard;
     private boolean mIsAutomotive;
     private @NonNull OptionalInt mHandwritingRequestId = OptionalInt.empty();
     private InputEventReceiver mHandwritingEventReceiver;
@@ -806,17 +808,21 @@ public class InputMethodService extends AbstractInputMethodService {
                 @NonNull EditorInfo editorInfo, boolean restarting,
                 @NonNull IBinder startInputToken, @InputMethodNavButtonFlags int navButtonFlags,
                 @NonNull ImeOnBackInvokedDispatcher imeDispatcher) {
-            mImeDispatcher = imeDispatcher;
-            if (mWindow != null) {
-                mWindow.getOnBackInvokedDispatcher().setImeOnBackInvokedDispatcher(
-                        imeDispatcher);
-            }
             mPrivOps.reportStartInputAsync(startInputToken);
             mNavigationBarController.onNavButtonFlagsChanged(navButtonFlags);
             if (restarting) {
                 restartInput(inputConnection, editorInfo);
             } else {
                 startInput(inputConnection, editorInfo);
+            }
+            // Update the IME dispatcher last, so that the previously registered back callback
+            // (if any) can be unregistered using the old dispatcher if {@link #doFinishInput()}
+            // is called from {@link #startInput(InputConnection, EditorInfo)} or
+            // {@link #restartInput(InputConnection, EditorInfo)}.
+            mImeDispatcher = imeDispatcher;
+            if (mWindow != null) {
+                mWindow.getOnBackInvokedDispatcher().setImeOnBackInvokedDispatcher(
+                        imeDispatcher);
             }
         }
 
@@ -1498,9 +1504,8 @@ public class InputMethodService extends AbstractInputMethodService {
         // shown the first time (cold start).
         mSettingsObserver.shouldShowImeWithHardKeyboard();
 
-        mIsAutomotive = isAutomotive();
-        mAutomotiveHideNavBarForKeyboard = getApplicationContext().getResources().getBoolean(
-                com.android.internal.R.bool.config_automotiveHideNavBarForKeyboard);
+        mHideNavBarForKeyboard = getApplicationContext().getResources().getBoolean(
+                com.android.internal.R.bool.config_hideNavBarForKeyboard);
 
         // TODO(b/111364446) Need to address context lifecycle issue if need to re-create
         // for update resources & configuration correctly when show soft input
@@ -1539,11 +1544,11 @@ public class InputMethodService extends AbstractInputMethodService {
             window.setFlags(windowFlags, windowFlagsMask);
 
             // Automotive devices may request the navigation bar to be hidden when the IME shows up
-            // (controlled via config_automotiveHideNavBarForKeyboard) in order to maximize the
-            // visible screen real estate. When this happens, the IME window should animate from the
+            // (controlled via config_hideNavBarForKeyboard) in order to maximize the visible
+            // screen real estate. When this happens, the IME window should animate from the
             // bottom of the screen to reduce the jank that happens from the lack of synchronization
             // between the bottom system window and the IME window.
-            if (mIsAutomotive && mAutomotiveHideNavBarForKeyboard) {
+            if (mHideNavBarForKeyboard) {
                 window.setDecorFitsSystemWindows(false);
             }
         }
@@ -1625,7 +1630,6 @@ public class InputMethodService extends AbstractInputMethodService {
             // when IME developers are doing something unsupported.
             InputMethodPrivilegedOperationsRegistry.remove(mToken);
         }
-        unregisterCompatOnBackInvokedCallback();
         mImeDispatcher = null;
     }
 
@@ -2788,6 +2792,11 @@ public class InputMethodService extends AbstractInputMethodService {
         if (mInkWindow != null) {
             finishStylusHandwriting();
         }
+        // Back callback is typically unregistered in {@link #hideWindow()}, but it's possible
+        // for {@link #doFinishInput()} to be called without {@link #hideWindow()} so we also
+        // unregister here.
+        // TODO(b/232341407): Add CTS to verify back behavior after screen on / off.
+        unregisterCompatOnBackInvokedCallback();
     }
 
     void doStartInput(InputConnection ic, EditorInfo attribute, boolean restarting) {
@@ -2954,9 +2963,13 @@ public class InputMethodService extends AbstractInputMethodService {
      * @param flags Provides additional operating flags.
      */
     public void requestHideSelf(int flags) {
+        requestHideSelf(flags, SoftInputShowHideReason.HIDE_SOFT_INPUT_FROM_IME);
+    }
+
+    private void requestHideSelf(int flags, @SoftInputShowHideReason int reason) {
         ImeTracing.getInstance().triggerServiceDump("InputMethodService#requestHideSelf", mDumper,
                 null /* icProto */);
-        mPrivOps.hideMySoftInput(flags);
+        mPrivOps.hideMySoftInput(flags, reason);
     }
 
     /**
@@ -2977,7 +2990,9 @@ public class InputMethodService extends AbstractInputMethodService {
         if (mShowInputRequested) {
             // If the soft input area is shown, back closes it and we
             // consume the back key.
-            if (doIt) requestHideSelf(0);
+            if (doIt) {
+                requestHideSelf(0 /* flags */, SoftInputShowHideReason.HIDE_SOFT_INPUT_BY_BACK_KEY);
+            }
             return true;
         } else if (mDecorViewVisible) {
             if (mCandidatesVisibility == View.VISIBLE) {
@@ -3128,7 +3143,8 @@ public class InputMethodService extends AbstractInputMethodService {
     private void onToggleSoftInput(int showFlags, int hideFlags) {
         if (DEBUG) Log.v(TAG, "toggleSoftInput()");
         if (isInputViewShown()) {
-            requestHideSelf(hideFlags);
+            requestHideSelf(
+                    hideFlags, SoftInputShowHideReason.HIDE_SOFT_INPUT_IME_TOGGLE_SOFT_INPUT);
         } else {
             requestShowSelf(showFlags);
         }
@@ -3563,7 +3579,8 @@ public class InputMethodService extends AbstractInputMethodService {
      */
     public void onExtractingInputChanged(EditorInfo ei) {
         if (ei.inputType == InputType.TYPE_NULL) {
-            requestHideSelf(InputMethodManager.HIDE_NOT_ALWAYS);
+            requestHideSelf(InputMethodManager.HIDE_NOT_ALWAYS,
+                    SoftInputShowHideReason.HIDE_SOFT_INPUT_EXTRACT_INPUT_CHANGED);
         }
     }
 
@@ -3857,6 +3874,11 @@ public class InputMethodService extends AbstractInputMethodService {
     };
 
     private void compatHandleBack() {
+        if (!mDecorViewVisible) {
+            Log.e(TAG, "Back callback invoked on a hidden IME. Removing the callback...");
+            unregisterCompatOnBackInvokedCallback();
+            return;
+        }
         final KeyEvent downEvent = createBackKeyEvent(
                 KeyEvent.ACTION_DOWN, false /* isTracking */);
         onKeyDown(KeyEvent.KEYCODE_BACK, downEvent);

@@ -33,6 +33,7 @@ import com.android.internal.util.FastPrintWriter;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -309,6 +310,21 @@ public class PropertyInvalidatedCache<Query, Result> {
     public static final String MODULE_TELEPHONY = "telephony";
 
     /**
+     * Constants that affect retries when the process is unable to write the property.
+     * The first constant is the number of times the process will attempt to set the
+     * property.  The second constant is the delay between attempts.
+     */
+
+    /**
+     * Wait 200ms between retry attempts and the retry limit is 5.  That gives a total possible
+     * delay of 1s, which should be less than ANR timeouts.  The goal is to have the system crash
+     * because the property could not be set (which is a condition that is easily recognized) and
+     * not crash because of an ANR (which can be confusing to debug).
+     */
+    private static final int PROPERTY_FAILURE_RETRY_DELAY_MILLIS = 200;
+    private static final int PROPERTY_FAILURE_RETRY_LIMIT = 5;
+
+    /**
      * Construct a system property that matches the rules described above.  The module is
      * one of the permitted values above.  The API is a string that is a legal Java simple
      * identifier.  The api is modified to conform to the system property style guide by
@@ -375,7 +391,12 @@ public class PropertyInvalidatedCache<Query, Result> {
     private static final boolean DEBUG = false;
     private static final boolean VERIFY = false;
 
-    // Per-Cache performance counters. As some cache instances are declared static,
+    /**
+     * The object-private lock.
+     */
+    private final Object mLock = new Object();
+
+    // Per-Cache performance counters.
     @GuardedBy("mLock")
     private long mHits = 0;
 
@@ -394,25 +415,19 @@ public class PropertyInvalidatedCache<Query, Result> {
     @GuardedBy("mLock")
     private long mClears = 0;
 
-    // Most invalidation is done in a static context, so the counters need to be accessible.
-    @GuardedBy("sCorkLock")
-    private static final HashMap<String, Long> sInvalidates = new HashMap<>();
+    /**
+     * Protect objects that support corking.  mLock and sGlobalLock must never be taken while this
+     * is held.
+     */
+    private static final Object sCorkLock = new Object();
 
     /**
-     * Record the number of invalidate or cork calls that were nops because
-     * the cache was already corked.  This is static because invalidation is
-     * done in a static context.
+     * Record the number of invalidate or cork calls that were nops because the cache was already
+     * corked.  This is static because invalidation is done in a static context.  Entries are
+     * indexed by the cache property.
      */
     @GuardedBy("sCorkLock")
     private static final HashMap<String, Long> sCorkedInvalidates = new HashMap<>();
-
-    /**
-     * If sEnabled is false then all cache operations are stubbed out.  Set
-     * it to false inside test processes.
-     */
-    private static boolean sEnabled = true;
-
-    private static final Object sCorkLock = new Object();
 
     /**
      * A map of cache keys that we've "corked". (The values are counts.)  When a cache key is
@@ -424,21 +439,39 @@ public class PropertyInvalidatedCache<Query, Result> {
     private static final HashMap<String, Integer> sCorks = new HashMap<>();
 
     /**
+     * A lock for the global list of caches and cache keys.  This must never be taken inside mLock
+     * or sCorkLock.
+     */
+    private static final Object sGlobalLock = new Object();
+
+    /**
      * A map of cache keys that have been disabled in the local process.  When a key is
      * disabled locally, existing caches are disabled and the key is saved in this map.
      * Future cache instances that use the same key will be disabled in their constructor.
      */
-    @GuardedBy("sCorkLock")
+    @GuardedBy("sGlobalLock")
     private static final HashSet<String> sDisabledKeys = new HashSet<>();
 
     /**
      * Weakly references all cache objects in the current process, allowing us to iterate over
      * them all for purposes like issuing debug dumps and reacting to memory pressure.
      */
-    @GuardedBy("sCorkLock")
+    @GuardedBy("sGlobalLock")
     private static final WeakHashMap<PropertyInvalidatedCache, Void> sCaches = new WeakHashMap<>();
 
-    private final Object mLock = new Object();
+    /**
+     * Counts of the number of times a cache key was invalidated.  Invalidation occurs in a static
+     * context with no cache object available, so this is a static map.  Entries are indexed by
+     * the cache property.
+     */
+    @GuardedBy("sGlobalLock")
+    private static final HashMap<String, Long> sInvalidates = new HashMap<>();
+
+    /**
+     * If sEnabled is false then all cache operations are stubbed out.  Set
+     * it to false inside test processes.
+     */
+    private static boolean sEnabled = true;
 
     /**
      * Name of the property that holds the unique value that we use to invalidate the cache.
@@ -579,14 +612,17 @@ public class PropertyInvalidatedCache<Query, Result> {
         };
     }
 
-    // Register the map in the global list.  If the cache is disabled globally, disable it
-    // now.
+    /**
+     * Register the map in the global list.  If the cache is disabled globally, disable it
+     * now.  This method is only ever called from the constructor, which means no other thread has
+     * access to the object yet.  It can safely be modified outside any lock.
+     */
     private void registerCache() {
-        synchronized (sCorkLock) {
-            sCaches.put(this, null);
+        synchronized (sGlobalLock) {
             if (sDisabledKeys.contains(mCacheName)) {
                 disableInstance();
             }
+            sCaches.put(this, null);
         }
     }
 
@@ -669,7 +705,33 @@ public class PropertyInvalidatedCache<Query, Result> {
                 }
             }
         }
-        SystemProperties.set(name, Long.toString(val));
+        RuntimeException failure = null;
+        for (int attempt = 0; attempt < PROPERTY_FAILURE_RETRY_LIMIT; attempt++) {
+            try {
+                SystemProperties.set(name, Long.toString(val));
+                if (attempt > 0) {
+                    // This log is not guarded.  Based on known bug reports, it should
+                    // occur once a week or less.  The purpose of the log message is to
+                    // identify the retries as a source of delay that might be otherwise
+                    // be attributed to the cache itself.
+                    Log.w(TAG, "Nonce set after " + attempt + " tries");
+                }
+                return;
+            } catch (RuntimeException e) {
+                if (failure == null) {
+                    failure = e;
+                }
+                try {
+                    Thread.sleep(PROPERTY_FAILURE_RETRY_DELAY_MILLIS);
+                } catch (InterruptedException x) {
+                    // Ignore this exception.  The desired delay is only approximate and
+                    // there is no issue if the sleep sometimes terminates early.
+                }
+            }
+        }
+        // This point is reached only if SystemProperties.set() fails at least once.
+        // Rethrow the first exception that was received.
+        throw failure;
     }
 
     // Set the nonce in a static context.  No handle is available.
@@ -755,8 +817,9 @@ public class PropertyInvalidatedCache<Query, Result> {
     }
 
     /**
-     * Disable the use of this cache in this process.  This method is using during
-     * testing.  To disable a cache in normal code, use disableLocal().
+     * Disable the use of this cache in this process.  This method is using internally and during
+     * testing.  To disable a cache in normal code, use disableLocal().  A disabled cache cannot
+     * be re-enabled.
      * @hide
      */
     @TestApi
@@ -769,17 +832,23 @@ public class PropertyInvalidatedCache<Query, Result> {
 
     /**
      * Disable the local use of all caches with the same name.  All currently registered caches
-     * using the key will be disabled now, and all future cache instances that use the key will be
-     * disabled in their constructor.
+     * with the name will be disabled now, and all future cache instances that use the name will
+     * be disabled in their constructor.
      */
     private static final void disableLocal(@NonNull String name) {
-        synchronized (sCorkLock) {
-            sDisabledKeys.add(name);
+        synchronized (sGlobalLock) {
+            if (sDisabledKeys.contains(name)) {
+                // The key is already in recorded so there is no further work to be done.
+                return;
+            }
             for (PropertyInvalidatedCache cache : sCaches.keySet()) {
                 if (name.equals(cache.mCacheName)) {
                     cache.disableInstance();
                 }
             }
+            // Record the disabled key after the iteration.  If an exception occurs during the
+            // iteration above, and the code is retried, the function should not exit early.
+            sDisabledKeys.add(name);
         }
     }
 
@@ -792,7 +861,7 @@ public class PropertyInvalidatedCache<Query, Result> {
      */
     @TestApi
     public final void forgetDisableLocal() {
-        synchronized (sCorkLock) {
+        synchronized (sGlobalLock) {
             sDisabledKeys.remove(mCacheName);
         }
     }
@@ -809,9 +878,9 @@ public class PropertyInvalidatedCache<Query, Result> {
     }
 
     /**
-     * Disable this cache in the current process, and all other caches that use the same
-     * name.  This does not affect caches that have a different name but use the same
-     * property.
+     * Disable this cache in the current process, and all other present and future caches that use
+     * the same name.  This does not affect caches that have a different name but use the same
+     * property.  Once disabled, a cache cannot be reenabled.
      * @hide
      */
     @TestApi
@@ -1339,10 +1408,9 @@ public class PropertyInvalidatedCache<Query, Result> {
     /**
      * Returns a list of caches alive at the current time.
      */
+    @GuardedBy("sGlobalLock")
     private static @NonNull ArrayList<PropertyInvalidatedCache> getActiveCaches() {
-        synchronized (sCorkLock) {
-            return new ArrayList<PropertyInvalidatedCache>(sCaches.keySet());
-        }
+        return new ArrayList<PropertyInvalidatedCache>(sCaches.keySet());
     }
 
     /**
@@ -1444,7 +1512,6 @@ public class PropertyInvalidatedCache<Query, Result> {
                     mCache.size(), mMaxEntries, mHighWaterMark, mMissOverflow));
             pw.println(TextUtils.formatSimple("    Enabled: %s", mDisabled ? "false" : "true"));
             pw.println("");
-            pw.flush();
 
             // No specific cache was requested.  This is the default, and no details
             // should be dumped.
@@ -1463,7 +1530,6 @@ public class PropertyInvalidatedCache<Query, Result> {
 
                 pw.println(TextUtils.formatSimple("      Key: %s\n      Value: %s\n", key, value));
             }
-            pw.flush();
         }
     }
 
@@ -1488,34 +1554,54 @@ public class PropertyInvalidatedCache<Query, Result> {
      * provided ParcelFileDescriptor.  Optional switches allow the caller to choose
      * specific caches (selection is by cache name or property name); if these switches
      * are used then the output includes both cache statistics and cache entries.
+     */
+    private static void dumpCacheInfo(@NonNull PrintWriter pw, @NonNull String[] args) {
+        if (!sEnabled) {
+            pw.println("  Caching is disabled in this process.");
+            return;
+        }
+
+        // See if detailed is requested for any cache.  If there is a specific detailed request,
+        // then only that cache is reported.
+        boolean detail = anyDetailed(args);
+
+        ArrayList<PropertyInvalidatedCache> activeCaches;
+        synchronized (sGlobalLock) {
+            activeCaches = getActiveCaches();
+            if (!detail) {
+                dumpCorkInfo(pw);
+            }
+        }
+
+        for (int i = 0; i < activeCaches.size(); i++) {
+            PropertyInvalidatedCache currentCache = activeCaches.get(i);
+            currentCache.dumpContents(pw, detail, args);
+        }
+    }
+
+    /**
+     * Without arguments, this dumps statistics from every cache in the process to the
+     * provided ParcelFileDescriptor.  Optional switches allow the caller to choose
+     * specific caches (selection is by cache name or property name); if these switches
+     * are used then the output includes both cache statistics and cache entries.
      * @hide
      */
     public static void dumpCacheInfo(@NonNull ParcelFileDescriptor pfd, @NonNull String[] args) {
-        try  (
-            FileOutputStream fout = new FileOutputStream(pfd.getFileDescriptor());
-            PrintWriter pw = new FastPrintWriter(fout);
-        ) {
-            if (!sEnabled) {
-                pw.println("  Caching is disabled in this process.");
-                return;
-            }
+        // Create a PrintWriter that uses a byte array.  The code can safely write to
+        // this array without fear of blocking.  The completed byte array will be sent
+        // to the caller after all the data has been collected and all locks have been
+        // released.
+        ByteArrayOutputStream barray = new ByteArrayOutputStream();
+        PrintWriter bout = new PrintWriter(barray);
+        dumpCacheInfo(bout, args);
+        bout.close();
 
-            // See if detailed is requested for any cache.  If there is a specific detailed request,
-            // then only that cache is reported.
-            boolean detail = anyDetailed(args);
-
-            ArrayList<PropertyInvalidatedCache> activeCaches;
-            synchronized (sCorkLock) {
-                activeCaches = getActiveCaches();
-                if (!detail) {
-                    dumpCorkInfo(pw);
-                }
-            }
-
-            for (int i = 0; i < activeCaches.size(); i++) {
-                PropertyInvalidatedCache currentCache = activeCaches.get(i);
-                currentCache.dumpContents(pw, detail, args);
-            }
+        try {
+            // Send the final byte array to the output.  This happens outside of all locks.
+            var out = new FileOutputStream(pfd.getFileDescriptor());
+            barray.writeTo(out);
+            out.close();
+            barray.close();
         } catch (IOException e) {
             Log.e(TAG, "Failed to dump PropertyInvalidatedCache instances");
         }

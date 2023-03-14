@@ -17,10 +17,10 @@
 package com.android.systemui.privacy.logging
 
 import android.permission.PermissionGroupUsage
-import com.android.systemui.log.LogBuffer
-import com.android.systemui.log.LogLevel
-import com.android.systemui.log.LogMessage
 import com.android.systemui.log.dagger.PrivacyLog
+import com.android.systemui.plugins.log.LogBuffer
+import com.android.systemui.plugins.log.LogLevel
+import com.android.systemui.plugins.log.LogMessage
 import com.android.systemui.privacy.PrivacyDialog
 import com.android.systemui.privacy.PrivacyItem
 import java.text.SimpleDateFormat
@@ -41,6 +41,16 @@ class PrivacyLogger @Inject constructor(
             bool1 = active
         }, {
             "App Op: $int1 for $str1($int2), active=$bool1"
+        })
+    }
+
+    fun logUpdatedItemFromMediaProjection(uid: Int, packageName: String, active: Boolean) {
+        log(LogLevel.INFO, {
+            int1 = uid
+            str1 = packageName
+            bool1 = active
+        }, {
+            "MediaProjection: $str1($int1), active=$bool1"
         })
     }
 

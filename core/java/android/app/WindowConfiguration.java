@@ -330,6 +330,14 @@ public class WindowConfiguration implements Parcelable, Comparable<WindowConfigu
         mAlwaysOnTop = alwaysOnTop ? ALWAYS_ON_TOP_ON : ALWAYS_ON_TOP_OFF;
     }
 
+    /**
+     * Unsets always-on-top to undefined.
+     * @hide
+     */
+    public void unsetAlwaysOnTop() {
+        mAlwaysOnTop = ALWAYS_ON_TOP_UNDEFINED;
+    }
+
     private void setAlwaysOnTop(@AlwaysOnTop int alwaysOnTop) {
         mAlwaysOnTop = alwaysOnTop;
     }
@@ -450,6 +458,15 @@ public class WindowConfiguration implements Parcelable, Comparable<WindowConfigu
         setAlwaysOnTop(ALWAYS_ON_TOP_UNDEFINED);
         setRotation(ROTATION_UNDEFINED);
         setDisplayWindowingMode(WINDOWING_MODE_UNDEFINED);
+    }
+
+    /** @hide */
+    public void scale(float scale) {
+        mBounds.scale(scale);
+        mMaxBounds.scale(scale);
+        if (mAppBounds != null) {
+            mAppBounds.scale(scale);
+        }
     }
 
     /**

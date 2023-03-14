@@ -231,7 +231,7 @@ public class LocalBluetoothProfileManager {
             if (DEBUG) {
                 Log.d(TAG, "Adding local Volume Control profile");
             }
-            mVolumeControlProfile = new VolumeControlProfile();
+            mVolumeControlProfile = new VolumeControlProfile(mContext, mDeviceManager, this);
             // Note: no event handler for VCP, only for being connectable.
             mProfileNameMap.put(VolumeControlProfile.NAME, mVolumeControlProfile);
         }
@@ -340,6 +340,11 @@ public class LocalBluetoothProfileManager {
             if (getHearingAidProfile() != null &&
                 mProfile instanceof HearingAidProfile &&
                 (newState == BluetoothProfile.STATE_CONNECTED)) {
+                final int side = getHearingAidProfile().getDeviceSide(cachedDevice.getDevice());
+                final int mode = getHearingAidProfile().getDeviceMode(cachedDevice.getDevice());
+                cachedDevice.setDeviceSide(side);
+                cachedDevice.setDeviceMode(mode);
+
                 // Check if the HiSyncID has being initialized
                 if (cachedDevice.getHiSyncId() == BluetoothHearingAid.HI_SYNC_ID_INVALID) {
                     long newHiSyncId = getHearingAidProfile().getHiSyncId(cachedDevice.getDevice());
@@ -347,6 +352,8 @@ public class LocalBluetoothProfileManager {
                         cachedDevice.setHiSyncId(newHiSyncId);
                     }
                 }
+
+                HearingAidStatsLogUtils.logHearingAidInfo(cachedDevice);
             }
 
             if (getCsipSetCoordinatorProfile() != null
@@ -546,6 +553,10 @@ public class LocalBluetoothProfileManager {
         return mCsipSetCoordinatorProfile;
     }
 
+    public VolumeControlProfile getVolumeControlProfile() {
+        return mVolumeControlProfile;
+    }
+
     /**
      * Fill in a list of LocalBluetoothProfile objects that are supported by
      * the local device and the remote device.
@@ -569,6 +580,15 @@ public class LocalBluetoothProfileManager {
 
         if (uuids == null) {
             return;
+        }
+
+        // The profiles list's sequence will affect the bluetooth icon at
+        // BluetoothUtils.getBtClassDrawableWithDescription(Context,CachedBluetoothDevice).
+
+        // Moving the LE audio profile to be the first priority if the device supports LE audio.
+        if (ArrayUtils.contains(uuids, BluetoothUuid.LE_AUDIO) && mLeAudioProfile != null) {
+            profiles.add(mLeAudioProfile);
+            removedProfiles.remove(mLeAudioProfile);
         }
 
         if (mHeadsetProfile != null) {
@@ -653,11 +673,6 @@ public class LocalBluetoothProfileManager {
         if (ArrayUtils.contains(uuids, BluetoothUuid.HEARING_AID) && mHearingAidProfile != null) {
             profiles.add(mHearingAidProfile);
             removedProfiles.remove(mHearingAidProfile);
-        }
-
-        if (ArrayUtils.contains(uuids, BluetoothUuid.LE_AUDIO) && mLeAudioProfile != null) {
-            profiles.add(mLeAudioProfile);
-            removedProfiles.remove(mLeAudioProfile);
         }
 
         if (mSapProfile != null && ArrayUtils.contains(uuids, BluetoothUuid.SAP)) {

@@ -21,6 +21,9 @@ import static android.app.ActivityManager.PROCESS_STATE_BOUND_FOREGROUND_SERVICE
 import static android.app.ActivityManager.PROCESS_STATE_NONEXISTENT;
 
 import static com.android.server.am.ActivityManagerDebugConfig.DEBUG_OOM_ADJ;
+import static com.android.server.am.ProcessProfileRecord.HOSTING_COMPONENT_TYPE_ACTIVITY;
+import static com.android.server.am.ProcessProfileRecord.HOSTING_COMPONENT_TYPE_BROADCAST_RECEIVER;
+import static com.android.server.am.ProcessProfileRecord.HOSTING_COMPONENT_TYPE_STARTED_SERVICE;
 import static com.android.server.am.ProcessRecord.TAG;
 
 import android.annotation.ElapsedRealtimeLong;
@@ -494,6 +497,7 @@ final class ProcessStateRecord {
     @GuardedBy({"mService", "mProcLock"})
     void setCurAdj(int curAdj) {
         mCurAdj = curAdj;
+        mApp.getWindowProcessController().setCurrentAdj(curAdj);
     }
 
     @GuardedBy(anyOf = {"mService", "mProcLock"})
@@ -694,6 +698,11 @@ final class ProcessStateRecord {
     @GuardedBy("mProcLock")
     void setHasStartedServices(boolean hasStartedServices) {
         mHasStartedServices = hasStartedServices;
+        if (hasStartedServices) {
+            mApp.mProfile.addHostingComponentType(HOSTING_COMPONENT_TYPE_STARTED_SERVICE);
+        } else {
+            mApp.mProfile.clearHostingComponentType(HOSTING_COMPONENT_TYPE_STARTED_SERVICE);
+        }
     }
 
     @GuardedBy("mProcLock")
@@ -999,6 +1008,11 @@ final class ProcessStateRecord {
         if (mCachedHasActivities == VALUE_INVALID) {
             mCachedHasActivities = mApp.getWindowProcessController().hasActivities() ? VALUE_TRUE
                     : VALUE_FALSE;
+            if (mCachedHasActivities == VALUE_TRUE) {
+                mApp.mProfile.addHostingComponentType(HOSTING_COMPONENT_TYPE_ACTIVITY);
+            } else {
+                mApp.mProfile.clearHostingComponentType(HOSTING_COMPONENT_TYPE_ACTIVITY);
+            }
         }
         return mCachedHasActivities == VALUE_TRUE;
     }
@@ -1065,6 +1079,9 @@ final class ProcessStateRecord {
             if (mCachedIsReceivingBroadcast == VALUE_TRUE) {
                 mCachedSchedGroup = tmpQueue.contains(mService.mFgBroadcastQueue)
                         ? ProcessList.SCHED_GROUP_DEFAULT : ProcessList.SCHED_GROUP_BACKGROUND;
+                mApp.mProfile.addHostingComponentType(HOSTING_COMPONENT_TYPE_BROADCAST_RECEIVER);
+            } else {
+                mApp.mProfile.clearHostingComponentType(HOSTING_COMPONENT_TYPE_BROADCAST_RECEIVER);
             }
         }
         return mCachedIsReceivingBroadcast == VALUE_TRUE;

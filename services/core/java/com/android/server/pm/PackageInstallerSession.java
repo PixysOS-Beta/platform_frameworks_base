@@ -366,6 +366,14 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
     @GuardedBy("mLock")
     private boolean mStageDirInUse = false;
 
+    /**
+     * True if the verification is already in progress. This is used to prevent running
+     * verification again while one is already in progress which will break internal states.
+     *
+     * Worker thread only.
+     */
+    private boolean mVerificationInProgress = false;
+
     /** Permissions have been accepted by the user (see {@link #setPermissionsResult}) */
     @GuardedBy("mLock")
     private boolean mPermissionsManuallyAccepted = false;
@@ -2136,6 +2144,12 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
             return;
         }
 
+        if (mVerificationInProgress) {
+            Slog.w(TAG, "Verification is already in progress for session " + sessionId);
+            return;
+        }
+        mVerificationInProgress = true;
+
         if (params.isStaged) {
             mStagedSession.verifySession();
         } else {
@@ -2837,6 +2851,11 @@ public class PackageInstallerSession extends IPackageInstallerSession.Stub {
             if (!stagedSplits.contains(null)) {
                 throw new PackageManagerException(INSTALL_FAILED_INVALID_APK,
                         "Full install must include a base package");
+            } else if ((params.installFlags & PackageManager.INSTALL_DONT_KILL_APP) != 0) {
+                EventLog.writeEvent(0x534e4554, "219044664");
+
+                // Installing base.apk. Make sure the app is restarted.
+                params.setDontKillApp(false);
             }
             if (baseApk.isSplitRequired() && (stagedSplits.size() <= 1
                     || !stagedSplitTypes.containsAll(requiredSplitTypes))) {

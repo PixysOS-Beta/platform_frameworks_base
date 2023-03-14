@@ -114,6 +114,10 @@ public class MockBatteryStatsImpl extends BatteryStatsImpl {
         return getUidStatsLocked(uid).mOnBatteryScreenOffBackgroundTimeBase;
     }
 
+    public long getMobileRadioPowerStateUpdateRateLimit() {
+        return MOBILE_RADIO_POWER_STATE_UPDATE_FREQ_MS;
+    }
+
     public MockBatteryStatsImpl setNetworkStats(NetworkStats networkStats) {
         mNetworkStats = networkStats;
         return this;
@@ -212,7 +216,12 @@ public class MockBatteryStatsImpl extends BatteryStatsImpl {
         return flags;
     }
 
-    private class DummyExternalStatsSync implements ExternalStatsSync {
+    public void setDummyExternalStatsSync(DummyExternalStatsSync externalStatsSync) {
+        mExternalStatsSync = externalStatsSync;
+        setExternalStatsSyncLocked(mExternalStatsSync);
+    }
+
+    public static class DummyExternalStatsSync implements ExternalStatsSync {
         public int flags = 0;
 
         @Override
@@ -257,8 +266,7 @@ public class MockBatteryStatsImpl extends BatteryStatsImpl {
         }
 
         @Override
-        public Future<?> scheduleSyncDueToProcessStateChange(long delayMillis) {
-            return null;
+        public void scheduleSyncDueToProcessStateChange(int flags, long delayMillis) {
         }
     }
 }

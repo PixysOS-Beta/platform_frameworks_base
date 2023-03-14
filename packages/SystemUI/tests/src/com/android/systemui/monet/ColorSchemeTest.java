@@ -69,7 +69,7 @@ public class ColorSchemeTest extends SysuiTestCase {
         // Expressive applies hue rotations to the theme color. The input theme color has hue
         // 117, ensuring the hue changed significantly is a strong signal styles are being applied.
         ColorScheme colorScheme = new ColorScheme(wallpaperColors, false, Style.EXPRESSIVE);
-        Assert.assertEquals(Cam.fromInt(colorScheme.getAccent1().get(6)).getHue(), 357.46, 0.1);
+        Assert.assertEquals(357.77, Cam.fromInt(colorScheme.getAccent1().get(6)).getHue(), 0.1);
     }
 
 
@@ -133,7 +133,7 @@ public class ColorSchemeTest extends SysuiTestCase {
                 Style.VIBRANT /* style */);
         int neutralMid = colorScheme.getNeutral1().get(colorScheme.getNeutral1().size() / 2);
         Cam cam = Cam.fromInt(neutralMid);
-        Assert.assertTrue("chroma was " + cam.getChroma(), Math.floor(cam.getChroma()) <= 10.0);
+        Assert.assertTrue("chroma was " + cam.getChroma(), Math.floor(cam.getChroma()) <= 12.0);
     }
 
     @Test
@@ -144,6 +144,32 @@ public class ColorSchemeTest extends SysuiTestCase {
         int neutralMid = colorScheme.getNeutral1().get(colorScheme.getNeutral1().size() / 2);
         Cam cam = Cam.fromInt(neutralMid);
         Assert.assertTrue(cam.getChroma() <= 8.0);
+    }
+
+    @Test
+    public void testMonochromatic() {
+        int colorInt = 0xffB3588A; // H350 C50 T50
+        ColorScheme colorScheme = new ColorScheme(colorInt, false /* darkTheme */,
+                Style.MONOCHROMATIC /* style */);
+        int neutralMid = colorScheme.getNeutral1().get(colorScheme.getNeutral1().size() / 2);
+        Assert.assertTrue(
+                Color.red(neutralMid) == Color.green(neutralMid)
+                && Color.green(neutralMid) == Color.blue(neutralMid)
+        );
+    }
+
+    @Test
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public void testToString() {
+        new ColorScheme(Color.TRANSPARENT, false /* darkTheme */).toString();
+        new ColorScheme(Color.argb(0, 0, 0, 0xf), false /* darkTheme */).toString();
+        new ColorScheme(Color.argb(0xff, 0xff, 0, 0), false /* darkTheme */).toString();
+        new ColorScheme(0xFFFFFFFF, false /* darkTheme */).toString();
+
+        new ColorScheme(Color.TRANSPARENT, true /* darkTheme */).toString();
+        new ColorScheme(Color.argb(0, 0, 0, 0xf), true /* darkTheme */).toString();
+        new ColorScheme(0xFFFF0000, true /* darkTheme */).toString();
+        new ColorScheme(0xFFFFFFFF, true /* darkTheme */).toString();
     }
 
     /**

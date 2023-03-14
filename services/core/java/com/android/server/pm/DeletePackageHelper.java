@@ -164,11 +164,13 @@ final class DeletePackageHelper {
                 return PackageManager.DELETE_FAILED_INTERNAL_ERROR;
             }
 
-            if (PackageManagerServiceUtils.isSystemApp(uninstalledPs)) {
+            if (PackageManagerServiceUtils.isSystemApp(uninstalledPs)
+                    && ((deleteFlags & PackageManager.DELETE_SYSTEM_APP) == 0)) {
                 UserInfo userInfo = mUserManagerInternal.getUserInfo(userId);
-                if (userInfo == null || !userInfo.isAdmin()) {
+                if (userInfo == null || (!userInfo.isAdmin() && !mUserManagerInternal.getUserInfo(
+                        mUserManagerInternal.getProfileParentId(userId)).isAdmin())) {
                     Slog.w(TAG, "Not removing package " + packageName
-                            + " as only admin user may downgrade system apps");
+                            + " as only admin user (or their profile) may downgrade system apps");
                     EventLog.writeEvent(0x534e4554, "170646036", -1, packageName);
                     return PackageManager.DELETE_FAILED_USER_RESTRICTED;
                 }
@@ -654,6 +656,18 @@ final class DeletePackageHelper {
 
         final String packageName = versionedPackage.getPackageName();
         final long versionCode = versionedPackage.getLongVersionCode();
+
+        if (mPm.mProtectedPackages.isPackageDataProtected(userId, packageName)) {
+            mPm.mHandler.post(() -> {
+                try {
+                    Slog.w(TAG, "Attempted to delete protected package: " + packageName);
+                    observer.onPackageDeleted(packageName,
+                            PackageManager.DELETE_FAILED_INTERNAL_ERROR, null);
+                } catch (RemoteException re) {
+                }
+            });
+            return;
+        }
 
         try {
             if (mPm.mInjector.getLocalService(ActivityTaskManagerInternal.class)

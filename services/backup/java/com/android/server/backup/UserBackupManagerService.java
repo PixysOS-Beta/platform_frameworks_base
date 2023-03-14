@@ -2359,13 +2359,37 @@ public class UserBackupManagerService {
                 }
             } while (headBusy);
 
+            if (runBackup) {
+                CountDownLatch latch = new CountDownLatch(1);
+                String[] pkg = new String[]{entry.packageName};
+                try {
+                    mRunningFullBackupTask = PerformFullTransportBackupTask.newWithCurrentTransport(
+                            this,
+                            mOperationStorage,
+                            /* observer */ null,
+                            pkg,
+                            /* updateSchedule */ true,
+                            scheduledJob,
+                            latch,
+                            /* backupObserver */ null,
+                            /* monitor */ null,
+                            /* userInitiated */ false,
+                            "BMS.beginFullBackup()",
+                            getEligibilityRulesForOperation(OperationType.BACKUP));
+                } catch (IllegalStateException e) {
+                    Slog.w(TAG, "Failed to start backup", e);
+                    runBackup = false;
+                }
+            }
+
             if (!runBackup) {
                 if (DEBUG_SCHEDULING) {
                     Slog.i(
                             TAG,
                             addUserIdToLogMessage(
                                     mUserId,
-                                    "Nothing pending full backup; rescheduling +" + latency));
+                                    "Nothing pending full backup or failed to start the "
+                                            + "operation; rescheduling +" + latency));
                 }
                 final long deferTime = latency;     // pin for the closure
                 FullBackupJob.schedule(mUserId, mContext, deferTime, mConstants);
@@ -2374,21 +2398,6 @@ public class UserBackupManagerService {
 
             // Okay, the top thing is ready for backup now.  Do it.
             mFullBackupQueue.remove(0);
-            CountDownLatch latch = new CountDownLatch(1);
-            String[] pkg = new String[]{entry.packageName};
-            mRunningFullBackupTask = PerformFullTransportBackupTask.newWithCurrentTransport(
-                    this,
-                    mOperationStorage,
-                    /* observer */ null,
-                    pkg,
-                    /* updateSchedule */ true,
-                    scheduledJob,
-                    latch,
-                    /* backupObserver */ null,
-                    /* monitor */ null,
-                    /* userInitiated */ false,
-                    "BMS.beginFullBackup()",
-                    getEligibilityRulesForOperation(OperationType.BACKUP));
             // Acquiring wakelock for PerformFullTransportBackupTask before its start.
             mWakelock.acquire();
             (new Thread(mRunningFullBackupTask)).start();
@@ -2884,7 +2893,6 @@ public class UserBackupManagerService {
     public void fullTransportBackup(String[] pkgNames) {
         mContext.enforceCallingPermission(android.Manifest.permission.BACKUP,
                 "fullTransportBackup");
-
         final int callingUserHandle = UserHandle.getCallingUserId();
         // TODO: http://b/22388012
         if (callingUserHandle != UserHandle.USER_SYSTEM) {
@@ -2936,6 +2944,9 @@ public class UserBackupManagerService {
                 for (String pkg : pkgNames) {
                     enqueueFullBackup(pkg, now);
                 }
+            } catch (IllegalStateException e) {
+                Slog.w(TAG, "Failed to start backup: ", e);
+                return;
             } finally {
                 Binder.restoreCallingIdentity(oldId);
             }
@@ -3711,19 +3722,32 @@ public class UserBackupManagerService {
             Slog.w(TAG, "agentDisconnected: the backup agent for " + packageName
                     + " died: cancel current operations");
 
-            // handleCancel() causes the PerformFullTransportBackupTask to go on to
-            // tearDownAgentAndKill: that will unbindBackupAgent in the Activity Manager, so
-            // that the package being backed up doesn't get stuck in restricted mode until the
-            // backup time-out elapses.
-            for (int token : mOperationStorage.operationTokensForPackage(packageName)) {
-                if (MORE_DEBUG) {
-                    Slog.d(TAG, "agentDisconnected: will handleCancel(all) for token:"
-                            + Integer.toHexString(token));
+            // Offload operation cancellation off the main thread as the cancellation callbacks
+            // might call out to BackupTransport. Other operations started on the same package
+            // before the cancellation callback has executed will also be cancelled by the callback.
+            Runnable cancellationRunnable = () -> {
+                // handleCancel() causes the PerformFullTransportBackupTask to go on to
+                // tearDownAgentAndKill: that will unbindBackupAgent in the Activity Manager, so
+                // that the package being backed up doesn't get stuck in restricted mode until the
+                // backup time-out elapses.
+                for (int token : mOperationStorage.operationTokensForPackage(packageName)) {
+                    if (MORE_DEBUG) {
+                        Slog.d(TAG, "agentDisconnected: will handleCancel(all) for token:"
+                                + Integer.toHexString(token));
+                    }
+                    handleCancel(token, true /* cancelAll */);
                 }
-                handleCancel(token, true /* cancelAll */);
-            }
+            };
+            getThreadForAsyncOperation(/* operationName */ "agent-disconnected",
+                    cancellationRunnable).start();
+
             mAgentConnectLock.notifyAll();
         }
+    }
+
+    @VisibleForTesting
+    Thread getThreadForAsyncOperation(String operationName, Runnable operation) {
+        return new Thread(operation, operationName);
     }
 
     /**

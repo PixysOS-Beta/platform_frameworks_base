@@ -28,7 +28,6 @@ import static android.content.res.Configuration.EMPTY;
 import static android.os.Trace.TRACE_TAG_WINDOW_MANAGER;
 import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.Display.INVALID_DISPLAY;
-import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 import static android.view.WindowManager.LayoutParams.PRIVATE_FLAG_SUSTAINED_PERFORMANCE_MODE;
 import static android.view.WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG;
 import static android.view.WindowManager.LayoutParams.TYPE_NOTIFICATION_SHADE;
@@ -37,6 +36,7 @@ import static android.view.WindowManager.TRANSIT_FLAG_APP_CRASHED;
 import static android.view.WindowManager.TRANSIT_NONE;
 import static android.view.WindowManager.TRANSIT_PIP;
 import static android.view.WindowManager.TRANSIT_TO_BACK;
+import static android.view.WindowManager.TRANSIT_WAKE;
 
 import static com.android.internal.protolog.ProtoLogGroup.WM_DEBUG_FOCUS_LIGHT;
 import static com.android.internal.protolog.ProtoLogGroup.WM_DEBUG_KEEP_SCREEN_ON;
@@ -177,15 +177,9 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
     private static final String TAG_RECENTS = TAG + POSTFIX_RECENTS;
 
     private Object mLastWindowFreezeSource = null;
-    private Session mHoldScreen = null;
     private float mScreenBrightnessOverride = PowerManager.BRIGHTNESS_INVALID_FLOAT;
     private long mUserActivityTimeout = -1;
     private boolean mUpdateRotation = false;
-    // Following variables are for debugging screen wakelock only.
-    // Last window that requires screen wakelock
-    WindowState mHoldScreenWindow = null;
-    // Last window that obscures all windows below
-    WindowState mObscuringWindow = null;
     // Only set while traversing the default display based on its content.
     // Affects the behavior of mirroring on secondary displays.
     private boolean mObscureApplicationContentOnSecondaryDisplays = false;
@@ -210,10 +204,6 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
 
     // Map from the PID to the top most app which has a focused window of the process.
     final ArrayMap<Integer, ActivityRecord> mTopFocusedAppByProcess = new ArrayMap<>();
-
-    // Only a separate transaction until we separate the apply surface changes
-    // transaction from the global transaction.
-    private final SurfaceControl.Transaction mDisplayTransaction;
 
     // The tag for the token to put root tasks on the displays to sleep.
     private static final String DISPLAY_OFF_SLEEP_TOKEN_TAG = "Display-off";
@@ -459,7 +449,6 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
 
     RootWindowContainer(WindowManagerService service) {
         super(service);
-        mDisplayTransaction = service.mTransactionFactory.get();
         mHandler = new MyHandler(service.mH.getLooper());
         mService = service.mAtmService;
         mTaskSupervisor = mService.mTaskSupervisor;
@@ -518,7 +507,7 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
     void onChildPositionChanged(WindowContainer child) {
         mWmService.updateFocusedWindowLocked(UPDATE_FOCUS_NORMAL,
                 !mWmService.mPerDisplayFocusEnabled /* updateInputWindows */);
-        mTaskSupervisor.updateTopResumedActivityIfNeeded();
+        mTaskSupervisor.updateTopResumedActivityIfNeeded("onChildPositionChanged");
     }
 
     @Override
@@ -778,6 +767,10 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
         return leakedSurface || killedApps;
     }
 
+    /**
+     * This method should only be called from {@link WindowSurfacePlacer}. Otherwise the recursion
+     * check and {@link WindowSurfacePlacer#isInLayout()} won't take effect.
+     */
     void performSurfacePlacement() {
         Trace.traceBegin(TRACE_TAG_WINDOW_MANAGER, "performSurfacePlacement");
         try {
@@ -803,7 +796,6 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
                     UPDATE_FOCUS_WILL_PLACE_SURFACES, false /*updateInputWindows*/);
         }
 
-        mHoldScreen = null;
         mScreenBrightnessOverride = PowerManager.BRIGHTNESS_INVALID_FLOAT;
         mUserActivityTimeout = -1;
         mObscureApplicationContentOnSecondaryDisplays = false;
@@ -846,6 +838,10 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
                 mWmService.getRecentsAnimationController();
         if (recentsAnimationController != null) {
             recentsAnimationController.checkAnimationReady(defaultDisplay.mWallpaperController);
+        }
+        final BackNaviAnimationController bnac = mWmService.getBackNaviAnimationController();
+        if (bnac != null) {
+            bnac.checkAnimationReady(defaultDisplay.mWallpaperController);
         }
 
         for (int displayNdx = 0; displayNdx < mChildren.size(); ++displayNdx) {
@@ -916,7 +912,6 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
             }
         }
 
-        mWmService.setHoldScreenLocked(mHoldScreen);
         if (!mWmService.mDisplayFrozen) {
             final float brightnessOverride = mScreenBrightnessOverride < PowerManager.BRIGHTNESS_MIN
                     || mScreenBrightnessOverride > PowerManager.BRIGHTNESS_MAX
@@ -996,23 +991,21 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
     }
 
     private void applySurfaceChangesTransaction() {
-        mHoldScreenWindow = null;
-        mObscuringWindow = null;
-
         // TODO(multi-display): Support these features on secondary screens.
-        final DisplayContent defaultDc = mWmService.getDefaultDisplayContentLocked();
+        final DisplayContent defaultDc = mDefaultDisplay;
         final DisplayInfo defaultInfo = defaultDc.getDisplayInfo();
         final int defaultDw = defaultInfo.logicalWidth;
         final int defaultDh = defaultInfo.logicalHeight;
+        final SurfaceControl.Transaction t = defaultDc.getSyncTransaction();
         if (mWmService.mWatermark != null) {
-            mWmService.mWatermark.positionSurface(defaultDw, defaultDh, mDisplayTransaction);
+            mWmService.mWatermark.positionSurface(defaultDw, defaultDh, t);
         }
         if (mWmService.mStrictModeFlash != null) {
-            mWmService.mStrictModeFlash.positionSurface(defaultDw, defaultDh, mDisplayTransaction);
+            mWmService.mStrictModeFlash.positionSurface(defaultDw, defaultDh, t);
         }
         if (mWmService.mEmulatorDisplayOverlay != null) {
             mWmService.mEmulatorDisplayOverlay.positionSurface(defaultDw, defaultDh,
-                    mWmService.getDefaultDisplayRotation(), mDisplayTransaction);
+                    defaultDc.getRotation(), t);
         }
 
         final int count = mChildren.size();
@@ -1023,8 +1016,10 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
 
         // Give the display manager a chance to adjust properties like display rotation if it needs
         // to.
-        mWmService.mDisplayManagerInternal.performTraversal(mDisplayTransaction);
-        SurfaceControl.mergeToGlobalTransaction(mDisplayTransaction);
+        mWmService.mDisplayManagerInternal.performTraversal(t);
+        if (t != defaultDc.mSyncTransaction) {
+            SurfaceControl.mergeToGlobalTransaction(t);
+        }
     }
 
     /**
@@ -1070,15 +1065,6 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
             }
         }
         if (w.mHasSurface && canBeSeen) {
-            if ((attrFlags & FLAG_KEEP_SCREEN_ON) != 0) {
-                mHoldScreen = w.mSession;
-                mHoldScreenWindow = w;
-            } else if (w == mWmService.mLastWakeLockHoldingWindow) {
-                ProtoLog.d(WM_DEBUG_KEEP_SCREEN_ON,
-                        "handleNotObscuredLocked: %s was holding screen wakelock but no longer "
-                                + "has FLAG_KEEP_SCREEN_ON!!! called by%s",
-                        w, Debug.getCallers(10));
-            }
             if (!syswin && w.mAttrs.screenBrightness >= 0
                     && Float.isNaN(mScreenBrightnessOverride)) {
                 mScreenBrightnessOverride = w.mAttrs.screenBrightness;
@@ -1235,11 +1221,6 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
     @Override
     String getName() {
         return "ROOT";
-    }
-
-    @Override
-    void scheduleAnimation() {
-        mWmService.scheduleAnimationLocked();
     }
 
     @Override
@@ -2040,7 +2021,12 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
                 // non-fullscreen bounds. Then when this new PIP task exits PIP, it can restore
                 // to its previous freeform bounds.
                 rootTask.setLastNonFullscreenBounds(task.mLastNonFullscreenBounds);
-                rootTask.setBounds(task.getBounds());
+                // When creating a new Task for PiP, set its initial bounds as the TaskFragment in
+                // case the activity is embedded, so that it can be animated to PiP window from the
+                // current bounds.
+                // Use Task#setBoundsUnchecked to skip checking windowing mode as the windowing mode
+                // will be updated later after this is collected in transition.
+                rootTask.setBoundsUnchecked(r.getTaskFragment().getBounds());
 
                 // Move the last recents animation transaction from original task to the new one.
                 if (task.mLastRecentsAnimationTransaction != null) {
@@ -2048,6 +2034,9 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
                             task.mLastRecentsAnimationTransaction,
                             task.mLastRecentsAnimationOverlay);
                     task.clearLastRecentsAnimationTransaction(false /* forceRemoveOverlay */);
+                } else {
+                    // Reset the original task surface
+                    task.resetSurfaceControlTransforms();
                 }
 
                 // The organized TaskFragment is becoming empty because this activity is reparented
@@ -2109,12 +2098,18 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
                     // from the client organizer, so the PIP activity can get the correct config
                     // from the Task, and prevent conflict with the PipTaskOrganizer.
                     tf.updateRequestedOverrideConfiguration(EMPTY);
+                    tf.updateRelativeEmbeddedBounds();
                 }
             });
             rootTask.setWindowingMode(WINDOWING_MODE_PINNED);
             // Set the launch bounds for launch-into-pip Activity on the root task.
             if (r.getOptions() != null && r.getOptions().isLaunchIntoPip()) {
-                rootTask.setBounds(r.getOptions().getLaunchBounds());
+                // Record the snapshot now, it will be later fetched for content-pip animation.
+                // We do this early in the process to make sure the right snapshot is used for
+                // entering content-pip animation.
+                mWindowManager.mTaskSnapshotController.recordTaskSnapshot(
+                        task, false /* allowSnapshotHome */);
+                rootTask.setBounds(r.pictureInPictureArgs.getSourceRectHint());
             }
             rootTask.setDeferTaskAppear(false);
 
@@ -2330,6 +2325,14 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
                 continue;
             }
 
+            // Prepare transition before resume top activity, so it can be collected.
+            if (!displayShouldSleep && display.isDefaultDisplay
+                    && !display.getDisplayPolicy().isAwake()
+                    && display.mTransitionController.isShellTransitionsEnabled()
+                    && !display.mTransitionController.isCollecting()) {
+                display.mTransitionController.requestTransitionIfNeeded(TRANSIT_WAKE,
+                        0 /* flags */, null /* trigger */, display);
+            }
             // Set the sleeping state of the root tasks on the display.
             display.forAllRootTasks(rootTask -> {
                 if (displayShouldSleep) {
@@ -2623,7 +2626,7 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
         final ArrayList<Task> addedTasks = new ArrayList<>();
         forAllActivities((r) -> {
             final Task task = r.getTask();
-            if (r.mVisibleRequested && r.mStartingData == null && !addedTasks.contains(task)) {
+            if (r.isVisibleRequested() && r.mStartingData == null && !addedTasks.contains(task)) {
                 r.showStartingWindow(true /*taskSwitch*/);
                 addedTasks.add(task);
             }
@@ -2648,7 +2651,7 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
         forAllLeafTasks(task -> {
             final int oldRank = task.mLayerRank;
             final ActivityRecord r = task.topRunningActivityLocked();
-            if (r != null && r.mVisibleRequested) {
+            if (r != null && r.isVisibleRequested()) {
                 task.mLayerRank = ++mTmpTaskLayerRank;
             } else {
                 task.mLayerRank = Task.LAYER_RANK_INVISIBLE;
@@ -3245,7 +3248,7 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
             if (task.getActivity(activity -> !activity.finishing && activity.mUserId == userId)
                     != null) {
                 mService.getTaskChangeNotificationController().notifyTaskProfileLocked(
-                        task.mTaskId, userId);
+                        task.getTaskInfo());
             }
         }, true /* traverseTopToBottom */);
     }
@@ -3331,9 +3334,16 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
 
     @VisibleForTesting
     void getRunningTasks(int maxNum, List<ActivityManager.RunningTaskInfo> list,
-            int flags, int callingUid, ArraySet<Integer> profileIds) {
-        mTaskSupervisor.getRunningTasks().getTasks(maxNum, list, flags, this, callingUid,
-                profileIds);
+            int flags, int callingUid, ArraySet<Integer> profileIds, int displayId) {
+        WindowContainer root = this;
+        if (displayId != INVALID_DISPLAY) {
+            root = getDisplayContent(displayId);
+            if (root == null) {
+                return;
+            }
+        }
+        mTaskSupervisor.getRunningTasks().getTasks(maxNum, list, flags, mService.getRecentTasks(),
+                root, callingUid, profileIds);
     }
 
     void startPowerModeLaunchIfNeeded(boolean forceSend, ActivityRecord targetActivity) {
@@ -3448,7 +3458,6 @@ class RootWindowContainer extends WindowContainer<DisplayContent>
             final DisplayContent display = getChildAt(i);
             display.dump(pw, prefix, dumpAll);
         }
-        pw.println();
     }
 
     /**

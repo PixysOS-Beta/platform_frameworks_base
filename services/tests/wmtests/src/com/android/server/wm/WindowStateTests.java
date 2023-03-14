@@ -74,6 +74,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.when;
 
@@ -94,6 +95,8 @@ import android.view.InsetsState;
 import android.view.InsetsVisibilities;
 import android.view.SurfaceControl;
 import android.view.WindowManager;
+import android.window.ITaskFragmentOrganizer;
+import android.window.TaskFragmentOrganizer;
 
 import androidx.test.filters.SmallTest;
 
@@ -260,7 +263,7 @@ public class WindowStateTests extends WindowTestsBase {
 
         // Verify that app window can still be IME target as long as it is visible (even if
         // it is going to become invisible).
-        appWindow.mActivityRecord.mVisibleRequested = false;
+        appWindow.mActivityRecord.setVisibleRequested(false);
         assertTrue(appWindow.canBeImeTarget());
 
         // Make windows invisible
@@ -472,6 +475,44 @@ public class WindowStateTests extends WindowTestsBase {
     }
 
     @Test
+    public void testOnExitAnimationDone() {
+        final WindowState parent = createWindow(null, TYPE_APPLICATION, "parent");
+        final WindowState child = createWindow(parent, TYPE_APPLICATION_PANEL, "child");
+        final SurfaceControl.Transaction t = parent.getPendingTransaction();
+        child.startAnimation(t, mock(AnimationAdapter.class), false /* hidden */,
+                SurfaceAnimator.ANIMATION_TYPE_WINDOW_ANIMATION);
+        parent.mAnimatingExit = parent.mRemoveOnExit = parent.mWindowRemovalAllowed = true;
+        child.mAnimatingExit = child.mRemoveOnExit = child.mWindowRemovalAllowed = true;
+        final int[] numRemovals = new int[2];
+        parent.registerWindowContainerListener(new WindowContainerListener() {
+            @Override
+            public void onRemoved() {
+                numRemovals[0]++;
+            }
+        });
+        child.registerWindowContainerListener(new WindowContainerListener() {
+            @Override
+            public void onRemoved() {
+                numRemovals[1]++;
+            }
+        });
+        spyOn(parent);
+        // parent onExitAnimationDone
+        //   -> child onExitAnimationDone() -> no-op because isAnimating()
+        //   -> parent destroySurface()
+        //     -> parent removeImmediately() because mDestroying+mRemoveOnExit
+        //       -> child removeImmediately() -> cancelAnimation()
+        //       -> child onExitAnimationDone()
+        //         -> child destroySurface() because animation is canceled
+        //           -> child removeImmediately() -> no-op because mRemoved
+        parent.onExitAnimationDone();
+        // There must be no additional destroySurface() of parent from its child.
+        verify(parent, atMost(1)).destroySurface(anyBoolean(), anyBoolean());
+        assertEquals(1, numRemovals[0]);
+        assertEquals(1, numRemovals[1]);
+    }
+
+    @Test
     public void testLayoutSeqResetOnReparent() {
         final WindowState app = createWindow(null, TYPE_APPLICATION, "app");
         app.mLayoutSeq = 1;
@@ -673,6 +714,34 @@ public class WindowStateTests extends WindowTestsBase {
         // Keyguard host window should be always contained. The drawn app or app with starting
         // window are unnecessary to draw.
         assertEquals(Arrays.asList(keyguardHostWindow, startingWindow), outWaitingForDrawn);
+
+        // No need to wait for a window of invisible activity even if the window has surface.
+        final WindowState invisibleApp = mAppWindow;
+        invisibleApp.mActivityRecord.setVisibleRequested(false);
+        invisibleApp.mActivityRecord.allDrawn = false;
+        outWaitingForDrawn.clear();
+        invisibleApp.requestDrawIfNeeded(outWaitingForDrawn);
+        assertTrue(outWaitingForDrawn.isEmpty());
+
+        // Drawn state should not be changed for insets change when screen is off.
+        spyOn(mWm.mPolicy);
+        doReturn(false).when(mWm.mPolicy).isScreenOn();
+        makeWindowVisibleAndDrawn(startingApp);
+        startingApp.getConfiguration().orientation = 0; // Reset to be the same as last reported.
+        startingApp.getWindowFrames().setInsetsChanged(true);
+        startingApp.updateResizingWindowIfNeeded();
+        assertTrue(mWm.mResizingWindows.contains(startingApp));
+        assertTrue(startingApp.isDrawn());
+        assertFalse(startingApp.getOrientationChanging());
+
+        // Even if the display is frozen, invisible requested window should not be affected.
+        startingApp.mActivityRecord.setVisibleRequested(false);
+        mWm.startFreezingDisplay(0, 0, mDisplayContent);
+        doReturn(true).when(mWm.mPolicy).isScreenOn();
+        startingApp.getWindowFrames().setInsetsChanged(true);
+        startingApp.updateResizingWindowIfNeeded();
+        assertTrue(startingApp.isDrawn());
+        assertFalse(startingApp.getOrientationChanging());
     }
 
     @UseTestDisplay(addWindows = W_ABOVE_ACTIVITY)
@@ -731,20 +800,42 @@ public class WindowStateTests extends WindowTestsBase {
     }
 
     @Test
-    public void testCantReceiveTouchDuringRecentsAnimation() {
-        final WindowState win0 = createWindow(null, TYPE_APPLICATION, "win0");
+    public void testEmbeddedActivityResizing_clearAllDrawn() {
+        final TaskFragmentOrganizer organizer = new TaskFragmentOrganizer(Runnable::run);
+        mAtm.mTaskFragmentOrganizerController.registerOrganizer(
+                ITaskFragmentOrganizer.Stub.asInterface(organizer.getOrganizerToken().asBinder()));
+        final Task task = createTask(mDisplayContent);
+        final TaskFragment embeddedTf = createTaskFragmentWithEmbeddedActivity(task, organizer);
+        final ActivityRecord embeddedActivity = embeddedTf.getTopMostActivity();
+        final WindowState win = createWindow(null /* parent */, TYPE_APPLICATION, embeddedActivity,
+                "App window");
+        doReturn(true).when(embeddedActivity).isVisible();
+        embeddedActivity.setVisibleRequested(true);
+        makeWindowVisible(win);
+        win.mLayoutSeq = win.getDisplayContent().mLayoutSeq;
+        // Set the bounds twice:
+        // 1. To make sure there is no orientation change after #reportResized, which can also cause
+        // #clearAllDrawn.
+        // 2. Make #isLastConfigReportedToClient to be false after #reportResized, so it can process
+        // to check if we need redraw.
+        embeddedTf.setWindowingMode(WINDOWING_MODE_MULTI_WINDOW);
+        embeddedTf.setBounds(0, 0, 1000, 2000);
+        win.reportResized();
+        embeddedTf.setBounds(500, 0, 1000, 2000);
 
-        // Mock active recents animation
-        RecentsAnimationController recentsController = mock(RecentsAnimationController.class);
-        when(recentsController.shouldApplyInputConsumer(win0.mActivityRecord)).thenReturn(true);
-        mWm.setRecentsAnimationController(recentsController);
-        assertFalse(win0.canReceiveTouchInput());
+        // Clear all drawn when the embedded TaskFragment is in mDisplayContent.mChangingContainers.
+        win.updateResizingWindowIfNeeded();
+        verify(embeddedActivity, never()).clearAllDrawn();
+
+        mDisplayContent.mChangingContainers.add(embeddedTf);
+        win.updateResizingWindowIfNeeded();
+        verify(embeddedActivity).clearAllDrawn();
     }
 
     @Test
     public void testCantReceiveTouchWhenAppTokenHiddenRequested() {
         final WindowState win0 = createWindow(null, TYPE_APPLICATION, "win0");
-        win0.mActivityRecord.mVisibleRequested = false;
+        win0.mActivityRecord.setVisibleRequested(false);
         assertFalse(win0.canReceiveTouchInput());
     }
 
@@ -899,6 +990,15 @@ public class WindowStateTests extends WindowTestsBase {
         assertTrue(app.isReadyToDispatchInsetsState());
         mDisplayContent.getInsetsStateController().notifyInsetsChanged();
         verify(app).notifyInsetsChanged();
+
+        // Verify that invisible non-activity window won't dispatch insets changed.
+        final WindowState overlay = createWindow(null, TYPE_APPLICATION_OVERLAY, "overlay");
+        makeWindowVisible(overlay);
+        assertTrue(overlay.isReadyToDispatchInsetsState());
+        overlay.mHasSurface = false;
+        assertFalse(overlay.isReadyToDispatchInsetsState());
+        mDisplayContent.getInsetsStateController().notifyInsetsChanged();
+        assertFalse(overlay.getWindowFrames().hasInsetsChanged());
     }
 
     @UseTestDisplay(addWindows = {W_INPUT_METHOD, W_ACTIVITY})
@@ -932,6 +1032,9 @@ public class WindowStateTests extends WindowTestsBase {
         // Simulate app requests IME with updating all windows Insets State when IME is above app.
         mDisplayContent.setImeLayeringTarget(app);
         mDisplayContent.setImeInputTarget(app);
+        final InsetsVisibilities requestedVisibilities = new InsetsVisibilities();
+        requestedVisibilities.setVisibility(ITYPE_IME, true);
+        app.setRequestedVisibilities(requestedVisibilities);
         assertTrue(mDisplayContent.shouldImeAttachedToApp());
         controller.getImeSourceProvider().scheduleShowImePostLayout(app);
         controller.getImeSourceProvider().getSource().setVisible(true);
@@ -969,6 +1072,9 @@ public class WindowStateTests extends WindowTestsBase {
         app2.mActivityRecord.mImeInsetsFrozenUntilStartInput = true;
         mDisplayContent.setImeLayeringTarget(app);
         mDisplayContent.setImeInputTarget(app);
+        final InsetsVisibilities requestedVisibilities = new InsetsVisibilities();
+        requestedVisibilities.setVisibility(ITYPE_IME, true);
+        app.setRequestedVisibilities(requestedVisibilities);
         assertTrue(mDisplayContent.shouldImeAttachedToApp());
         controller.getImeSourceProvider().scheduleShowImePostLayout(app);
         controller.getImeSourceProvider().getSource().setVisible(true);

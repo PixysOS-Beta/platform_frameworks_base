@@ -44,6 +44,7 @@ import android.view.animation.Interpolator;
 import androidx.annotation.NonNull;
 
 import com.android.internal.annotations.GuardedBy;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.jank.InteractionJankMonitor;
 import com.android.internal.jank.InteractionJankMonitor.Configuration;
 import com.android.internal.logging.UiEventLogger;
@@ -53,6 +54,7 @@ import com.android.systemui.animation.Interpolators;
 import com.android.systemui.dagger.SysUISingleton;
 import com.android.systemui.dump.DumpManager;
 import com.android.systemui.plugins.statusbar.StatusBarStateController.StateListener;
+import com.android.systemui.shade.ShadeExpansionStateManager;
 import com.android.systemui.statusbar.notification.stack.StackStateAnimator;
 import com.android.systemui.statusbar.policy.CallbackController;
 
@@ -152,13 +154,18 @@ public class StatusBarStateControllerImpl implements
     private Interpolator mDozeInterpolator = Interpolators.FAST_OUT_SLOW_IN;
 
     @Inject
-    public StatusBarStateControllerImpl(UiEventLogger uiEventLogger, DumpManager dumpManager,
-            InteractionJankMonitor interactionJankMonitor) {
+    public StatusBarStateControllerImpl(
+            UiEventLogger uiEventLogger,
+            DumpManager dumpManager,
+            InteractionJankMonitor interactionJankMonitor,
+            ShadeExpansionStateManager shadeExpansionStateManager
+    ) {
         mUiEventLogger = uiEventLogger;
         mInteractionJankMonitor = interactionJankMonitor;
         for (int i = 0; i < HISTORY_SIZE; i++) {
             mHistoricalRecords[i] = new HistoricalState();
         }
+        shadeExpansionStateManager.addFullExpansionListener(this::onShadeExpansionFullyChanged);
 
         dumpManager.registerDumpable(this);
     }
@@ -262,21 +269,6 @@ public class StatusBarStateControllerImpl implements
     }
 
     @Override
-    public boolean setPanelExpanded(boolean expanded) {
-        if (mIsExpanded == expanded) {
-            return false;
-        }
-        mIsExpanded = expanded;
-        String tag = getClass().getSimpleName() + "#setIsExpanded";
-        DejankUtils.startDetectingBlockingIpcs(tag);
-        for (RankedListener rl : new ArrayList<>(mListeners)) {
-            rl.mListener.onExpandedChanged(mIsExpanded);
-        }
-        DejankUtils.stopDetectingBlockingIpcs(tag);
-        return true;
-    }
-
-    @Override
     public float getInterpolatedDozeAmount() {
         return mDozeInterpolator.getInterpolation(mDozeAmount);
     }
@@ -302,11 +294,6 @@ public class StatusBarStateControllerImpl implements
     }
 
     @Override
-    public void setDozeAmount(float dozeAmount, boolean animated) {
-        setAndInstrumentDozeAmount(null, dozeAmount, animated);
-    }
-
-    @Override
     public void setAndInstrumentDozeAmount(View view, float dozeAmount, boolean animated) {
         if (mDarkAnimator != null && mDarkAnimator.isRunning()) {
             if (animated && mDozeAmountTarget == dozeAmount) {
@@ -329,16 +316,42 @@ public class StatusBarStateControllerImpl implements
         }
     }
 
+    private void onShadeExpansionFullyChanged(Boolean isExpanded) {
+        if (mIsExpanded != isExpanded) {
+            mIsExpanded = isExpanded;
+            String tag = getClass().getSimpleName() + "#setIsExpanded";
+            DejankUtils.startDetectingBlockingIpcs(tag);
+            for (RankedListener rl : new ArrayList<>(mListeners)) {
+                rl.mListener.onExpandedChanged(mIsExpanded);
+            }
+            DejankUtils.stopDetectingBlockingIpcs(tag);
+        }
+    }
+
     private void startDozeAnimation() {
         if (mDozeAmount == 0f || mDozeAmount == 1f) {
             mDozeInterpolator = mIsDozing
                     ? Interpolators.FAST_OUT_SLOW_IN
                     : Interpolators.TOUCH_RESPONSE_REVERSE;
         }
-        mDarkAnimator = ObjectAnimator.ofFloat(this, SET_DARK_AMOUNT_PROPERTY, mDozeAmountTarget);
-        mDarkAnimator.setInterpolator(Interpolators.LINEAR);
-        mDarkAnimator.setDuration(StackStateAnimator.ANIMATION_DURATION_WAKEUP);
-        mDarkAnimator.addListener(new AnimatorListenerAdapter() {
+        if (mDozeAmount == 1f && !mIsDozing) {
+            // Workaround to force relayoutWindow to be called a frame earlier. Otherwise, if
+            // mDozeAmount = 1f, then neither start() nor the first frame of the animation will
+            // cause the scrim opacity to change, which ultimately results in an extra relayout and
+            // causes us to miss a frame. By settings the doze amount to be <1f a frame earlier,
+            // we can batch the relayout with the one in NotificationShadeWindowControllerImpl.
+            setDozeAmountInternal(0.99f);
+        }
+        mDarkAnimator = createDarkAnimator();
+    }
+
+    @VisibleForTesting
+    protected ObjectAnimator createDarkAnimator() {
+        ObjectAnimator darkAnimator = ObjectAnimator.ofFloat(
+                this, SET_DARK_AMOUNT_PROPERTY, mDozeAmountTarget);
+        darkAnimator.setInterpolator(Interpolators.LINEAR);
+        darkAnimator.setDuration(StackStateAnimator.ANIMATION_DURATION_WAKEUP);
+        darkAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationCancel(Animator animation) {
                 cancelInteractionJankMonitor();
@@ -354,7 +367,8 @@ public class StatusBarStateControllerImpl implements
                 beginInteractionJankMonitor();
             }
         });
-        mDarkAnimator.start();
+        darkAnimator.start();
+        return darkAnimator;
     }
 
     private void setDozeAmountInternal(float dozeAmount) {

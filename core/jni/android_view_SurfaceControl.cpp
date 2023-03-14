@@ -580,6 +580,11 @@ static void nativeSetEarlyWakeupEnd(JNIEnv* env, jclass clazz, jlong transaction
     transaction->setEarlyWakeupEnd();
 }
 
+static jlong nativeGetTransactionId(JNIEnv* env, jclass clazz, jlong transactionObj) {
+    auto transaction = reinterpret_cast<SurfaceComposerClient::Transaction*>(transactionObj);
+    return transaction->getId();
+}
+
 static void nativeSetLayer(JNIEnv* env, jclass clazz, jlong transactionObj,
         jlong nativeObject, jint zorder) {
     auto transaction = reinterpret_cast<SurfaceComposerClient::Transaction*>(transactionObj);
@@ -688,8 +693,11 @@ static void nativeSetBuffer(JNIEnv* env, jclass clazz, jlong transactionObj, jlo
                             jobject bufferObject, jlong fencePtr, jobject releaseCallback) {
     auto transaction = reinterpret_cast<SurfaceComposerClient::Transaction*>(transactionObj);
     SurfaceControl* const ctrl = reinterpret_cast<SurfaceControl*>(nativeObject);
-    sp<GraphicBuffer> graphicBuffer(GraphicBuffer::fromAHardwareBuffer(
-            android_hardware_HardwareBuffer_getNativeHardwareBuffer(env, bufferObject)));
+    sp<GraphicBuffer> graphicBuffer;
+    if (bufferObject != nullptr) {
+        graphicBuffer = GraphicBuffer::fromAHardwareBuffer(
+                android_hardware_HardwareBuffer_getNativeHardwareBuffer(env, bufferObject));
+    }
     std::optional<sp<Fence>> optFence = std::nullopt;
     if (fencePtr != 0) {
         optFence = sp<Fence>{reinterpret_cast<Fence*>(fencePtr)};
@@ -2100,6 +2108,8 @@ static const JNINativeMethod sSurfaceControlMethods[] = {
             (void*)nativeSetEarlyWakeupStart },
     {"nativeSetEarlyWakeupEnd", "(J)V",
             (void*)nativeSetEarlyWakeupEnd },
+    {"nativeGetTransactionId", "(J)J",
+                (void*)nativeGetTransactionId },
     {"nativeSetLayer", "(JJI)V",
             (void*)nativeSetLayer },
     {"nativeSetRelativeLayer", "(JJJI)V",

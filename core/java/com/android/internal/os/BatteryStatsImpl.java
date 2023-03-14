@@ -167,7 +167,7 @@ public class BatteryStatsImpl extends BatteryStats {
     private static final int MAGIC = 0xBA757475; // 'BATSTATS'
 
     // Current on-disk Parcel version
-    static final int VERSION = 208;
+    static final int VERSION = 210;
 
     // The maximum number of names wakelocks we will keep track of
     // per uid; once the limit is reached, we batch the remaining wakelocks
@@ -644,7 +644,7 @@ public class BatteryStatsImpl extends BatteryStats {
         /** Schedule removal of UIDs corresponding to a removed user */
         Future<?> scheduleCleanupDueToRemovedUser(int userId);
         /** Schedule a sync because of a process state change */
-        Future<?> scheduleSyncDueToProcessStateChange(long delayMillis);
+        void scheduleSyncDueToProcessStateChange(int flags, long delayMillis);
     }
 
     public Handler mHandler;
@@ -1325,6 +1325,13 @@ public class BatteryStatsImpl extends BatteryStats {
     LongSamplingCounter mMobileRadioActiveAdjustedTime;
     LongSamplingCounter mMobileRadioActiveUnknownTime;
     LongSamplingCounter mMobileRadioActiveUnknownCount;
+
+    /**
+     * The soonest the Mobile Radio stats can be updated due to a mobile radio power state change
+     * after it was last updated.
+     */
+    @VisibleForTesting
+    protected static final long MOBILE_RADIO_POWER_STATE_UPDATE_FREQ_MS = 1000 * 60 * 10;
 
     int mWifiRadioPowerState = DataConnectionRealTimeInfo.DC_POWER_STATE_LOW;
 
@@ -4432,6 +4439,12 @@ public class BatteryStatsImpl extends BatteryStats {
                     + Integer.toHexString(diffStates2) + " lastDiff2="
                     + Integer.toHexString(lastDiffStates2));
         }
+
+        mBatteryStatsHistory.recordTraceEvents(cur.eventCode, cur.eventTag);
+        mBatteryStatsHistory.recordTraceCounters(mHistoryLastWritten.states,
+                cur.states & mActiveHistoryStates, BatteryStats.HISTORY_STATE_DESCRIPTIONS);
+        mBatteryStatsHistory.recordTraceCounters(mHistoryLastWritten.states2,
+                cur.states2 & mActiveHistoryStates2, BatteryStats.HISTORY_STATE2_DESCRIPTIONS);
         if (mHistoryBufferLastPos >= 0 && mHistoryLastWritten.cmd == HistoryItem.CMD_UPDATE
                 && timeDiffMs < 1000 && (diffStates & lastDiffStates) == 0
                 && (diffStates2&lastDiffStates2) == 0
@@ -4503,10 +4516,13 @@ public class BatteryStatsImpl extends BatteryStats {
             for (Map.Entry<HistoryTag, Integer> entry: mHistoryTagPool.entrySet()) {
                 entry.setValue(entry.getValue() | TAG_FIRST_OCCURRENCE_FLAG);
             }
+            // Make a copy of mHistoryCur.
+            HistoryItem copy = new HistoryItem();
+            copy.setTo(cur);
+            // startRecordingHistory will reset mHistoryCur.
             startRecordingHistory(elapsedRealtimeMs, uptimeMs, false);
-            HistoryItem newItem = new HistoryItem();
-            newItem.setTo(cur);
-            addHistoryBufferLocked(elapsedRealtimeMs, HistoryItem.CMD_UPDATE, newItem);
+            // Add the copy into history buffer.
+            addHistoryBufferLocked(elapsedRealtimeMs, HistoryItem.CMD_UPDATE, copy);
             return;
         }
 
@@ -6136,12 +6152,13 @@ public class BatteryStatsImpl extends BatteryStats {
 
     @UnsupportedAppUsage
     @GuardedBy("this")
-    public void noteUserActivityLocked(int uid, int event) {
+    public void noteUserActivityLocked(int uid, @PowerManager.UserActivityEvent int event) {
         noteUserActivityLocked(uid, event, mClock.elapsedRealtime(), mClock.uptimeMillis());
     }
 
     @GuardedBy("this")
-    public void noteUserActivityLocked(int uid, int event, long elapsedRealtimeMs, long uptimeMs) {
+    public void noteUserActivityLocked(int uid, @PowerManager.UserActivityEvent int event,
+            long elapsedRealtimeMs, long uptimeMs) {
         if (mOnBatteryInternal) {
             uid = mapUid(uid);
             getUidStatsLocked(uid, elapsedRealtimeMs, uptimeMs).noteUserActivityLocked(event);
@@ -6215,9 +6232,7 @@ public class BatteryStatsImpl extends BatteryStats {
             long elapsedRealtimeMs, long uptimeMs) {
         if (mMobileRadioPowerState != powerState) {
             long realElapsedRealtimeMs;
-            final boolean active =
-                    powerState == DataConnectionRealTimeInfo.DC_POWER_STATE_MEDIUM
-                            || powerState == DataConnectionRealTimeInfo.DC_POWER_STATE_HIGH;
+            final boolean active = isActiveRadioPowerState(powerState);
             if (active) {
                 if (uid > 0) {
                     noteMobileRadioApWakeupLocked(elapsedRealtimeMs, uptimeMs, uid);
@@ -6252,11 +6267,25 @@ public class BatteryStatsImpl extends BatteryStats {
             } else {
                 mMobileRadioActiveTimer.stopRunningLocked(realElapsedRealtimeMs);
                 mMobileRadioActivePerAppTimer.stopRunningLocked(realElapsedRealtimeMs);
+
+                if (mLastModemActivityInfo != null) {
+                    if (elapsedRealtimeMs < mLastModemActivityInfo.getTimestampMillis()
+                            + MOBILE_RADIO_POWER_STATE_UPDATE_FREQ_MS) {
+                        // Modem Activity info has been collected recently, don't bother
+                        // triggering another update.
+                        return false;
+                    }
+                }
                 // Tell the caller to collect radio network/power stats.
                 return true;
             }
         }
         return false;
+    }
+
+    private static boolean isActiveRadioPowerState(int powerState) {
+        return powerState == DataConnectionRealTimeInfo.DC_POWER_STATE_MEDIUM
+                || powerState == DataConnectionRealTimeInfo.DC_POWER_STATE_HIGH;
     }
 
     @GuardedBy("this")
@@ -9950,14 +9979,14 @@ public class BatteryStatsImpl extends BatteryStats {
         }
 
         @Override
-        public void noteUserActivityLocked(int type) {
+        public void noteUserActivityLocked(@PowerManager.UserActivityEvent int event) {
             if (mUserActivityCounters == null) {
                 initUserActivityLocked();
             }
-            if (type >= 0 && type < NUM_USER_ACTIVITY_TYPES) {
-                mUserActivityCounters[type].stepAtomic();
+            if (event >= 0 && event < NUM_USER_ACTIVITY_TYPES) {
+                mUserActivityCounters[event].stepAtomic();
             } else {
-                Slog.w(TAG, "Unknown user activity type " + type + " was specified.",
+                Slog.w(TAG, "Unknown user activity type " + event + " was specified.",
                         new Throwable());
             }
         }
@@ -12042,7 +12071,13 @@ public class BatteryStatsImpl extends BatteryStats {
                 return;
             }
 
-            mBsi.mExternalSync.scheduleSyncDueToProcessStateChange(
+            int flags = ExternalStatsSync.UPDATE_ON_PROC_STATE_CHANGE;
+            // Skip querying for inactive radio, where power usage is probably negligible.
+            if (!BatteryStatsImpl.isActiveRadioPowerState(mBsi.mMobileRadioPowerState)) {
+                flags &= ~ExternalStatsSync.UPDATE_RADIO;
+            }
+
+            mBsi.mExternalSync.scheduleSyncDueToProcessStateChange(flags,
                     mBsi.mConstants.PROC_STATE_CHANGE_COLLECTION_DELAY_MS);
         }
 

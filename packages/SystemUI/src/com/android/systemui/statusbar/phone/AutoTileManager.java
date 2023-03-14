@@ -17,6 +17,7 @@ package com.android.systemui.statusbar.phone;
 import static com.android.systemui.qs.dagger.QSFlagsModule.RBC_AVAILABLE;
 
 import android.annotation.Nullable;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.res.Resources;
 import android.hardware.display.ColorDisplayManager;
@@ -118,13 +119,18 @@ public class AutoTileManager implements UserAwareController {
         mDeviceControlsController = deviceControlsController;
         mWalletController = walletController;
         mSafetyController = safetyController;
-        String safetySpecRes;
+        String safetySpecClass;
         try {
-            safetySpecRes = context.getResources().getString(R.string.safety_quick_settings_tile);
+            safetySpecClass =
+                    context.getResources().getString(R.string.safety_quick_settings_tile_class);
+            if (safetySpecClass.length() == 0) {
+                safetySpecClass = null;
+            }
         } catch (Resources.NotFoundException | NullPointerException e) {
-            safetySpecRes = null;
+            safetySpecClass = null;
         }
-        mSafetySpec = safetySpecRes;
+        mSafetySpec = safetySpecClass != null ? CustomTile.toSpec(new ComponentName(mContext
+                .getPackageManager().getPermissionControllerPackageName(), safetySpecClass)) : null;
     }
 
     /**
@@ -148,9 +154,7 @@ public class AutoTileManager implements UserAwareController {
         if (!mAutoTracker.isAdded(SAVER)) {
             mDataSaverController.addCallback(mDataSaverListener);
         }
-        if (!mAutoTracker.isAdded(WORK)) {
-            mManagedProfileController.addCallback(mProfileCallback);
-        }
+        mManagedProfileController.addCallback(mProfileCallback);
         if (!mAutoTracker.isAdded(NIGHT)
                 && ColorDisplayManager.isNightDisplayAvailable(mContext)) {
             mNightDisplayListener.setCallback(mNightDisplayCallback);
@@ -269,18 +273,18 @@ public class AutoTileManager implements UserAwareController {
         return mCurrentUser.getIdentifier();
     }
 
-    public void unmarkTileAsAutoAdded(String tabSpec) {
-        mAutoTracker.setTileRemoved(tabSpec);
-    }
-
     private final ManagedProfileController.Callback mProfileCallback =
             new ManagedProfileController.Callback() {
                 @Override
                 public void onManagedProfileChanged() {
-                    if (mAutoTracker.isAdded(WORK)) return;
                     if (mManagedProfileController.hasActiveProfile()) {
+                        if (mAutoTracker.isAdded(WORK)) return;
                         mHost.addTile(WORK);
                         mAutoTracker.setTileAdded(WORK);
+                    } else {
+                        if (!mAutoTracker.isAdded(WORK)) return;
+                        mHost.removeTile(WORK);
+                        mAutoTracker.setTileRemoved(WORK);
                     }
                 }
 
@@ -422,8 +426,8 @@ public class AutoTileManager implements UserAwareController {
             if (isSafetyCenterEnabled && !mAutoTracker.isAdded(mSafetySpec)) {
                 initSafetyTile();
             } else if (!isSafetyCenterEnabled && mAutoTracker.isAdded(mSafetySpec)) {
-                mHost.removeTile(CustomTile.getComponentFromSpec(mSafetySpec));
-                mHost.unmarkTileAsAutoAdded(mSafetySpec);
+                mHost.removeTile(mSafetySpec);
+                mAutoTracker.setTileRemoved(mSafetySpec);
             }
         }
     };

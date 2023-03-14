@@ -585,6 +585,7 @@ public final class BackgroundRestrictionTest {
         DeviceConfigSession<Long> bgCurrentDrainInteractionGracePeriod = null;
         DeviceConfigSession<Float> bgCurrentDrainRestrictedBucketThreshold = null;
         DeviceConfigSession<Float> bgCurrentDrainBgRestrictedThreshold = null;
+        DeviceConfigSession<Boolean> bgCurrentDrainAutoRestrictAbusiveApps = null;
         DeviceConfigSession<Boolean> bgPromptFgsWithNotiToBgRestricted = null;
         DeviceConfigSession<Boolean> bgPromptAbusiveAppToBgRestricted = null;
         DeviceConfigSession<Long> bgNotificationMinInterval = null;
@@ -643,6 +644,14 @@ public final class BackgroundRestrictionTest {
                             R.array.config_bg_current_drain_threshold_to_bg_restricted))[
                             isLowRamDeviceStatic() ? 1 : 0]);
             bgCurrentDrainBgRestrictedThreshold.set(bgRestrictedThreshold);
+
+            bgCurrentDrainAutoRestrictAbusiveApps = new DeviceConfigSession<>(
+                    DeviceConfig.NAMESPACE_ACTIVITY_MANAGER,
+                    AppBatteryPolicy.KEY_BG_CURRENT_DRAIN_AUTO_RESTRICT_ABUSIVE_APPS_ENABLED,
+                    DeviceConfig::getBoolean,
+                    mContext.getResources().getBoolean(
+                            R.bool.config_bg_current_drain_auto_restrict_abusive_apps));
+            bgCurrentDrainAutoRestrictAbusiveApps.set(true);
 
             bgPromptFgsWithNotiToBgRestricted = new DeviceConfigSession<>(
                     DeviceConfig.NAMESPACE_ACTIVITY_MANAGER,
@@ -1099,6 +1108,7 @@ public final class BackgroundRestrictionTest {
             closeIfNotNull(bgCurrentDrainInteractionGracePeriod);
             closeIfNotNull(bgCurrentDrainRestrictedBucketThreshold);
             closeIfNotNull(bgCurrentDrainBgRestrictedThreshold);
+            closeIfNotNull(bgCurrentDrainAutoRestrictAbusiveApps);
             closeIfNotNull(bgPromptFgsWithNotiToBgRestricted);
             closeIfNotNull(bgPromptAbusiveAppToBgRestricted);
             closeIfNotNull(bgNotificationMinInterval);
@@ -1131,6 +1141,7 @@ public final class BackgroundRestrictionTest {
         DeviceConfigSession<Long> longRunningFGSWindow = null;
         DeviceConfigSession<Long> longRunningFGSThreshold = null;
         DeviceConfigSession<Boolean> longRunningFGSWithNotification = null;
+        DeviceConfigSession<Boolean> longRunningFGS = null;
 
         try {
             longRunningFGSMonitor = new DeviceConfigSession<>(
@@ -1160,6 +1171,13 @@ public final class BackgroundRestrictionTest {
                     DeviceConfig::getBoolean,
                     ConstantsObserver.DEFAULT_BG_PROMPT_FGS_WITH_NOTIFICATION_ON_LONG_RUNNING);
             longRunningFGSWithNotification.set(true);
+
+            longRunningFGS = new DeviceConfigSession<>(
+                    DeviceConfig.NAMESPACE_ACTIVITY_MANAGER,
+                    ConstantsObserver.KEY_BG_PROMPT_FGS_ON_LONG_RUNNING,
+                    DeviceConfig::getBoolean,
+                    ConstantsObserver.DEFAULT_BG_PROMPT_FGS_ON_LONG_RUNNING);
+            longRunningFGS.set(true);
 
             // Basic case
             mAppFGSTracker.onForegroundServiceStateChanged(testPkgName1, testUid1,
@@ -1203,6 +1221,23 @@ public final class BackgroundRestrictionTest {
             mAppFGSTracker.onForegroundServiceStateChanged(testPkgName2, testUid2,
                     testPid2, false);
             checkNotificationGone(testPkgName2, timeout(windowMs), notificationId);
+
+            // Turn OFF the notification.
+            longRunningFGS.set(false);
+            clearInvocations(mInjector.getNotificationManager());
+            mBgRestrictionController.resetRestrictionSettings();
+            // Start the FGS again.
+            mAppFGSTracker.onForegroundServiceStateChanged(testPkgName2, testUid2,
+                    testPid2, true);
+            // Verify we do NOT have the notification.
+            checkNotificationShown(
+                    new String[] {testPkgName2}, timeout(windowMs * 2).times(0), false);
+            // Stop this FGS
+            mAppFGSTracker.onForegroundServiceStateChanged(testPkgName2, testUid2,
+                    testPid2, false);
+
+            // Turn it back ON.
+            longRunningFGS.set(true);
 
             // Start over with concurrent cases.
             clearInvocations(mInjector.getNotificationManager());
@@ -1296,6 +1331,7 @@ public final class BackgroundRestrictionTest {
             closeIfNotNull(longRunningFGSWindow);
             closeIfNotNull(longRunningFGSThreshold);
             closeIfNotNull(longRunningFGSWithNotification);
+            closeIfNotNull(longRunningFGS);
         }
     }
 
@@ -1322,6 +1358,7 @@ public final class BackgroundRestrictionTest {
         DeviceConfigSession<Long> mediaPlaybackFGSThreshold = null;
         DeviceConfigSession<Long> locationFGSThreshold = null;
         DeviceConfigSession<Boolean> longRunningFGSWithNotification = null;
+        DeviceConfigSession<Boolean> longRunningFGS = null;
 
         doReturn(testPkgName1).when(mInjector).getPackageName(testPid1);
         doReturn(testPkgName2).when(mInjector).getPackageName(testPid2);
@@ -1368,6 +1405,13 @@ public final class BackgroundRestrictionTest {
                     DeviceConfig::getBoolean,
                     ConstantsObserver.DEFAULT_BG_PROMPT_FGS_WITH_NOTIFICATION_ON_LONG_RUNNING);
             longRunningFGSWithNotification.set(true);
+
+            longRunningFGS = new DeviceConfigSession<>(
+                    DeviceConfig.NAMESPACE_ACTIVITY_MANAGER,
+                    ConstantsObserver.KEY_BG_PROMPT_FGS_ON_LONG_RUNNING,
+                    DeviceConfig::getBoolean,
+                    ConstantsObserver.DEFAULT_BG_PROMPT_FGS_ON_LONG_RUNNING);
+            longRunningFGS.set(true);
 
             // Long-running FGS with type "location", but ran for a very short time.
             runTestLongFGSExemptionOnce(testPkgName1, testUid1, testPid1,
@@ -1477,6 +1521,7 @@ public final class BackgroundRestrictionTest {
             closeIfNotNull(mediaPlaybackFGSThreshold);
             closeIfNotNull(locationFGSThreshold);
             closeIfNotNull(longRunningFGSWithNotification);
+            closeIfNotNull(longRunningFGS);
         }
     }
 
@@ -1651,6 +1696,7 @@ public final class BackgroundRestrictionTest {
         DeviceConfigSession<Float> bgCurrentDrainBgRestrictedThreshold = null;
         DeviceConfigSession<Float> bgCurrentDrainRestrictedBucketHighThreshold = null;
         DeviceConfigSession<Float> bgCurrentDrainBgRestrictedHighThreshold = null;
+        DeviceConfigSession<Boolean> bgCurrentDrainAutoRestrictAbusiveApps = null;
         DeviceConfigSession<Long> bgMediaPlaybackMinDurationThreshold = null;
         DeviceConfigSession<Long> bgLocationMinDurationThreshold = null;
         DeviceConfigSession<Boolean> bgCurrentDrainEventDurationBasedThresholdEnabled = null;
@@ -1735,6 +1781,14 @@ public final class BackgroundRestrictionTest {
                             R.array.config_bg_current_drain_high_threshold_to_bg_restricted))[
                             isLowRamDeviceStatic() ? 1 : 0]);
             bgCurrentDrainBgRestrictedHighThreshold.set(bgRestrictedHighThreshold);
+
+            bgCurrentDrainAutoRestrictAbusiveApps = new DeviceConfigSession<>(
+                    DeviceConfig.NAMESPACE_ACTIVITY_MANAGER,
+                    AppBatteryPolicy.KEY_BG_CURRENT_DRAIN_AUTO_RESTRICT_ABUSIVE_APPS_ENABLED,
+                    DeviceConfig::getBoolean,
+                    mContext.getResources().getBoolean(
+                            R.bool.config_bg_current_drain_auto_restrict_abusive_apps));
+            bgCurrentDrainAutoRestrictAbusiveApps.set(true);
 
             bgMediaPlaybackMinDurationThreshold = new DeviceConfigSession<>(
                     DeviceConfig.NAMESPACE_ACTIVITY_MANAGER,
@@ -2226,6 +2280,7 @@ public final class BackgroundRestrictionTest {
             closeIfNotNull(bgCurrentDrainBgRestrictedThreshold);
             closeIfNotNull(bgCurrentDrainRestrictedBucketHighThreshold);
             closeIfNotNull(bgCurrentDrainBgRestrictedHighThreshold);
+            closeIfNotNull(bgCurrentDrainAutoRestrictAbusiveApps);
             closeIfNotNull(bgMediaPlaybackMinDurationThreshold);
             closeIfNotNull(bgLocationMinDurationThreshold);
             closeIfNotNull(bgCurrentDrainEventDurationBasedThresholdEnabled);

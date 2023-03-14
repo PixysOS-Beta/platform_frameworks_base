@@ -18,6 +18,7 @@ package android.hardware.display;
 
 import android.annotation.IntDef;
 import android.annotation.Nullable;
+import android.companion.virtual.IVirtualDevice;
 import android.graphics.Point;
 import android.hardware.SensorManager;
 import android.os.Handler;
@@ -58,6 +59,14 @@ public abstract class DisplayManagerInternal {
      */
     public abstract void initPowerManagement(DisplayPowerCallbacks callbacks,
             Handler handler, SensorManager sensorManager);
+
+    /**
+     * Called by the VirtualDeviceManagerService to create a VirtualDisplay owned by a
+     * VirtualDevice.
+     */
+    public abstract int createVirtualDisplay(VirtualDisplayConfig config,
+            IVirtualDisplayCallback callback, IVirtualDevice virtualDevice,
+            DisplayWindowPolicyController dwpc, String packageName);
 
     /**
      * Called by the power manager to request a new power state.
@@ -418,9 +427,6 @@ public abstract class DisplayManagerInternal {
         // 1 (brighter). Set to Float.NaN if there's no override.
         public float screenAutoBrightnessAdjustmentOverride;
 
-        // If true, enables automatic brightness control.
-        public boolean useAutoBrightness;
-
         // If true, scales the brightness to a fraction of desired (as defined by
         // screenLowPowerBrightnessFactor).
         public boolean lowPowerMode;
@@ -450,7 +456,6 @@ public abstract class DisplayManagerInternal {
             policy = POLICY_BRIGHT;
             useProximitySensor = false;
             screenBrightnessOverride = PowerManager.BRIGHTNESS_INVALID_FLOAT;
-            useAutoBrightness = false;
             screenAutoBrightnessAdjustmentOverride = Float.NaN;
             screenLowPowerBrightnessFactor = 0.5f;
             blockScreenOn = false;
@@ -474,7 +479,6 @@ public abstract class DisplayManagerInternal {
             policy = other.policy;
             useProximitySensor = other.useProximitySensor;
             screenBrightnessOverride = other.screenBrightnessOverride;
-            useAutoBrightness = other.useAutoBrightness;
             screenAutoBrightnessAdjustmentOverride = other.screenAutoBrightnessAdjustmentOverride;
             screenLowPowerBrightnessFactor = other.screenLowPowerBrightnessFactor;
             blockScreenOn = other.blockScreenOn;
@@ -496,7 +500,6 @@ public abstract class DisplayManagerInternal {
                     && useProximitySensor == other.useProximitySensor
                     && floatEquals(screenBrightnessOverride,
                             other.screenBrightnessOverride)
-                    && useAutoBrightness == other.useAutoBrightness
                     && floatEquals(screenAutoBrightnessAdjustmentOverride,
                             other.screenAutoBrightnessAdjustmentOverride)
                     && screenLowPowerBrightnessFactor
@@ -522,7 +525,6 @@ public abstract class DisplayManagerInternal {
             return "policy=" + policyToString(policy)
                     + ", useProximitySensor=" + useProximitySensor
                     + ", screenBrightnessOverride=" + screenBrightnessOverride
-                    + ", useAutoBrightness=" + useAutoBrightness
                     + ", screenAutoBrightnessAdjustmentOverride="
                     + screenAutoBrightnessAdjustmentOverride
                     + ", screenLowPowerBrightnessFactor=" + screenLowPowerBrightnessFactor
@@ -560,8 +562,19 @@ public abstract class DisplayManagerInternal {
         void onProximityNegative();
         void onDisplayStateChange(boolean allInactive, boolean allOff);
 
-        void acquireSuspendBlocker();
-        void releaseSuspendBlocker();
+        /**
+         * Acquires a suspend blocker with a specified label.
+         *
+         * @param id A logging label for the acquisition.
+         */
+        void acquireSuspendBlocker(String id);
+
+        /**
+         * Releases a suspend blocker with a specified label.
+         *
+         * @param id A logging label for the release.
+         */
+        void releaseSuspendBlocker(String id);
     }
 
     /**

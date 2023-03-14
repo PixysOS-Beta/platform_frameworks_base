@@ -24,6 +24,7 @@ import static com.android.dx.mockito.inline.extended.ExtendedMockito.doReturn;
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.inOrder;
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.mockitoSession;
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.when;
+import static com.android.server.job.JobSchedulerService.FREQUENT_INDEX;
 import static com.android.server.job.JobSchedulerService.sElapsedRealtimeClock;
 import static com.android.server.job.JobSchedulerService.sSystemClock;
 
@@ -185,12 +186,15 @@ public class PrefetchControllerTest {
         JobStatus js = JobStatus.createFromJobInfo(
                 jobInfo, callingUid, packageName, SOURCE_USER_ID, testTag);
         js.serviceInfo = mock(ServiceInfo.class);
+        js.setStandbyBucket(FREQUENT_INDEX);
         // Make sure Doze and background-not-restricted don't affect tests.
         js.setDeviceNotDozingConstraintSatisfied(/* nowElapsed */ sElapsedRealtimeClock.millis(),
                 /* state */ true, /* allowlisted */false);
         js.setBackgroundNotRestrictedConstraintSatisfied(
                 sElapsedRealtimeClock.millis(), true, false);
+        js.setQuotaConstraintSatisfied(sElapsedRealtimeClock.millis(), true);
         js.setTareWealthConstraintSatisfied(sElapsedRealtimeClock.millis(), true);
+        js.setExpeditedJobQuotaApproved(sElapsedRealtimeClock.millis(), true);
         js.setExpeditedJobTareApproved(sElapsedRealtimeClock.millis(), true);
         return js;
     }
@@ -233,27 +237,34 @@ public class PrefetchControllerTest {
     @Test
     public void testConstantsUpdating_ValidValues() {
         setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_THRESHOLD_MS, 5 * HOUR_IN_MILLIS);
+        setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_ALLOWANCE_MS, 5 * MINUTE_IN_MILLIS);
 
         assertEquals(5 * HOUR_IN_MILLIS, mPrefetchController.getLaunchTimeThresholdMs());
+        assertEquals(5 * MINUTE_IN_MILLIS, mPrefetchController.getLaunchTimeAllowanceMs());
     }
 
     @Test
     public void testConstantsUpdating_InvalidValues() {
         // Test negatives/too low.
         setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_THRESHOLD_MS, 4 * MINUTE_IN_MILLIS);
+        setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_ALLOWANCE_MS, -MINUTE_IN_MILLIS);
 
         assertEquals(HOUR_IN_MILLIS, mPrefetchController.getLaunchTimeThresholdMs());
+        assertEquals(0, mPrefetchController.getLaunchTimeAllowanceMs());
 
         // Test larger than a day. Controller should cap at one day.
         setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_THRESHOLD_MS, 25 * HOUR_IN_MILLIS);
+        setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_ALLOWANCE_MS, 5 * HOUR_IN_MILLIS);
 
         assertEquals(24 * HOUR_IN_MILLIS, mPrefetchController.getLaunchTimeThresholdMs());
+        assertEquals(2 * HOUR_IN_MILLIS, mPrefetchController.getLaunchTimeAllowanceMs());
     }
 
     @Test
     public void testConstantsUpdating_ThresholdChangesAlarms() {
         final long launchDelayMs = 11 * HOUR_IN_MILLIS;
         setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_THRESHOLD_MS, 7 * HOUR_IN_MILLIS);
+        setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_ALLOWANCE_MS, 0);
         when(mUsageStatsManagerInternal
                 .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID))
                 .thenReturn(sSystemClock.millis() + launchDelayMs);
@@ -276,6 +287,7 @@ public class PrefetchControllerTest {
 
     @Test
     public void testConstraintNotSatisfiedWhenLaunchLate() {
+        setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_ALLOWANCE_MS, 0);
         setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_THRESHOLD_MS, 7 * HOUR_IN_MILLIS);
 
         final JobStatus job = createJobStatus("testConstraintNotSatisfiedWhenLaunchLate", 1);
@@ -286,10 +298,13 @@ public class PrefetchControllerTest {
         verify(mUsageStatsManagerInternal, timeout(DEFAULT_WAIT_MS))
                 .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID);
         assertFalse(job.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertFalse(job.isReady());
     }
 
     @Test
     public void testConstraintSatisfiedWhenLaunchSoon() {
+        setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_ALLOWANCE_MS, 0);
+
         final JobStatus job = createJobStatus("testConstraintSatisfiedWhenLaunchSoon", 2);
         when(mUsageStatsManagerInternal
                 .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID))
@@ -299,6 +314,7 @@ public class PrefetchControllerTest {
                 .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID);
         verify(mJobSchedulerService, timeout(DEFAULT_WAIT_MS)).onControllerStateChanged(any());
         assertTrue(job.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertTrue(job.isReady());
     }
 
     @Test
@@ -321,23 +337,31 @@ public class PrefetchControllerTest {
         inOrder.verify(mJobSchedulerService, timeout(DEFAULT_WAIT_MS))
                 .onControllerStateChanged(any());
         assertTrue(jobPending.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertTrue(jobPending.isReady());
         assertTrue(jobRunning.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertTrue(jobRunning.isReady());
         setUidBias(uid, JobInfo.BIAS_TOP_APP);
         // Processing happens on the handler, so wait until we're sure the change has been processed
         inOrder.verify(mJobSchedulerService, timeout(DEFAULT_WAIT_MS))
                 .onControllerStateChanged(any());
         // Already running job should continue but pending job must wait.
         assertFalse(jobPending.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertFalse(jobPending.isReady());
         assertTrue(jobRunning.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertTrue(jobRunning.isReady());
         setUidBias(uid, JobInfo.BIAS_DEFAULT);
         inOrder.verify(mJobSchedulerService, timeout(DEFAULT_WAIT_MS))
                 .onControllerStateChanged(any());
         assertTrue(jobPending.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertTrue(jobPending.isReady());
         assertTrue(jobRunning.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertTrue(jobRunning.isReady());
     }
 
     @Test
     public void testConstraintSatisfiedWhenWidget() {
+        setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_ALLOWANCE_MS, 0);
+
         final JobStatus jobNonWidget = createJobStatus("testConstraintSatisfiedWhenWidget", 1);
         final JobStatus jobWidget = createJobStatus("testConstraintSatisfiedWhenWidget", 2);
 
@@ -355,16 +379,19 @@ public class PrefetchControllerTest {
         verify(mUsageStatsManagerInternal, timeout(DEFAULT_WAIT_MS))
                 .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID);
         assertFalse(jobNonWidget.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertFalse(jobNonWidget.isReady());
 
         when(appWidgetManager.isBoundWidgetPackage(SOURCE_PACKAGE, SOURCE_USER_ID))
                 .thenReturn(true);
         trackJobs(jobWidget);
         assertTrue(jobWidget.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertTrue(jobWidget.isReady());
     }
 
     @Test
     public void testEstimatedLaunchTimeChangedToLate() {
         setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_THRESHOLD_MS, 7 * HOUR_IN_MILLIS);
+        setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_ALLOWANCE_MS, 0);
         when(mUsageStatsManagerInternal
                 .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID))
                 .thenReturn(sSystemClock.millis() + HOUR_IN_MILLIS);
@@ -377,6 +404,7 @@ public class PrefetchControllerTest {
                 .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID);
         verify(mJobSchedulerService, timeout(DEFAULT_WAIT_MS)).onControllerStateChanged(any());
         assertTrue(jobStatus.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertTrue(jobStatus.isReady());
 
         mEstimatedLaunchTimeChangedListener.onEstimatedLaunchTimeChanged(SOURCE_USER_ID,
                 SOURCE_PACKAGE, sSystemClock.millis() + 10 * HOUR_IN_MILLIS);
@@ -388,11 +416,13 @@ public class PrefetchControllerTest {
                         anyInt(), eq(sElapsedRealtimeClock.millis() + 3 * HOUR_IN_MILLIS),
                         anyLong(), eq(TAG_PREFETCH), any(), any());
         assertFalse(jobStatus.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertFalse(jobStatus.isReady());
     }
 
     @Test
     public void testEstimatedLaunchTimeChangedToSoon() {
         setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_THRESHOLD_MS, 7 * HOUR_IN_MILLIS);
+        setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_ALLOWANCE_MS, 0);
         when(mUsageStatsManagerInternal
                 .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID))
                 .thenReturn(sSystemClock.millis() + 10 * HOUR_IN_MILLIS);
@@ -404,6 +434,7 @@ public class PrefetchControllerTest {
         inOrder.verify(mUsageStatsManagerInternal, timeout(DEFAULT_WAIT_MS))
                 .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID);
         assertFalse(jobStatus.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertFalse(jobStatus.isReady());
 
         mEstimatedLaunchTimeChangedListener.onEstimatedLaunchTimeChanged(SOURCE_USER_ID,
                 SOURCE_PACKAGE, sSystemClock.millis() + MINUTE_IN_MILLIS);
@@ -412,5 +443,40 @@ public class PrefetchControllerTest {
                 .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID);
         verify(mJobSchedulerService, timeout(DEFAULT_WAIT_MS)).onControllerStateChanged(any());
         assertTrue(jobStatus.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertTrue(jobStatus.isReady());
+    }
+
+    @Test
+    public void testEstimatedLaunchTimeAllowance() {
+        setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_THRESHOLD_MS, 7 * HOUR_IN_MILLIS);
+        setDeviceConfigLong(PcConstants.KEY_LAUNCH_TIME_ALLOWANCE_MS, 15 * MINUTE_IN_MILLIS);
+        when(mUsageStatsManagerInternal
+                .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID))
+                .thenReturn(sSystemClock.millis() + 10 * HOUR_IN_MILLIS);
+
+        InOrder inOrder = inOrder(mUsageStatsManagerInternal);
+
+        JobStatus jobStatus = createJobStatus("testEstimatedLaunchTimeAllowance", 1);
+        trackJobs(jobStatus);
+        inOrder.verify(mUsageStatsManagerInternal, timeout(DEFAULT_WAIT_MS))
+                .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID);
+        // The allowance shouldn't shift the alarm
+        verify(mAlarmManager, timeout(DEFAULT_WAIT_MS).times(1))
+                .setWindow(
+                        anyInt(), eq(sElapsedRealtimeClock.millis() + 3 * HOUR_IN_MILLIS),
+                        anyLong(), eq(TAG_PREFETCH), any(), any());
+        assertFalse(jobStatus.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertFalse(jobStatus.isReady());
+
+        mEstimatedLaunchTimeChangedListener.onEstimatedLaunchTimeChanged(SOURCE_USER_ID,
+                SOURCE_PACKAGE, sSystemClock.millis() + HOUR_IN_MILLIS);
+
+        inOrder.verify(mUsageStatsManagerInternal, timeout(DEFAULT_WAIT_MS).times(0))
+                .getEstimatedPackageLaunchTime(SOURCE_PACKAGE, SOURCE_USER_ID);
+        verify(mJobSchedulerService, timeout(DEFAULT_WAIT_MS)).onControllerStateChanged(any());
+        assertTrue(jobStatus.isConstraintSatisfied(JobStatus.CONSTRAINT_PREFETCH));
+        assertTrue(jobStatus.isReady());
+
+        sSystemClock = getShiftedClock(sSystemClock, HOUR_IN_MILLIS + MINUTE_IN_MILLIS);
     }
 }

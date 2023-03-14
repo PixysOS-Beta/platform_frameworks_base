@@ -95,6 +95,7 @@ import com.android.server.pm.SharedUidMigration;
 import com.android.server.pm.permission.CompatibilityPermissionInfo;
 import com.android.server.pm.pkg.component.ComponentMutateUtils;
 import com.android.server.pm.pkg.component.ComponentParseUtils;
+import com.android.server.pm.pkg.component.InstallConstraintsTagParser;
 import com.android.server.pm.pkg.component.ParsedActivity;
 import com.android.server.pm.pkg.component.ParsedActivityUtils;
 import com.android.server.pm.pkg.component.ParsedApexSystemService;
@@ -169,9 +170,11 @@ public class ParsingPackageUtils {
 
     public static final String TAG_ADOPT_PERMISSIONS = "adopt-permissions";
     public static final String TAG_APPLICATION = "application";
+    public static final String TAG_ATTRIBUTION = "attribution";
     public static final String TAG_COMPATIBLE_SCREENS = "compatible-screens";
     public static final String TAG_EAT_COMMENT = "eat-comment";
     public static final String TAG_FEATURE_GROUP = "feature-group";
+    public static final String TAG_INSTALL_CONSTRAINTS = "install-constraints";
     public static final String TAG_INSTRUMENTATION = "instrumentation";
     public static final String TAG_KEY_SETS = "key-sets";
     public static final String TAG_MANIFEST = "manifest";
@@ -179,15 +182,16 @@ public class ParsingPackageUtils {
     public static final String TAG_OVERLAY = "overlay";
     public static final String TAG_PACKAGE = "package";
     public static final String TAG_PACKAGE_VERIFIER = "package-verifier";
-    public static final String TAG_ATTRIBUTION = "attribution";
     public static final String TAG_PERMISSION = "permission";
     public static final String TAG_PERMISSION_GROUP = "permission-group";
     public static final String TAG_PERMISSION_TREE = "permission-tree";
+    public static final String TAG_PROFILEABLE = "profileable";
     public static final String TAG_PROTECTED_BROADCAST = "protected-broadcast";
     public static final String TAG_QUERIES = "queries";
+    public static final String TAG_RECEIVER = "receiver";
     public static final String TAG_RESTRICT_UPDATE = "restrict-update";
-    public static final String TAG_SUPPORT_SCREENS = "supports-screens";
     public static final String TAG_SUPPORTS_INPUT = "supports-input";
+    public static final String TAG_SUPPORT_SCREENS = "supports-screens";
     public static final String TAG_USES_CONFIGURATION = "uses-configuration";
     public static final String TAG_USES_FEATURE = "uses-feature";
     public static final String TAG_USES_GL_TEXTURE = "uses-gl-texture";
@@ -196,8 +200,6 @@ public class ParsingPackageUtils {
     public static final String TAG_USES_PERMISSION_SDK_M = "uses-permission-sdk-m";
     public static final String TAG_USES_SDK = "uses-sdk";
     public static final String TAG_USES_SPLIT = "uses-split";
-    public static final String TAG_PROFILEABLE = "profileable";
-    public static final String TAG_RECEIVER = "receiver";
 
     public static final String METADATA_MAX_ASPECT_RATIO = "android.max_aspect";
     public static final String METADATA_SUPPORTS_SIZE_CHANGES = "android.supports_size_changes";
@@ -968,7 +970,7 @@ public class ParsingPackageUtils {
         if (ParsedPermissionUtils.declareDuplicatePermission(pkg)) {
             return input.error(
                     INSTALL_PARSE_FAILED_MANIFEST_MALFORMED,
-                    "Declare duplicate permissions with different protection levels."
+                    "Found duplicate permission with a different attribute value."
             );
         }
 
@@ -1040,6 +1042,8 @@ public class ParsingPackageUtils {
                 return input.success(pkg);
             case TAG_RESTRICT_UPDATE:
                 return parseRestrictUpdateHash(flags, input, pkg, res, parser);
+            case TAG_INSTALL_CONSTRAINTS:
+                return parseInstallConstraints(input, pkg, res, parser);
             case TAG_QUERIES:
                 return parseQueries(input, pkg, res, parser);
             default:
@@ -1540,6 +1544,7 @@ public class ParsingPackageUtils {
             try {
                 int minVers = ParsingUtils.DEFAULT_MIN_SDK_VERSION;
                 String minCode = null;
+                boolean minAssigned = false;
                 int targetVers = ParsingUtils.DEFAULT_TARGET_SDK_VERSION;
                 String targetCode = null;
                 int maxVers = Integer.MAX_VALUE;
@@ -1548,9 +1553,11 @@ public class ParsingPackageUtils {
                 if (val != null) {
                     if (val.type == TypedValue.TYPE_STRING && val.string != null) {
                         minCode = val.string.toString();
+                        minAssigned = !TextUtils.isEmpty(minCode);
                     } else {
                         // If it's not a string, it's an integer.
                         minVers = val.data;
+                        minAssigned = true;
                     }
                 }
 
@@ -1558,7 +1565,7 @@ public class ParsingPackageUtils {
                 if (val != null) {
                     if (val.type == TypedValue.TYPE_STRING && val.string != null) {
                         targetCode = val.string.toString();
-                        if (minCode == null) {
+                        if (!minAssigned) {
                             minCode = targetCode;
                         }
                     } else {
@@ -1724,6 +1731,12 @@ public class ParsingPackageUtils {
             }
         }
         return input.success(pkg);
+    }
+
+    private static ParseResult<ParsingPackage> parseInstallConstraints(
+            ParseInput input, ParsingPackage pkg, Resources res, XmlResourceParser parser)
+            throws IOException, XmlPullParserException {
+        return InstallConstraintsTagParser.parseInstallConstraints(input, pkg, res, parser);
     }
 
     private static ParseResult<ParsingPackage> parseQueries(ParseInput input, ParsingPackage pkg,
@@ -3108,11 +3121,9 @@ public class ParsingPackageUtils {
         }
         final ParseResult<SigningDetails> verified;
         if (skipVerify) {
-            // systemDir APKs are already trusted, save time by not verifying; since the
-            // signature is not verified and some system apps can have their V2+ signatures
-            // stripped allow pulling the certs from the jar signature.
+            // systemDir APKs are already trusted, save time by not verifying
             verified = ApkSignatureVerifier.unsafeGetCertsWithoutVerification(input, baseCodePath,
-                    SigningDetails.SignatureSchemeVersion.JAR);
+                    minSignatureScheme);
         } else {
             verified = ApkSignatureVerifier.verify(input, baseCodePath, minSignatureScheme);
         }

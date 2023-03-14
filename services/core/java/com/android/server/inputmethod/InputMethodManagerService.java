@@ -313,6 +313,15 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
     @Nullable
     private CreateInlineSuggestionsRequest mPendingInlineSuggestionsRequest;
 
+    /**
+     * A callback into the autofill service obtained from the latest call to
+     * {@link #onCreateInlineSuggestionsRequestLocked}, which can be used to invalidate an
+     * autofill session in case the IME process dies.
+     */
+    @GuardedBy("ImfLock.class")
+    @Nullable
+    private IInlineSuggestionsRequestCallback mInlineSuggestionsRequestCallback;
+
     @UserIdInt
     private int mLastSwitchUserId;
 
@@ -2176,6 +2185,7 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
             InlineSuggestionsRequestInfo requestInfo, IInlineSuggestionsRequestCallback callback,
             boolean touchExplorationEnabled) {
         clearPendingInlineSuggestionsRequestLocked();
+        mInlineSuggestionsRequestCallback = callback;
         final InputMethodInfo imi = mMethodMap.get(getSelectedMethodIdLocked());
         try {
             if (userId == mSettings.getCurrentUserId()
@@ -2797,6 +2807,7 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
             if (DEBUG) {
                 Slog.d(TAG, "Avoiding IME startup and unbinding current input method.");
             }
+            invalidateAutofillSessionLocked();
             mBindingController.unbindCurrentMethod();
             return InputBindResult.NO_EDITOR;
         }
@@ -2832,6 +2843,17 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
         mBindingController.unbindCurrentMethod();
 
         return mBindingController.bindCurrentMethod();
+    }
+
+    @GuardedBy("ImfLock.class")
+    void invalidateAutofillSessionLocked() {
+        if (mInlineSuggestionsRequestCallback != null) {
+            try {
+                mInlineSuggestionsRequestCallback.onInlineSuggestionsSessionInvalidated();
+            } catch (RemoteException e) {
+                Slog.e(TAG, "Cannot invalidate autofill session.", e);
+            }
+        }
     }
 
     @GuardedBy("ImfLock.class")
@@ -4833,7 +4855,8 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
     }
 
     @BinderThread
-    private void hideMySoftInput(@NonNull IBinder token, int flags) {
+    private void hideMySoftInput(@NonNull IBinder token, int flags,
+            @SoftInputShowHideReason int reason) {
         Trace.traceBegin(TRACE_TAG_WINDOW_MANAGER, "IMMS.hideMySoftInput");
         synchronized (ImfLock.class) {
             if (!calledWithValidTokenLocked(token)) {
@@ -4841,10 +4864,7 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
             }
             final long ident = Binder.clearCallingIdentity();
             try {
-                hideCurrentInputLocked(
-                        mLastImeTargetWindow, flags, null,
-                        SoftInputShowHideReason.HIDE_MY_SOFT_INPUT);
-
+                hideCurrentInputLocked(mLastImeTargetWindow, flags, null, reason);
             } finally {
                 Binder.restoreCallingIdentity(ident);
             }
@@ -4862,7 +4882,7 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
             final long ident = Binder.clearCallingIdentity();
             try {
                 showCurrentInputLocked(mLastImeTargetWindow, flags, null,
-                        SoftInputShowHideReason.SHOW_MY_SOFT_INPUT);
+                        SoftInputShowHideReason.SHOW_SOFT_INPUT_FROM_IME);
             } finally {
                 Binder.restoreCallingIdentity(ident);
             }
@@ -5732,10 +5752,12 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
         @Override
         public void onImeParentChanged() {
             synchronized (ImfLock.class) {
-                // Hide the IME method menu when the IME surface parent will change in
-                // case seeing the dialog dismiss flickering during the next focused window
-                // starting the input connection.
-                mMenuController.hideInputMethodMenu();
+                // Hide the IME method menu only when the IME surface parent is changed by the
+                // input target changed, in case seeing the dialog dismiss flickering during
+                // the next focused window starting the input connection.
+                if (mLastImeTargetWindow != mCurFocusedWindow) {
+                    mMenuController.hideInputMethodMenu();
+                }
             }
         }
 
@@ -6674,11 +6696,12 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
 
         @BinderThread
         @Override
-        public void hideMySoftInput(int flags, AndroidFuture future /* T=Void */) {
+        public void hideMySoftInput(int flags, @SoftInputShowHideReason int reason,
+                AndroidFuture future /* T=Void */) {
             @SuppressWarnings("unchecked")
             final AndroidFuture<Void> typedFuture = future;
             try {
-                mImms.hideMySoftInput(mToken, flags);
+                mImms.hideMySoftInput(mToken, flags, reason);
                 typedFuture.complete(null);
             } catch (Throwable e) {
                 typedFuture.completeExceptionally(e);

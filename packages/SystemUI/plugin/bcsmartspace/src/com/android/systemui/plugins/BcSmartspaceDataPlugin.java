@@ -40,6 +40,11 @@ import java.util.List;
  */
 @ProvidesInterface(action = BcSmartspaceDataPlugin.ACTION, version = BcSmartspaceDataPlugin.VERSION)
 public interface BcSmartspaceDataPlugin extends Plugin {
+    String UI_SURFACE_LOCK_SCREEN_AOD = "lockscreen";
+    String UI_SURFACE_HOME_SCREEN = "home";
+    String UI_SURFACE_MEDIA = "media_data_manager";
+    String UI_SURFACE_DREAM = "dream";
+
     String ACTION = "com.android.systemui.action.PLUGIN_BC_SMARTSPACE_DATA";
     int VERSION = 1;
     String TAG = "BcSmartspaceDataPlugin";
@@ -100,9 +105,19 @@ public interface BcSmartspaceDataPlugin extends Plugin {
         void setIsDreaming(boolean isDreaming);
 
         /**
+         * Set the UI surface for the cards. Should be called immediately after the view is created.
+         */
+        void setUiSurface(String uiSurface);
+
+        /**
          * Range [0.0 - 1.0] when transitioning from Lockscreen to/from AOD
          */
         void setDozeAmount(float amount);
+
+        /**
+         * Set the current keyguard bypass enabled status.
+         */
+        default void setKeyguardBypassEnabled(boolean enabled) {}
 
         /**
          * Overrides how Intents/PendingIntents gets launched. Mostly to support auth from
@@ -134,6 +149,12 @@ public interface BcSmartspaceDataPlugin extends Plugin {
          * Get the index of the currently selected page.
          */
         int getSelectedPage();
+
+        /**
+         * Return the top padding value from the currently visible card, or 0 if there is no current
+         * card.
+         */
+        int getCurrentCardTopPadding();
     }
 
     /** Interface for launching Intents, which can differ on the lockscreen */

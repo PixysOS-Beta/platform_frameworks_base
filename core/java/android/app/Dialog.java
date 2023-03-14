@@ -458,8 +458,7 @@ public class Dialog implements DialogInterface, Window.Callback,
                 && WindowOnBackInvokedDispatcher.isOnBackInvokedCallbackEnabled(mContext)) {
             // Add onBackPressed as default back behavior.
             mDefaultBackCallback = this::onBackPressed;
-            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, mDefaultBackCallback);
+            getOnBackInvokedDispatcher().registerSystemOnBackInvokedCallback(mDefaultBackCallback);
             mDefaultBackCallback = null;
         }
     }
@@ -1482,8 +1481,6 @@ public class Dialog implements DialogInterface, Window.Callback,
     /**
      * Returns the {@link OnBackInvokedDispatcher} instance associated with the window that this
      * dialog is attached to.
-     *
-     * Returns null if the dialog is not attached to a window with a decor.
      */
     @NonNull
     public OnBackInvokedDispatcher getOnBackInvokedDispatcher() {

@@ -32,6 +32,8 @@ import static com.android.systemui.statusbar.notification.collection.Notificatio
 import static com.android.systemui.statusbar.notification.collection.NotificationEntry.DismissState.NOT_DISMISSED;
 import static com.android.systemui.statusbar.notification.collection.NotificationEntry.DismissState.PARENT_DISMISSED;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -47,6 +49,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import static java.util.Collections.singletonList;
@@ -89,6 +92,8 @@ import com.android.systemui.statusbar.notification.collection.notifcollection.No
 import com.android.systemui.statusbar.notification.collection.notifcollection.NotifCollectionLogger;
 import com.android.systemui.statusbar.notification.collection.notifcollection.NotifDismissInterceptor;
 import com.android.systemui.statusbar.notification.collection.notifcollection.NotifLifetimeExtender;
+import com.android.systemui.statusbar.notification.row.ExpandableNotificationRow;
+import com.android.systemui.util.concurrency.FakeExecutor;
 import com.android.systemui.util.time.FakeSystemClock;
 
 import org.junit.Before;
@@ -143,13 +148,12 @@ public class NotifCollectionTest extends SysuiTestCase {
 
     private NoManSimulator mNoMan;
     private FakeSystemClock mClock = new FakeSystemClock();
+    private FakeExecutor mBgExecutor = new FakeExecutor(mClock);
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         allowTestableLooperAsMainThread();
-
-        when(mNotifPipelineFlags.isNewPipelineEnabled()).thenReturn(true);
 
         when(mEulogizer.record(any(Exception.class))).thenAnswer(i -> i.getArguments()[0]);
 
@@ -161,6 +165,7 @@ public class NotifCollectionTest extends SysuiTestCase {
                 mNotifPipelineFlags,
                 mLogger,
                 mMainHandler,
+                mBgExecutor,
                 mEulogizer,
                 mock(DumpManager.class));
         mCollection.attach(mGroupCoalescer);
@@ -180,13 +185,14 @@ public class NotifCollectionTest extends SysuiTestCase {
 
     @Test
     public void testGetGroupSummary() {
-        assertEquals(null, mCollection.getGroupSummary("group"));
-        NotifEvent summary = mNoMan.postNotif(
-                buildNotif(TEST_PACKAGE, 0)
-                        .setGroup(mContext, "group")
-                        .setGroupSummary(mContext, true));
+        final NotificationEntryBuilder entryBuilder = buildNotif(TEST_PACKAGE, 0)
+                .setGroup(mContext, "group")
+                .setGroupSummary(mContext, true);
+        final String groupKey = entryBuilder.build().getSbn().getGroupKey();
+        assertEquals(null, mCollection.getGroupSummary(groupKey));
+        NotifEvent summary = mNoMan.postNotif(entryBuilder);
 
-        final NotificationEntry entry = mCollection.getGroupSummary("group");
+        final NotificationEntry entry = mCollection.getGroupSummary(groupKey);
         assertEquals(summary.key, entry.getKey());
         assertEquals(summary.sbn, entry.getSbn());
         assertEquals(summary.ranking, entry.getRanking());
@@ -194,9 +200,9 @@ public class NotifCollectionTest extends SysuiTestCase {
 
     @Test
     public void testIsOnlyChildInGroup() {
-        NotifEvent notif1 = mNoMan.postNotif(
-                buildNotif(TEST_PACKAGE, 1)
-                        .setGroup(mContext, "group"));
+        final NotificationEntryBuilder entryBuilder = buildNotif(TEST_PACKAGE, 1)
+                .setGroup(mContext, "group");
+        NotifEvent notif1 = mNoMan.postNotif(entryBuilder);
         final NotificationEntry entry = mCollection.getEntry(notif1.key);
         assertTrue(mCollection.isOnlyChildInGroup(entry));
 
@@ -459,6 +465,8 @@ public class NotifCollectionTest extends SysuiTestCase {
         DismissedByUserStats stats = defaultStats(entry2);
         mCollection.dismissNotification(entry2, defaultStats(entry2));
 
+        FakeExecutor.exhaustExecutors(mBgExecutor);
+
         // THEN we send the dismissal to system server
         verify(mStatusBarService).onNotificationClear(
                 notif2.sbn.getPackageName(),
@@ -672,6 +680,8 @@ public class NotifCollectionTest extends SysuiTestCase {
         mInterceptor1.onEndInterceptionCallback.onEndDismissInterception(mInterceptor1, entry,
                 stats);
 
+        FakeExecutor.exhaustExecutors(mBgExecutor);
+
         // THEN we send the dismissal to system server
         verify(mStatusBarService).onNotificationClear(
                 eq(notif.sbn.getPackageName()),
@@ -732,22 +742,24 @@ public class NotifCollectionTest extends SysuiTestCase {
     @Test
     public void testGroupChildrenAreDismissedLocallyWhenSummaryIsDismissed() {
         // GIVEN a collection with two grouped notifs in it
-        CollectionEvent notif0 = postNotif(
+        CollectionEvent groupNotif = postNotif(
                 buildNotif(TEST_PACKAGE, 0)
                         .setGroup(mContext, GROUP_1)
                         .setGroupSummary(mContext, true));
-        CollectionEvent notif1 = postNotif(
+        CollectionEvent childNotif = postNotif(
                 buildNotif(TEST_PACKAGE, 1)
                         .setGroup(mContext, GROUP_1));
-        NotificationEntry entry0 = mCollectionListener.getEntry(notif0.key);
-        NotificationEntry entry1 = mCollectionListener.getEntry(notif1.key);
+        NotificationEntry groupEntry = mCollectionListener.getEntry(groupNotif.key);
+        NotificationEntry childEntry = mCollectionListener.getEntry(childNotif.key);
+        ExpandableNotificationRow childRow = mock(ExpandableNotificationRow.class);
+        childEntry.setRow(childRow);
 
         // WHEN the summary is dismissed
-        mCollection.dismissNotification(entry0, defaultStats(entry0));
+        mCollection.dismissNotification(groupEntry, defaultStats(groupEntry));
 
         // THEN all members of the group are marked as dismissed locally
-        assertEquals(DISMISSED, entry0.getDismissState());
-        assertEquals(PARENT_DISMISSED, entry1.getDismissState());
+        assertEquals(DISMISSED, groupEntry.getDismissState());
+        assertEquals(PARENT_DISMISSED, childEntry.getDismissState());
     }
 
     @Test
@@ -1209,6 +1221,7 @@ public class NotifCollectionTest extends SysuiTestCase {
                         new Pair<>(entry2, defaultStats(entry2))));
 
         // THEN we send the dismissals to system server
+        FakeExecutor.exhaustExecutors(mBgExecutor);
         verify(mStatusBarService).onNotificationClear(
                 notif1.sbn.getPackageName(),
                 notif1.sbn.getUser().getIdentifier(),
@@ -1488,6 +1501,93 @@ public class NotifCollectionTest extends SysuiTestCase {
     }
 
     @Test
+    public void testMissingRanking() {
+        // GIVEN a pipeline with one two notifications
+        String key1 = mNoMan.postNotif(buildNotif(TEST_PACKAGE, 1, "myTag")).key;
+        String key2 = mNoMan.postNotif(buildNotif(TEST_PACKAGE, 2, "myTag")).key;
+        NotificationEntry entry1 = mCollectionListener.getEntry(key1);
+        NotificationEntry entry2 = mCollectionListener.getEntry(key2);
+        clearInvocations(mCollectionListener);
+
+        // GIVEN the message for removing key1 gets does not reach NotifCollection
+        Ranking ranking1 = mNoMan.removeRankingWithoutEvent(key1);
+        // WHEN the message for removing key2 arrives
+        mNoMan.retractNotif(entry2.getSbn(), REASON_APP_CANCEL);
+
+        // THEN both entry1 and entry2 get removed
+        verify(mCollectionListener).onEntryRemoved(eq(entry2), eq(REASON_APP_CANCEL));
+        verify(mCollectionListener).onEntryRemoved(eq(entry1), eq(REASON_UNKNOWN));
+        verify(mCollectionListener).onEntryCleanUp(eq(entry2));
+        verify(mCollectionListener).onEntryCleanUp(eq(entry1));
+        verify(mCollectionListener).onRankingApplied();
+        verifyNoMoreInteractions(mCollectionListener);
+        verify(mLogger).logMissingRankings(eq(List.of(entry1)), eq(1), any());
+        verify(mLogger, never()).logRecoveredRankings(any(), anyInt());
+        clearInvocations(mCollectionListener, mLogger);
+
+        // WHEN a ranking update includes key1 again
+        mNoMan.setRanking(key1, ranking1);
+        mNoMan.issueRankingUpdate();
+
+        // VERIFY that we do nothing but log the 'recovery'
+        verify(mCollectionListener).onRankingUpdate(any());
+        verify(mCollectionListener).onRankingApplied();
+        verifyNoMoreInteractions(mCollectionListener);
+        verify(mLogger, never()).logMissingRankings(any(), anyInt(), any());
+        verify(mLogger).logRecoveredRankings(eq(List.of(key1)), eq(0));
+    }
+
+    @Test
+    public void testRegisterFutureDismissal() throws RemoteException {
+        // GIVEN a pipeline with one notification
+        NotifEvent notifEvent = mNoMan.postNotif(buildNotif(TEST_PACKAGE, 47, "myTag"));
+        NotificationEntry entry = requireNonNull(mCollection.getEntry(notifEvent.key));
+        clearInvocations(mCollectionListener);
+
+        // WHEN registering a future dismissal, nothing happens right away
+        final Runnable onDismiss = mCollection.registerFutureDismissal(entry, REASON_CLICK,
+                NotifCollectionTest::defaultStats);
+        verifyNoMoreInteractions(mCollectionListener);
+
+        // WHEN finally dismissing
+        onDismiss.run();
+        FakeExecutor.exhaustExecutors(mBgExecutor);
+        verify(mStatusBarService).onNotificationClear(any(), anyInt(), eq(notifEvent.key),
+                anyInt(), anyInt(), any());
+        verifyNoMoreInteractions(mStatusBarService);
+        verifyNoMoreInteractions(mCollectionListener);
+    }
+
+    @Test
+    public void testRegisterFutureDismissalWithRetractionAndRepost() {
+        // GIVEN a pipeline with one notification
+        NotifEvent notifEvent = mNoMan.postNotif(buildNotif(TEST_PACKAGE, 47, "myTag"));
+        NotificationEntry entry = requireNonNull(mCollection.getEntry(notifEvent.key));
+        clearInvocations(mCollectionListener);
+
+        // WHEN registering a future dismissal, nothing happens right away
+        final Runnable onDismiss = mCollection.registerFutureDismissal(entry, REASON_CLICK,
+                NotifCollectionTest::defaultStats);
+        verifyNoMoreInteractions(mCollectionListener);
+
+        // WHEN retracting the notification, and then reposting
+        mNoMan.retractNotif(notifEvent.sbn, REASON_CLICK);
+        mNoMan.postNotif(buildNotif(TEST_PACKAGE, 47, "myTag"));
+        clearInvocations(mCollectionListener);
+
+        // KNOWING that the entry in the collection is different now
+        assertThat(mCollection.getEntry(notifEvent.key)).isNotSameInstanceAs(entry);
+
+        // WHEN finally dismissing
+        onDismiss.run();
+
+        // VERIFY that nothing happens; the notification should not be removed
+        verifyNoMoreInteractions(mCollectionListener);
+        assertThat(mCollection.getEntry(notifEvent.key)).isNotNull();
+        verifyNoMoreInteractions(mStatusBarService);
+    }
+
+    @Test
     public void testCannotDismissOngoingNotificationChildren() {
         // GIVEN an ongoing notification
         final NotificationEntry container = new NotificationEntryBuilder()
@@ -1557,9 +1657,9 @@ public class NotifCollectionTest extends SysuiTestCase {
         return new CollectionEvent(rawEvent, requireNonNull(mEntryCaptor.getValue()));
     }
 
-    private void verifyBuiltList(Collection<NotificationEntry> list) {
-        verify(mBuildListener).onBuildList(mBuildListCaptor.capture());
-        assertEquals(new ArraySet<>(list), new ArraySet<>(mBuildListCaptor.getValue()));
+    private void verifyBuiltList(Collection<NotificationEntry> expectedList) {
+        verify(mBuildListener).onBuildList(mBuildListCaptor.capture(), any());
+        assertThat(mBuildListCaptor.getValue()).containsExactly(expectedList.toArray());
     }
 
     private static class RecordingCollectionListener implements NotifCollectionListener {

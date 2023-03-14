@@ -20,7 +20,9 @@ class StatusBarLaunchAnimatorController(
 
     override fun onIntentStarted(willAnimate: Boolean) {
         delegate.onIntentStarted(willAnimate)
-        if (!willAnimate) {
+        if (willAnimate) {
+            centralSurfaces.notificationPanelViewController.setIsLaunchAnimationRunning(true)
+        } else {
             centralSurfaces.collapsePanelOnMainThread()
         }
     }
@@ -29,7 +31,7 @@ class StatusBarLaunchAnimatorController(
         delegate.onLaunchAnimationStart(isExpandingFullyAbove)
         centralSurfaces.notificationPanelViewController.setIsLaunchAnimationRunning(true)
         if (!isExpandingFullyAbove) {
-            centralSurfaces.collapsePanelWithDuration(
+            centralSurfaces.notificationPanelViewController.collapseWithDuration(
                 ActivityLaunchAnimator.TIMINGS.totalDuration.toInt())
         }
     }
@@ -49,8 +51,9 @@ class StatusBarLaunchAnimatorController(
         centralSurfaces.notificationPanelViewController.applyLaunchAnimationProgress(linearProgress)
     }
 
-    override fun onLaunchAnimationCancelled() {
+    override fun onLaunchAnimationCancelled(newKeyguardOccludedState: Boolean?) {
         delegate.onLaunchAnimationCancelled()
+        centralSurfaces.notificationPanelViewController.setIsLaunchAnimationRunning(false)
         centralSurfaces.onLaunchAnimationCancelled(isLaunchForActivity)
     }
 }

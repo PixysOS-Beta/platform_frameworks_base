@@ -35,7 +35,6 @@ import com.android.internal.app.ResolverActivity;
 import com.android.internal.app.ResolverListAdapter.ResolveInfoPresentationGetter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -173,12 +172,14 @@ public class DisplayResolveInfo implements TargetInfo, Parcelable {
 
     @Override
     public boolean startAsCaller(ResolverActivity activity, Bundle options, int userId) {
+        TargetInfo.prepareIntentForCrossProfileLaunch(mResolvedIntent, userId);
         activity.startActivityAsCaller(mResolvedIntent, options, false, userId);
         return true;
     }
 
     @Override
     public boolean startAsUser(Activity activity, Bundle options, UserHandle user) {
+        TargetInfo.prepareIntentForCrossProfileLaunch(mResolvedIntent, user.getIdentifier());
         activity.startActivityAsUser(mResolvedIntent, options, user);
         return false;
     }
@@ -206,7 +207,7 @@ public class DisplayResolveInfo implements TargetInfo, Parcelable {
         dest.writeCharSequence(mDisplayLabel);
         dest.writeCharSequence(mExtendedInfo);
         dest.writeParcelable(mResolvedIntent, 0);
-        dest.writeParcelableArray((Intent[]) mSourceIntents.toArray(), 0);
+        dest.writeTypedList(mSourceIntents);
         dest.writeBoolean(mIsSuspended);
         dest.writeBoolean(mPinned);
         dest.writeParcelable(mResolveInfo, 0);
@@ -227,9 +228,7 @@ public class DisplayResolveInfo implements TargetInfo, Parcelable {
         mDisplayLabel = in.readCharSequence();
         mExtendedInfo = in.readCharSequence();
         mResolvedIntent = in.readParcelable(null /* ClassLoader */, android.content.Intent.class);
-        mSourceIntents.addAll(
-                Arrays.asList((Intent[]) in.readParcelableArray(null /* ClassLoader */,
-                        Intent.class)));
+        in.readTypedList(mSourceIntents, Intent.CREATOR);
         mIsSuspended = in.readBoolean();
         mPinned = in.readBoolean();
         mResolveInfo = in.readParcelable(null /* ClassLoader */, android.content.pm.ResolveInfo.class);

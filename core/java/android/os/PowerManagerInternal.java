@@ -330,6 +330,21 @@ public abstract class PowerManagerInternal {
     /** Returns information about the last wakeup event. */
     public abstract PowerManager.WakeData getLastWakeup();
 
+    /** Returns information about the last event to go to sleep. */
+    public abstract PowerManager.SleepData getLastGoToSleep();
+
     /** Allows power button to intercept a power key button press. */
     public abstract boolean interceptPowerKeyDown(KeyEvent event);
+
+    /**
+     * Internal version of {@link android.os.PowerManager#nap} which allows for napping while the
+     * device is not awake.
+     */
+    public abstract void nap(long eventTime, boolean allowWake);
+
+    /**
+     * Returns true if ambient display is suppressed by any app with any token. This method will
+     * return false if ambient display is not available.
+     */
+    public abstract boolean isAmbientDisplaySuppressed();
 }

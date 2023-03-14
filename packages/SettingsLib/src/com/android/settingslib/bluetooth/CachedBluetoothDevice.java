@@ -77,10 +77,14 @@ public class CachedBluetoothDevice implements Comparable<CachedBluetoothDevice> 
     private final LocalBluetoothProfileManager mProfileManager;
     private final Object mProfileLock = new Object();
     BluetoothDevice mDevice;
+    private int mDeviceSide;
+    private int mDeviceMode;
     private long mHiSyncId;
     private int mGroupId;
+
     // Need this since there is no method for getting RSSI
     short mRssi;
+
     // mProfiles and mRemovedProfiles does not do swap() between main and sub device. It is
     // because current sub device is only for HearingAid and its profile is the same.
     private final Collection<LocalBluetoothProfile> mProfiles = new CopyOnWriteArrayList<>();
@@ -335,6 +339,22 @@ public class CachedBluetoothDevice implements Comparable<CachedBluetoothDevice> 
         connectDevice();
     }
 
+    public int getDeviceSide() {
+        return mDeviceSide;
+    }
+
+    public void setDeviceSide(int side) {
+        mDeviceSide = side;
+    }
+
+    public int getDeviceMode() {
+        return mDeviceMode;
+    }
+
+    public void setDeviceMode(int mode) {
+        mDeviceMode = mode;
+    }
+
     public long getHiSyncId() {
         return mHiSyncId;
     }
@@ -380,6 +400,7 @@ public class CachedBluetoothDevice implements Comparable<CachedBluetoothDevice> 
     * @param id the group id from the CSIP.
     */
     public void setGroupId(int id) {
+        Log.d(TAG, this.getDevice().getAnonymizedAddress() + " set GroupId " + id);
         mGroupId = id;
     }
 
@@ -647,6 +668,12 @@ public class CachedBluetoothDevice implements Comparable<CachedBluetoothDevice> 
      * @param bluetoothProfile the Bluetooth profile
      */
     public void onActiveDeviceChanged(boolean isActive, int bluetoothProfile) {
+        if (BluetoothUtils.D) {
+            Log.d(TAG, "onActiveDeviceChanged: "
+                    + "profile " + BluetoothProfile.getProfileName(bluetoothProfile)
+                    + ", device " + mDevice.getAnonymizedAddress()
+                    + ", isActive " + isActive);
+        }
         boolean changed = false;
         switch (bluetoothProfile) {
         case BluetoothProfile.A2DP:
@@ -892,7 +919,14 @@ public class CachedBluetoothDevice implements Comparable<CachedBluetoothDevice> 
 
     @Override
     public String toString() {
-        return mDevice.toString();
+        return "CachedBluetoothDevice ("
+                + "anonymizedAddress="
+                + mDevice.getAnonymizedAddress()
+                + ", name="
+                + getName()
+                + ", groupId="
+                + mGroupId
+                + ")";
     }
 
     @Override
@@ -1000,7 +1034,6 @@ public class CachedBluetoothDevice implements Comparable<CachedBluetoothDevice> 
                         == BluetoothClass.Device.AUDIO_VIDEO_WEARABLE_HEADSET)) {
                     EventLog.writeEvent(0x534e4554, "138529441", -1, "");
                 }
-                mDevice.setPhonebookAccessPermission(BluetoothDevice.ACCESS_REJECTED);
             }
         }
     }
@@ -1111,7 +1144,8 @@ public class CachedBluetoothDevice implements Comparable<CachedBluetoothDevice> 
                 stringRes = R.string.bluetooth_battery_level;
             }
 
-            // Set active string in following device connected situation.
+            // Set active string in following device connected situation, also show battery
+            // information if they have.
             //    1. Hearing Aid device active.
             //    2. Headset device active with in-calling state.
             //    3. A2DP device active without in-calling state.
@@ -1128,6 +1162,24 @@ public class CachedBluetoothDevice implements Comparable<CachedBluetoothDevice> 
                         stringRes = R.string.bluetooth_active_battery_level;
                     } else {
                         stringRes = R.string.bluetooth_active_no_battery_level;
+                    }
+                }
+
+                // Try to show left/right information if can not get it from battery for hearing
+                // aids specifically.
+                if (mIsActiveDeviceHearingAid
+                        && stringRes == R.string.bluetooth_active_no_battery_level) {
+                    final CachedBluetoothDevice subDevice = getSubDevice();
+                    if (subDevice != null && subDevice.isConnected()) {
+                        stringRes = R.string.bluetooth_hearing_aid_left_and_right_active;
+                    } else {
+                        if (mDeviceSide == HearingAidProfile.DeviceSide.SIDE_LEFT) {
+                            stringRes = R.string.bluetooth_hearing_aid_left_active;
+                        } else if (mDeviceSide == HearingAidProfile.DeviceSide.SIDE_RIGHT) {
+                            stringRes = R.string.bluetooth_hearing_aid_right_active;
+                        } else {
+                            stringRes = R.string.bluetooth_active_no_battery_level;
+                        }
                     }
                 }
             }
@@ -1353,16 +1405,19 @@ public class CachedBluetoothDevice implements Comparable<CachedBluetoothDevice> 
     public void switchSubDeviceContent() {
         // Backup from main device
         BluetoothDevice tmpDevice = mDevice;
-        short tmpRssi = mRssi;
-        boolean tmpJustDiscovered = mJustDiscovered;
+        final short tmpRssi = mRssi;
+        final boolean tmpJustDiscovered = mJustDiscovered;
+        final int tmpDeviceSide = mDeviceSide;
         // Set main device from sub device
         mDevice = mSubDevice.mDevice;
         mRssi = mSubDevice.mRssi;
         mJustDiscovered = mSubDevice.mJustDiscovered;
+        mDeviceSide = mSubDevice.mDeviceSide;
         // Set sub device from backup
         mSubDevice.mDevice = tmpDevice;
         mSubDevice.mRssi = tmpRssi;
         mSubDevice.mJustDiscovered = tmpJustDiscovered;
+        mSubDevice.mDeviceSide = tmpDeviceSide;
         fetchActiveDevices();
     }
 
@@ -1392,11 +1447,10 @@ public class CachedBluetoothDevice implements Comparable<CachedBluetoothDevice> 
      * first connected device in the coordinated set, and then switch the content of the main
      * device and member devices.
      *
-     * @param prevMainDevice the previous Main device, it will be added into the member device set.
-     * @param newMainDevice the new Main device, it will be removed from the member device set.
+     * @param newMainDevice the new Main device which is from the previous main device's member
+     *                      list.
      */
-    public void switchMemberDeviceContent(CachedBluetoothDevice prevMainDevice,
-            CachedBluetoothDevice newMainDevice) {
+    public void switchMemberDeviceContent(CachedBluetoothDevice newMainDevice) {
         // Backup from main device
         final BluetoothDevice tmpDevice = mDevice;
         final short tmpRssi = mRssi;
@@ -1405,8 +1459,7 @@ public class CachedBluetoothDevice implements Comparable<CachedBluetoothDevice> 
         mDevice = newMainDevice.mDevice;
         mRssi = newMainDevice.mRssi;
         mJustDiscovered = newMainDevice.mJustDiscovered;
-        addMemberDevice(prevMainDevice);
-        mMemberDevices.remove(newMainDevice);
+
         // Set sub device from backup
         newMainDevice.mDevice = tmpDevice;
         newMainDevice.mRssi = tmpRssi;

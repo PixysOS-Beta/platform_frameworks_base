@@ -25,8 +25,9 @@ import android.os.Parcelable;
 import android.os.RemoteException;
 import android.os.ResultReceiver;
 import android.util.Log;
+import android.view.ViewRootImpl;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 
 /**
  * A {@link OnBackInvokedDispatcher} for IME that forwards {@link OnBackInvokedCallback}
@@ -80,6 +81,7 @@ public class ImeOnBackInvokedDispatcher implements OnBackInvokedDispatcher, Parc
             @OnBackInvokedDispatcher.Priority int priority,
             @NonNull OnBackInvokedCallback callback) {
         final Bundle bundle = new Bundle();
+        // Always invoke back for ime without checking the window focus.
         final IOnBackInvokedCallback iCallback =
                 new WindowOnBackInvokedDispatcher.OnBackInvokedCallbackWrapper(callback);
         bundle.putBinder(RESULT_KEY_CALLBACK, iCallback.asBinder());
@@ -117,11 +119,11 @@ public class ImeOnBackInvokedDispatcher implements OnBackInvokedDispatcher, Parc
                 }
             };
 
-    private final HashMap<Integer, OnBackInvokedCallback> mImeCallbackMap = new HashMap<>();
+    private final ArrayList<ImeOnBackInvokedCallback> mImeCallbacks = new ArrayList<>();
 
     private void receive(
             int resultCode, Bundle resultData,
-            @NonNull OnBackInvokedDispatcher receivingDispatcher) {
+            @NonNull WindowOnBackInvokedDispatcher receivingDispatcher) {
         final int callbackId = resultData.getInt(RESULT_KEY_ID);
         if (resultCode == RESULT_CODE_REGISTER) {
             int priority = resultData.getInt(RESULT_KEY_PRIORITY);
@@ -138,35 +140,57 @@ public class ImeOnBackInvokedDispatcher implements OnBackInvokedDispatcher, Parc
             @NonNull IOnBackInvokedCallback iCallback,
             @OnBackInvokedDispatcher.Priority int priority,
             int callbackId,
-            @NonNull OnBackInvokedDispatcher receivingDispatcher) {
+            @NonNull WindowOnBackInvokedDispatcher receivingDispatcher) {
         final ImeOnBackInvokedCallback imeCallback =
-                new ImeOnBackInvokedCallback(iCallback);
-        mImeCallbackMap.put(callbackId, imeCallback);
-        receivingDispatcher.registerOnBackInvokedCallback(priority, imeCallback);
+                new ImeOnBackInvokedCallback(iCallback, callbackId, priority);
+        mImeCallbacks.add(imeCallback);
+        receivingDispatcher.registerOnBackInvokedCallbackUnchecked(imeCallback, priority);
     }
 
     private void unregisterReceivedCallback(
             int callbackId, OnBackInvokedDispatcher receivingDispatcher) {
-        final OnBackInvokedCallback callback = mImeCallbackMap.get(callbackId);
+        ImeOnBackInvokedCallback callback = null;
+        for (ImeOnBackInvokedCallback imeCallback : mImeCallbacks) {
+            if (imeCallback.getId() == callbackId) {
+                callback = imeCallback;
+                break;
+            }
+        }
         if (callback == null) {
             Log.e(TAG, "Ime callback not found. Ignoring unregisterReceivedCallback. "
                     + "callbackId: " + callbackId);
             return;
         }
         receivingDispatcher.unregisterOnBackInvokedCallback(callback);
+        mImeCallbacks.remove(callback);
     }
 
     /** Clears all registered callbacks on the instance. */
     public void clear() {
-        mImeCallbackMap.clear();
+        // Unregister previously registered callbacks if there's any.
+        if (getReceivingDispatcher() != null) {
+            for (ImeOnBackInvokedCallback callback : mImeCallbacks) {
+                getReceivingDispatcher().unregisterOnBackInvokedCallback(callback);
+            }
+        }
+        mImeCallbacks.clear();
     }
 
     static class ImeOnBackInvokedCallback implements OnBackInvokedCallback {
         @NonNull
         private final IOnBackInvokedCallback mIOnBackInvokedCallback;
+        /**
+         * The hashcode of the callback instance in the IME process, used as a unique id to
+         * identify the callback when it's passed between processes.
+         */
+        private final int mId;
+        private final int mPriority;
 
-        ImeOnBackInvokedCallback(@NonNull IOnBackInvokedCallback iCallback) {
+        ImeOnBackInvokedCallback(@NonNull IOnBackInvokedCallback iCallback, int id,
+                @Priority int priority) {
             mIOnBackInvokedCallback = iCallback;
+            mId = id;
+            mPriority = priority;
         }
 
         @Override
@@ -180,8 +204,31 @@ public class ImeOnBackInvokedDispatcher implements OnBackInvokedDispatcher, Parc
             }
         }
 
+        private int getId() {
+            return mId;
+        }
+
         IOnBackInvokedCallback getIOnBackInvokedCallback() {
             return mIOnBackInvokedCallback;
+        }
+    }
+
+    /**
+     * Transfers {@link ImeOnBackInvokedCallback}s registered on one {@link ViewRootImpl} to
+     * another {@link ViewRootImpl} on focus change.
+     *
+     * @param previous the previously focused {@link ViewRootImpl}.
+     * @param current the currently focused {@link ViewRootImpl}.
+     */
+    public void switchRootView(ViewRootImpl previous, ViewRootImpl current) {
+        for (ImeOnBackInvokedCallback imeCallback : mImeCallbacks) {
+            if (previous != null) {
+                previous.getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(imeCallback);
+            }
+            if (current != null) {
+                current.getOnBackInvokedDispatcher().registerOnBackInvokedCallbackUnchecked(
+                        imeCallback, imeCallback.mPriority);
+            }
         }
     }
 }

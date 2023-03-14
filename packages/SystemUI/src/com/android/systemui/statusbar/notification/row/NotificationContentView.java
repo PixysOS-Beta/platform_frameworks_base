@@ -61,7 +61,6 @@ import com.android.systemui.statusbar.policy.SmartReplyStateInflaterKt;
 import com.android.systemui.statusbar.policy.SmartReplyView;
 import com.android.systemui.statusbar.policy.dagger.RemoteInputViewSubcomponent;
 import com.android.systemui.util.Compile;
-import com.android.systemui.util.DumpUtilsKt;
 import com.android.systemui.wmshell.BubblesManager;
 
 import java.io.PrintWriter;
@@ -71,7 +70,7 @@ import java.util.List;
 
 /**
  * A frame layout containing the actual payload of the notification, including the contracted,
- * expanded and heads up layout. This class is responsible for clipping the content and and
+ * expanded and heads up layout. This class is responsible for clipping the content and
  * switching between the expanded, contracted and the heads up view depending on its clipped size.
  */
 public class NotificationContentView extends FrameLayout implements NotificationFadeAware {
@@ -628,6 +627,13 @@ public class NotificationContentView extends FrameLayout implements Notification
         int hint;
         if (mHeadsUpChild != null && isVisibleOrTransitioning(VISIBLE_TYPE_HEADSUP)) {
             hint = getViewHeight(VISIBLE_TYPE_HEADSUP);
+            if (mHeadsUpRemoteInput != null && mHeadsUpRemoteInput.isAnimatingAppearance()
+                    && mHeadsUpRemoteInputController.isFocusAnimationFlagActive()) {
+                // While the RemoteInputView is animating its appearance, it should be allowed
+                // to overlap the hint, therefore no space is reserved for the hint during the
+                // appearance animation of the RemoteInputView
+                hint = 0;
+            }
         } else if (mExpandedChild != null) {
             hint = getViewHeight(VISIBLE_TYPE_EXPANDED);
         } else if (mContractedChild != null) {
@@ -1370,16 +1376,13 @@ public class NotificationContentView extends FrameLayout implements Notification
         }
         ImageView bubbleButton = layout.findViewById(com.android.internal.R.id.bubble_button);
         View actionContainer = layout.findViewById(com.android.internal.R.id.actions_container);
+        LinearLayout actionListMarginTarget = layout.findViewById(
+                com.android.internal.R.id.notification_action_list_margin_target);
         if (bubbleButton == null || actionContainer == null) {
             return;
         }
-        boolean isPersonWithShortcut =
-                mPeopleIdentifier.getPeopleNotificationType(entry)
-                        >= PeopleNotificationIdentifier.TYPE_FULL_PERSON;
-        boolean showButton = BubblesManager.areBubblesEnabled(mContext, entry.getSbn().getUser())
-                && isPersonWithShortcut
-                && entry.getBubbleMetadata() != null;
-        if (showButton) {
+
+        if (shouldShowBubbleButton(entry)) {
             // explicitly resolve drawable resource using SystemUI's theme
             Drawable d = mContext.getDrawable(entry.isBubble()
                     ? R.drawable.bubble_ic_stop_bubble
@@ -1394,9 +1397,29 @@ public class NotificationContentView extends FrameLayout implements Notification
             bubbleButton.setOnClickListener(mContainingNotification.getBubbleClickListener());
             bubbleButton.setVisibility(VISIBLE);
             actionContainer.setVisibility(VISIBLE);
+            // Set notification_action_list_margin_target's bottom margin to 0 when showing bubble
+            if (actionListMarginTarget != null) {
+                ViewGroup.LayoutParams lp = actionListMarginTarget.getLayoutParams();
+                if (lp instanceof ViewGroup.MarginLayoutParams) {
+                    final ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
+                    if (mlp.bottomMargin > 0) {
+                        mlp.setMargins(mlp.leftMargin, mlp.topMargin, mlp.rightMargin, 0);
+                    }
+                }
+            }
         } else  {
             bubbleButton.setVisibility(GONE);
         }
+    }
+
+    @VisibleForTesting
+    boolean shouldShowBubbleButton(NotificationEntry entry) {
+        boolean isPersonWithShortcut =
+                mPeopleIdentifier.getPeopleNotificationType(entry)
+                        >= PeopleNotificationIdentifier.TYPE_FULL_PERSON;
+        return BubblesManager.areBubblesEnabled(mContext, entry.getSbn().getUser())
+                && isPersonWithShortcut
+                && entry.getBubbleMetadata() != null;
     }
 
     private void applySnoozeAction(View layout) {
@@ -1975,6 +1998,25 @@ public class NotificationContentView extends FrameLayout implements Notification
     public void setRemoteInputVisible(boolean remoteInputVisible) {
         mRemoteInputVisible = remoteInputVisible;
         setClipChildren(!remoteInputVisible);
+        setActionsImportanceForAccessibility(
+                remoteInputVisible ? View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                        : View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
+    }
+
+    private void setActionsImportanceForAccessibility(int mode) {
+        if (mExpandedChild != null) {
+            setActionsImportanceForAccessibility(mode, mExpandedChild);
+        }
+        if (mHeadsUpChild != null) {
+            setActionsImportanceForAccessibility(mode, mHeadsUpChild);
+        }
+    }
+
+    private void setActionsImportanceForAccessibility(int mode, View child) {
+        View actionsCandidate = child.findViewById(com.android.internal.R.id.actions);
+        if (actionsCandidate != null) {
+            actionsCandidate.setImportantForAccessibility(mode);
+        }
     }
 
     @Override
@@ -1995,33 +2037,22 @@ public class NotificationContentView extends FrameLayout implements Notification
         }
     }
 
-    public void dump(PrintWriter pwOriginal, String[] args) {
-        IndentingPrintWriter pw = DumpUtilsKt.asIndenting(pwOriginal);
+    public void dump(PrintWriter pw, String[] args) {
         pw.print("contentView visibility: " + getVisibility());
         pw.print(", alpha: " + getAlpha());
         pw.print(", clipBounds: " + getClipBounds());
         pw.print(", contentHeight: " + mContentHeight);
-        pw.println(", currentVisibleType: " + mVisibleType);
-        DumpUtilsKt.withIncreasedIndent(pw, () -> {
-            int[] visTypes = {
-                    VISIBLE_TYPE_CONTRACTED,
-                    VISIBLE_TYPE_EXPANDED,
-                    VISIBLE_TYPE_HEADSUP,
-                    VISIBLE_TYPE_SINGLELINE
-            };
-            for (int visType : visTypes) {
-                pw.print("visType: " + visType + " :: ");
-                View view = getViewForVisibleType(visType);
-                if (view != null) {
-                    pw.print("visibility: " + view.getVisibility());
-                    pw.print(", alpha: " + view.getAlpha());
-                    pw.print(", clipBounds: " + view.getClipBounds());
-                } else {
-                    pw.print("null");
-                }
-                pw.println();
-            }
-        });
+        pw.print(", visibleType: " + mVisibleType);
+        View view = getViewForVisibleType(mVisibleType);
+        pw.print(", visibleView ");
+        if (view != null) {
+            pw.print(" visibility: " + view.getVisibility());
+            pw.print(", alpha: " + view.getAlpha());
+            pw.print(", clipBounds: " + view.getClipBounds());
+        } else {
+            pw.print("null");
+        }
+        pw.println();
     }
 
     /** Add any existing SmartReplyView to the dump */

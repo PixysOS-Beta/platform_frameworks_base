@@ -16,17 +16,13 @@
 
 package com.android.server.wm;
 
-import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 import static android.app.WindowConfiguration.WINDOWING_MODE_PINNED;
-import static android.view.WindowManager.LayoutParams.TYPE_DOCK_DIVIDER;
 import static android.view.WindowManager.LayoutParams.TYPE_NAVIGATION_BAR;
 
 import static com.android.internal.protolog.ProtoLogGroup.WM_DEBUG_ADD_REMOVE;
 import static com.android.internal.protolog.ProtoLogGroup.WM_DEBUG_APP_TRANSITIONS;
 import static com.android.internal.protolog.ProtoLogGroup.WM_DEBUG_FOCUS;
 import static com.android.internal.protolog.ProtoLogGroup.WM_DEBUG_WINDOW_MOVEMENT;
-import static com.android.server.wm.WindowContainer.AnimationFlags.PARENTS;
-import static com.android.server.wm.WindowContainer.AnimationFlags.TRANSITION;
 import static com.android.server.wm.WindowContainerChildProto.WINDOW_TOKEN;
 import static com.android.server.wm.WindowManagerDebugConfig.TAG_WITH_CLASS_NAME;
 import static com.android.server.wm.WindowManagerDebugConfig.TAG_WM;
@@ -49,6 +45,7 @@ import android.view.DisplayInfo;
 import android.view.InsetsState;
 import android.view.Surface;
 import android.view.SurfaceControl;
+import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams.WindowType;
 import android.window.WindowContext;
 
@@ -261,7 +258,7 @@ class WindowToken extends WindowContainer<WindowState> {
      * @return The scale for applications running in compatibility mode. Multiply the size in the
      *         application by this scale will be the size in the screen.
      */
-    float getSizeCompatScale() {
+    float getCompatScale() {
         return mDisplayContent.mCompatibleScreenScale;
     }
 
@@ -364,11 +361,7 @@ class WindowToken extends WindowContainer<WindowState> {
 
     @Override
     void assignLayer(SurfaceControl.Transaction t, int layer) {
-        if (windowType == TYPE_DOCK_DIVIDER) {
-            // See {@link DisplayContent#mSplitScreenDividerAnchor}
-            super.assignRelativeLayer(t,
-                    mDisplayContent.getDefaultTaskDisplayArea().getSplitScreenDividerAnchor(), 1);
-        } else if (mRoundedCornerOverlay) {
+        if (mRoundedCornerOverlay) {
             super.assignLayer(t, WindowManagerPolicy.COLOR_FADE_LAYER + 1);
         } else {
             super.assignLayer(t, layer);
@@ -379,7 +372,7 @@ class WindowToken extends WindowContainer<WindowState> {
     SurfaceControl.Builder makeSurface() {
         final SurfaceControl.Builder builder = super.makeSurface();
         if (mRoundedCornerOverlay) {
-            builder.setParent(getDisplayContent().getSurfaceControl());
+            builder.setParent(null);
         }
         return builder;
     }
@@ -455,8 +448,14 @@ class WindowToken extends WindowContainer<WindowState> {
         if (mFixedRotationTransformState != null) {
             mFixedRotationTransformState.disassociate(this);
         }
+        // TODO(b/233855302): Remove TaskFragment override if the DisplayContent uses the same
+        //  bounds for screenLayout calculation.
+        final Configuration overrideConfig = new Configuration(config);
+        overrideConfig.screenLayout = TaskFragment.computeScreenLayoutOverride(
+                overrideConfig.screenLayout, overrideConfig.screenWidthDp,
+                overrideConfig.screenHeightDp);
         mFixedRotationTransformState = new FixedRotationTransformState(info, displayFrames,
-                new Configuration(config), mDisplayContent.getRotation());
+                overrideConfig, mDisplayContent.getRotation());
         mFixedRotationTransformState.mAssociatedTokens.add(this);
         mDisplayContent.getDisplayPolicy().simulateLayoutDisplay(displayFrames);
         onFixedRotationStatePrepared();
@@ -506,7 +505,7 @@ class WindowToken extends WindowContainer<WindowState> {
         for (int i = mFixedRotationTransformState.mAssociatedTokens.size() - 1; i >= 0; i--) {
             final ActivityRecord r =
                     mFixedRotationTransformState.mAssociatedTokens.get(i).asActivityRecord();
-            if (r != null && r.isAnimating(TRANSITION | PARENTS)) {
+            if (r != null && r.isInTransition()) {
                 return true;
             }
         }
@@ -559,6 +558,12 @@ class WindowToken extends WindowContainer<WindowState> {
             // The window may be detached or detaching.
             return;
         }
+        if (mTransitionController.isShellTransitionsEnabled()
+                && asActivityRecord() != null && isVisible()) {
+            // Trigger an activity level rotation transition.
+            mTransitionController.requestTransitionIfNeeded(WindowManager.TRANSIT_CHANGE, this);
+            mTransitionController.setReady(this);
+        }
         final int originalRotation = getWindowConfiguration().getRotation();
         onConfigurationChanged(parent.getConfiguration());
         onCancelFixedRotationTransform(originalRotation);
@@ -583,9 +588,7 @@ class WindowToken extends WindowContainer<WindowState> {
                 .setCallsite("WindowToken.getOrCreateFixedRotationLeash")
                 .build();
         t.setPosition(leash, mLastSurfacePosition.x, mLastSurfacePosition.y);
-        t.show(leash);
         t.reparent(getSurfaceControl(), leash);
-        t.setAlpha(getSurfaceControl(), 1.f);
         mFixedRotationTransformLeash = leash;
         updateSurfaceRotation(t, rotation, mFixedRotationTransformLeash);
         return mFixedRotationTransformLeash;
@@ -624,12 +627,6 @@ class WindowToken extends WindowContainer<WindowState> {
             // override configuration can update to the same state.
             getResolvedOverrideConfiguration().updateFrom(
                     mFixedRotationTransformState.mRotatedOverrideConfiguration);
-        }
-        if (getTaskDisplayArea() == null) {
-            // We only defined behaviors of system windows in fullscreen mode, i.e. windows not
-            // contained in a task display area.
-            getResolvedOverrideConfiguration().windowConfiguration.setWindowingMode(
-                    WINDOWING_MODE_FULLSCREEN);
         }
     }
 
@@ -671,6 +668,15 @@ class WindowToken extends WindowContainer<WindowState> {
         if (!isFixedRotationTransforming()) {
             super.resetSurfacePositionForAnimationLeash(t);
         }
+    }
+
+    @Override
+    boolean prepareSync() {
+        if (mDisplayContent != null && mDisplayContent.isRotationChanging()
+                && AsyncRotationController.canBeAsync(this)) {
+            return false;
+        }
+        return super.prepareSync();
     }
 
     @CallSuper

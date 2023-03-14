@@ -34,10 +34,7 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Parcel;
-import android.os.RemoteException;
-import android.util.Log;
 import android.view.DisplayCutout;
-import android.window.TaskSnapshot;
 import android.window.WindowContainerToken;
 
 import java.lang.annotation.Retention;
@@ -141,13 +138,6 @@ public class TaskInfo {
      */
     @Nullable
     public LocusId mTopActivityLocusId;
-
-    /**
-     * True if the task can go in the split-screen primary stack.
-     * @hide
-     */
-    @UnsupportedAppUsage
-    public boolean supportsSplitScreenMultiWindow;
 
     /**
      * Whether this task supports multi windowing modes based on the device settings and the
@@ -355,20 +345,6 @@ public class TaskInfo {
         return isVisible;
     }
 
-    /**
-     * @param isLowResolution
-     * @return
-     * @hide
-     */
-    public TaskSnapshot getTaskSnapshot(boolean isLowResolution) {
-        try {
-            return ActivityTaskManager.getService().getTaskSnapshot(taskId, isLowResolution);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Failed to get task snapshot, taskId=" + taskId, e);
-            return null;
-        }
-    }
-
     /** @hide */
     @NonNull
     @TestApi
@@ -473,7 +449,8 @@ public class TaskInfo {
                 && isVisible == that.isVisible
                 && isSleeping == that.isSleeping
                 && Objects.equals(mTopActivityLocusId, that.mTopActivityLocusId)
-                && parentTaskId == that.parentTaskId;
+                && parentTaskId == that.parentTaskId
+                && Objects.equals(topActivity, that.topActivity);
     }
 
     /**
@@ -516,7 +493,6 @@ public class TaskInfo {
         lastActiveTime = source.readLong();
 
         taskDescription = source.readTypedObject(ActivityManager.TaskDescription.CREATOR);
-        supportsSplitScreenMultiWindow = source.readBoolean();
         supportsMultiWindow = source.readBoolean();
         resizeMode = source.readInt();
         configuration.readFromParcel(source);
@@ -563,7 +539,6 @@ public class TaskInfo {
         dest.writeLong(lastActiveTime);
 
         dest.writeTypedObject(taskDescription, flags);
-        dest.writeBoolean(supportsSplitScreenMultiWindow);
         dest.writeBoolean(supportsMultiWindow);
         dest.writeInt(resizeMode);
         configuration.writeToParcel(dest, flags);
@@ -601,7 +576,6 @@ public class TaskInfo {
                 + " realActivity=" + realActivity
                 + " numActivities=" + numActivities
                 + " lastActiveTime=" + lastActiveTime
-                + " supportsSplitScreenMultiWindow=" + supportsSplitScreenMultiWindow
                 + " supportsMultiWindow=" + supportsMultiWindow
                 + " resizeMode=" + resizeMode
                 + " isResizeable=" + isResizeable

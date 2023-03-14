@@ -16,12 +16,12 @@
 
 package com.android.systemui.statusbar.notification.collection.render
 
-import com.android.systemui.statusbar.notification.SectionHeaderVisibilityProvider
 import com.android.systemui.statusbar.notification.NotificationSectionsFeatureManager
 import com.android.systemui.statusbar.notification.collection.GroupEntry
 import com.android.systemui.statusbar.notification.collection.ListEntry
 import com.android.systemui.statusbar.notification.collection.NotificationEntry
 import com.android.systemui.statusbar.notification.collection.listbuilder.NotifSection
+import com.android.systemui.statusbar.notification.collection.provider.SectionHeaderVisibilityProvider
 import com.android.systemui.util.Compile
 import com.android.systemui.util.traceSection
 
@@ -57,7 +57,6 @@ class NodeSpecBuilder(
 
         var currentSection: NotifSection? = null
         val prevSections = mutableSetOf<NotifSection?>()
-        var lastSection: NotifSection? = null
         val showHeaders = sectionHeaderVisibilityProvider.sectionHeadersVisible
         val sectionOrder = mutableListOf<NotifSection?>()
         val sectionHeaders = mutableMapOf<NotifSection?, NodeController?>()
@@ -65,15 +64,6 @@ class NodeSpecBuilder(
 
         for (entry in notifList) {
             val section = entry.section!!
-
-            lastSection?.let {
-                if (it.bucket > section.bucket) {
-                    throw IllegalStateException("buildNodeSpec with non contiguous section " +
-                            "buckets ${it.sectioner.name} - ${it.bucket} & " +
-                            "${it.sectioner.name} - ${it.bucket}")
-                }
-            }
-            lastSection = section
             if (prevSections.contains(section)) {
                 throw java.lang.RuntimeException("Section ${section.label} has been duplicated")
             }

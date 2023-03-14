@@ -38,6 +38,8 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.accessibility.AccessibilityEvent;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.android.systemui.animation.Interpolators;
 import com.android.systemui.flags.FeatureFlags;
 import com.android.systemui.flags.Flags;
@@ -45,6 +47,8 @@ import com.android.systemui.plugins.FalsingManager;
 import com.android.systemui.plugins.statusbar.NotificationMenuRowPlugin;
 import com.android.systemui.statusbar.notification.row.ExpandableNotificationRow;
 import com.android.wm.shell.animation.FlingAnimationUtils;
+
+import java.util.function.Consumer;
 
 public class SwipeHelper implements Gefingerpoken {
     static final String TAG = "com.android.systemui.SwipeHelper";
@@ -64,7 +68,7 @@ public class SwipeHelper implements Gefingerpoken {
     private static final int MAX_DISMISS_VELOCITY = 4000; // dp/sec
     private static final int SNAP_ANIM_LEN = SLOW_ANIMATIONS ? 1000 : 150; // ms
 
-    static final float SWIPE_PROGRESS_FADE_END = 0.5f; // fraction of thumbnail width
+    public static final float SWIPE_PROGRESS_FADE_END = 0.6f; // fraction of thumbnail width
                                               // beyond which swipe progress->0
     public static final float SWIPED_FAR_ENOUGH_SIZE_FRACTION = 0.6f;
     static final float MAX_SCROLL_SIZE_FRACTION = 0.3f;
@@ -233,7 +237,11 @@ public class SwipeHelper implements Gefingerpoken {
         return Math.min(Math.max(mMinSwipeProgress, result), mMaxSwipeProgress);
     }
 
-    private float getSwipeAlpha(float progress) {
+    /**
+     * Returns the alpha value depending on the progress of the swipe.
+     */
+    @VisibleForTesting
+    public float getSwipeAlpha(float progress) {
         if (mFadeDependingOnAmountSwiped) {
             // The more progress has been fade, the lower the alpha value so that the view fades.
             return Math.max(1 - progress, 0);
@@ -258,7 +266,7 @@ public class SwipeHelper implements Gefingerpoken {
                         animView.setLayerType(View.LAYER_TYPE_NONE, null);
                     }
                 }
-                animView.setAlpha(getSwipeAlpha(swipeProgress));
+                updateSwipeProgressAlpha(animView, getSwipeAlpha(swipeProgress));
             }
         }
         invalidateGlobalRegion(animView);
@@ -399,7 +407,7 @@ public class SwipeHelper implements Gefingerpoken {
      * @param useAccelerateInterpolator Should an accelerating Interpolator be used
      * @param fixedDuration If not 0, this exact duration will be taken
      */
-    public void dismissChild(final View animView, float velocity, final Runnable endAction,
+    public void dismissChild(final View animView, float velocity, final Consumer<Boolean> endAction,
             long delay, boolean useAccelerateInterpolator, long fixedDuration,
             boolean isDismissAll) {
         final boolean canBeDismissed = mCallback.canChildBeDismissed(animView);
@@ -487,7 +495,7 @@ public class SwipeHelper implements Gefingerpoken {
                     resetSwipeState();
                 }
                 if (endAction != null) {
-                    endAction.run();
+                    endAction.accept(mCancelled);
                 }
                 if (!mDisableHwLayers) {
                     animView.setLayerType(View.LAYER_TYPE_NONE, null);
@@ -557,6 +565,14 @@ public class SwipeHelper implements Gefingerpoken {
                 maxDistance);
         anim.start();
         mCallback.onChildSnappedBack(animView, targetLeft);
+    }
+
+
+    /**
+     * Called to update the content alpha while the view is swiped
+     */
+    protected void updateSwipeProgressAlpha(View animView, float alpha) {
+        animView.setAlpha(alpha);
     }
 
     /**

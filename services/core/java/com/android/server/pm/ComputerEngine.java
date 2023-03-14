@@ -367,6 +367,8 @@ public class ComputerEngine implements Computer {
         return (v1 > v2) ? -1 : ((v1 < v2) ? 1 : 0);
     };
 
+    private final int mVersion;
+
     // The administrative use counter.
     private int mUsed = 0;
 
@@ -424,7 +426,8 @@ public class ComputerEngine implements Computer {
         return mLocalAndroidApplication;
     }
 
-    ComputerEngine(PackageManagerService.Snapshot args) {
+    ComputerEngine(PackageManagerService.Snapshot args, int version) {
+        mVersion = version;
         mSettings = new Settings(args.settings);
         mIsolatedOwners = args.isolatedOwners;
         mPackages = args.packages;
@@ -464,11 +467,17 @@ public class ComputerEngine implements Computer {
         mService = args.service;
     }
 
+    @Override
+    public int getVersion() {
+        return mVersion;
+    }
+
     /**
      * Record that the snapshot was used.
      */
-    public final void use() {
+    public final Computer use() {
         mUsed++;
+        return this;
     }
 
     /**
@@ -588,6 +597,15 @@ public class ComputerEngine implements Computer {
         return skipPostResolution ? list : applyPostResolutionFilter(
                 list, instantAppPkgName, allowDynamicSplits, filterCallingUid,
                 resolveForStart, userId, intent);
+    }
+
+    @NonNull
+    @Override
+    public final List<ResolveInfo> queryIntentActivitiesInternal(Intent intent, String resolvedType,
+            @PackageManager.ResolveInfoFlagsBits long flags, int filterCallingUid, int userId) {
+        return queryIntentActivitiesInternal(
+                intent, resolvedType, flags, 0 /*privateResolveFlags*/, filterCallingUid,
+                userId, false /*resolveForStart*/, true /*allowDynamicSplits*/);
     }
 
     public final @NonNull List<ResolveInfo> queryIntentActivitiesInternal(Intent intent,
@@ -1174,24 +1192,27 @@ public class ComputerEngine implements Computer {
         }
         allHomeCandidates.addAll(resolveInfos);
 
-        String packageName = mDefaultAppProvider.getDefaultHome(userId);
+        String packageName = null;
+        // Workaround for b/237330774 in T: return the preferred activity first to honor
+        // persistent preferred activity.
+        // Role changes are not and cannot be atomic because its implementation lives inside
+        // a system app, so when the home role changes, there is a window when the previous
+        // role holder is removed and the new role holder is granted the preferred activity,
+        // but hasn't become the role holder yet. However, this case may be easily hit
+        // because the preferred activity change triggers a broadcast and receivers may try
+        // to get the default home activity there. So we need to fix it for this time
+        // window, and an easy workaround is to fallback to the current preferred activity.
+        final int appId = UserHandle.getAppId(Binder.getCallingUid());
+        final boolean filtered = appId >= Process.FIRST_APPLICATION_UID;
+        PackageManagerService.FindPreferredActivityBodyResult result =
+                findPreferredActivityInternal(intent, null, 0, resolveInfos, true, false,
+                        false, userId, filtered);
+        ResolveInfo preferredResolveInfo =  result.mPreferredResolveInfo;
+        if (preferredResolveInfo != null && preferredResolveInfo.activityInfo != null) {
+            packageName = preferredResolveInfo.activityInfo.packageName;
+        }
         if (packageName == null) {
-            // Role changes are not and cannot be atomic because its implementation lives inside
-            // a system app, so when the home role changes, there is a window when the previous
-            // role holder is removed and the new role holder is granted the preferred activity,
-            // but hasn't become the role holder yet. However, this case may be easily hit
-            // because the preferred activity change triggers a broadcast and receivers may try
-            // to get the default home activity there. So we need to fix it for this time
-            // window, and an easy workaround is to fallback to the current preferred activity.
-            final int appId = UserHandle.getAppId(Binder.getCallingUid());
-            final boolean filtered = appId >= Process.FIRST_APPLICATION_UID;
-            PackageManagerService.FindPreferredActivityBodyResult result =
-                    findPreferredActivityInternal(intent, null, 0, resolveInfos, true, false,
-                            false, userId, filtered);
-            ResolveInfo preferredResolveInfo =  result.mPreferredResolveInfo;
-            if (preferredResolveInfo != null && preferredResolveInfo.activityInfo != null) {
-                packageName = preferredResolveInfo.activityInfo.packageName;
-            }
+            packageName = mDefaultAppProvider.getDefaultHome(userId);
         }
         if (packageName == null) {
             return null;
@@ -2677,7 +2698,7 @@ public class ComputerEngine implements Computer {
         if (Process.isSdkSandboxUid(callingUid)) {
             int clientAppUid = Process.getAppUidForSdkSandboxUid(callingUid);
             // SDK sandbox should be able to see it's client app
-            if (clientAppUid == UserHandle.getUid(userId, ps.getAppId())) {
+            if (ps != null && clientAppUid == UserHandle.getUid(userId, ps.getAppId())) {
                 return false;
             }
         }
@@ -2689,7 +2710,7 @@ public class ComputerEngine implements Computer {
         final boolean callerIsInstantApp = instantAppPkgName != null;
         if (ps == null) {
             // pretend the application exists, but, needs to be filtered
-            return callerIsInstantApp;
+            return callerIsInstantApp || Process.isSdkSandboxUid(callingUid);
         }
         // if the target and caller are the same application, don't filter
         if (isCallerSameApp(ps.getPackageName(), callingUid)) {
@@ -3080,6 +3101,19 @@ public class ComputerEngine implements Computer {
     }
 
     public boolean filterAppAccess(int uid, int callingUid) {
+        if (Process.isSdkSandboxUid(uid)) {
+            // Sdk sandbox instance should be able to see itself.
+            if (callingUid == uid) {
+                return false;
+            }
+            final int clientAppUid = Process.getAppUidForSdkSandboxUid(uid);
+            // Client app of this sdk sandbox process should be able to see it.
+            if (clientAppUid == uid) {
+                return false;
+            }
+            // Nobody else should be able to see the sdk sandbox process.
+            return true;
+        }
         final int userId = UserHandle.getUserId(uid);
         final int appId = UserHandle.getAppId(uid);
         final Object setting = mSettings.getSettingBase(appId);
@@ -5434,22 +5468,18 @@ public class ComputerEngine implements Computer {
                 false /*checkShell*/, "may package query");
         final PackageStateInternal sourceSetting = getPackageStateInternal(sourcePackageName);
         final PackageStateInternal targetSetting = getPackageStateInternal(targetPackageName);
-        if (sourceSetting == null || targetSetting == null) {
-            throw new ParcelableException(new PackageManager.NameNotFoundException("Package(s) "
-                    + (sourceSetting == null ? sourcePackageName + " " : "")
-                    + (targetSetting == null ? targetPackageName + " " : "")
-                    + "not found."));
+        boolean throwException = sourceSetting == null || targetSetting == null;
+        if (!throwException) {
+            final boolean filterSource =
+                    shouldFilterApplication(sourceSetting, callingUid, userId);
+            final boolean filterTarget =
+                    shouldFilterApplication(targetSetting, callingUid, userId);
+            // The caller must have visibility of the both packages
+            throwException = filterSource || filterTarget;
         }
-        final boolean filterSource =
-                shouldFilterApplication(sourceSetting, callingUid, userId);
-        final boolean filterTarget =
-                shouldFilterApplication(targetSetting, callingUid, userId);
-        // The caller must have visibility of the both packages
-        if (filterSource || filterTarget) {
+        if (throwException) {
             throw new ParcelableException(new PackageManager.NameNotFoundException("Package(s) "
-                    + (filterSource ? sourcePackageName + " " : "")
-                    + (filterTarget ? targetPackageName + " " : "")
-                    + "not found."));
+                    + sourcePackageName + " and/or " + targetPackageName + " not found."));
         }
         final int sourcePackageUid = UserHandle.getUid(userId, sourceSetting.getAppId());
         return !shouldFilterApplication(targetSetting, sourcePackageUid, userId);
