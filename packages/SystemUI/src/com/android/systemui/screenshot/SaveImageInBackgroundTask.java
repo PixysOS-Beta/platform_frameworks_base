@@ -387,7 +387,7 @@ class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
                         .putExtra(ScreenshotController.SCREENSHOT_URI_ID, uri.toString())
                         .putExtra(ScreenshotController.EXTRA_ID, mScreenshotId)
                         .putExtra(ScreenshotController.EXTRA_SMART_ACTIONS_ENABLED,
-                                mSmartActionsEnabled)
+                                smartActionsEnabled)
                         .addFlags(Intent.FLAG_RECEIVER_FOREGROUND),
                 PendingIntent.FLAG_CANCEL_CURRENT
                         | PendingIntent.FLAG_ONE_SHOT
