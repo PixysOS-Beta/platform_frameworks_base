@@ -807,14 +807,6 @@ public class ApplicationPackageManager extends PackageManager {
                 }
             };
 
-    private static final String[] p21Codenames = {
-            "cheetah",
-            "panther",
-            "bluejay",
-            "oriole",
-            "raven"
-    };
-
     private static final String[] featuresPixel = {
             "com.google.android.apps.photos.PIXEL_2019_PRELOAD",
             "com.google.android.apps.photos.PIXEL_2019_MIDYEAR_PRELOAD",
@@ -825,10 +817,7 @@ public class ApplicationPackageManager extends PackageManager {
             "com.google.android.feature.PIXEL_2019_EXPERIENCE",
             "com.google.android.feature.PIXEL_2019_MIDYEAR_EXPERIENCE",
             "com.google.android.feature.PIXEL_2018_EXPERIENCE",
-            "com.google.android.feature.PIXEL_2017_EXPERIENCE",
-            "com.google.android.feature.PIXEL_EXPERIENCE",
-            "com.google.android.feature.GOOGLE_BUILD",
-            "com.google.android.feature.GOOGLE_EXPERIENCE"
+            "com.google.android.feature.PIXEL_2017_EXPERIENCE"
     };
 
     private static final String[] featuresP21 = {
@@ -852,11 +841,10 @@ public class ApplicationPackageManager extends PackageManager {
             if (Arrays.asList(featuresPixel).contains(name)) return false;
             if (Arrays.asList(featuresP21).contains(name)) return false;
             if (Arrays.asList(featuresNexus).contains(name)) return true;
-        }
-        if (Arrays.asList(featuresPixel).contains(name)) return true;
-        if (Arrays.asList(featuresP21).contains(name) &&
-                !Arrays.asList(p21Codenames).contains(SystemProperties.get("ro.product.device"))) {
-            return false;
+        }  else {
+            if (Arrays.asList(featuresPixel).contains(name)) return true;
+            if (Arrays.asList(featuresP21).contains(name)) return false;
+            if (Arrays.asList(featuresNexus).contains(name)) return false;
         }
         return mHasSystemFeatureCache.query(new HasSystemFeatureQuery(name, version));
     }
