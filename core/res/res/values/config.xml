@@ -360,6 +360,10 @@
         <item>0x88E3</item>
     </integer-array>
 
+    <!-- Flag indicating whether notification and ringtone volumes
+         are controlled together (aliasing is true) or not. -->
+    <bool name="config_alias_ring_notif_stream_types">true</bool>
+
     <!-- Default value for ConnectivityManager.getMultipathPreference() on metered networks. Actual
          device behaviour is controlled by Settings.Global.NETWORK_METERED_MULTIPATH_PREFERENCE.
          This is the default value of that setting. -->
