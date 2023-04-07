@@ -291,7 +291,7 @@ public class SeekBarVolumizer implements OnSeekBarChangeListener, Handler.Callba
              * seekbar doesn't wrongly snap back to 0 when the streams aren't aliased
              */
             if (!DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_SYSTEMUI,
-                    SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, false)
+                    SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, true)
                     || mStreamType == AudioManager.STREAM_RING
                     || (mStreamType == AudioManager.STREAM_NOTIFICATION && mMuted)) {
                 mSeekBar.setProgress(0, true);
@@ -370,7 +370,7 @@ public class SeekBarVolumizer implements OnSeekBarChangeListener, Handler.Callba
         if ((mStreamType == AudioManager.STREAM_VOICE_CALL
                 || mStreamType == AudioManager.STREAM_RING
                 || (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_SYSTEMUI,
-                SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, false)
+                SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, true)
                 && mStreamType == AudioManager.STREAM_NOTIFICATION)
                 || mStreamType == AudioManager.STREAM_ALARM)) {
             sStopVolumeTime = java.lang.System.currentTimeMillis();
@@ -650,7 +650,7 @@ public class SeekBarVolumizer implements OnSeekBarChangeListener, Handler.Callba
 
         private void updateVolumeSlider(int streamType, int streamValue) {
             final boolean streamMatch =  !DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_SYSTEMUI,
-                    SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, false)
+                    SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, true)
                     && mNotificationOrRing ? isNotificationOrRing(streamType) :
                     streamType == mStreamType;
             if (mSeekBar != null && streamMatch && streamValue != -1) {

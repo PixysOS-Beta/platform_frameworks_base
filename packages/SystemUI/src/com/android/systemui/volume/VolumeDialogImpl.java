@@ -394,7 +394,7 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
         mDeviceConfigProxy = deviceConfigProxy;
         mExecutor = executor;
         mSeparateNotification = mDeviceConfigProxy.getBoolean(DeviceConfig.NAMESPACE_SYSTEMUI,
-                SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, false);
+                SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, true);
         updateRingerModeIconSet();
     }
 
@@ -471,7 +471,7 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
         Set<String> changeSet = properties.getKeyset();
         if (changeSet.contains(SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION)) {
             boolean newVal = properties.getBoolean(
-                    SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, false);
+                    SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, true);
             if (newVal != mSeparateNotification) {
                 mSeparateNotification = newVal;
                 updateRingerModeIconSet();

@@ -1034,7 +1034,7 @@ public class AudioService extends IAudioService.Stub
                 com.android.internal.R.bool.config_handleVolumeAliasesUsingVolumeGroups);
 
         mNotifAliasRing = !DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_SYSTEMUI,
-                SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, false);
+                SystemUiDeviceConfigFlags.VOLUME_SEPARATE_NOTIFICATION, true);
 
         DeviceConfig.addOnPropertiesChangedListener(DeviceConfig.NAMESPACE_SYSTEMUI,
                 ActivityThread.currentApplication().getMainExecutor(),
