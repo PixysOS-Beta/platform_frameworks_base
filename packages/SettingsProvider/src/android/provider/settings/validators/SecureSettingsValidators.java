@@ -405,5 +405,7 @@ public class SecureSettingsValidators {
                 new DiscreteValueValidator(new String[] {"0", "1", "2"}));
         VALIDATORS.put(Secure.ACCESSIBILITY_FONT_SCALING_HAS_BEEN_CHANGED, BOOLEAN_VALIDATOR);
         VALIDATORS.put(Secure.SYSTEM_BLACK_THEME, BOOLEAN_VALIDATOR);
+        VALIDATORS.put(Secure.DOZE_DOUBLE_TAP_GESTURE_AMBIENT, BOOLEAN_VALIDATOR);
+        VALIDATORS.put(Secure.DOZE_PICK_UP_GESTURE_AMBIENT, BOOLEAN_VALIDATOR);
     }
 }
