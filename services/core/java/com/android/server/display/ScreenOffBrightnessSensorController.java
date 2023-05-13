@@ -92,10 +92,6 @@ public class ScreenOffBrightnessSensorController implements SensorEventListener 
         }
     }
 
-    void stop() {
-        setLightSensorEnabled(false);
-    }
-
     float getAutomaticScreenBrightness() {
         if (mLastSensorValue < 0 || mLastSensorValue >= mSensorValueToLux.length
                 || (!mRegistered
@@ -113,7 +109,7 @@ public class ScreenOffBrightnessSensorController implements SensorEventListener 
 
     /** Dump current state */
     public void dump(PrintWriter pw) {
-        pw.println("Screen Off Brightness Sensor Controller:");
+        pw.println("ScreenOffBrightnessSensorController:");
         IndentingPrintWriter idpw = new IndentingPrintWriter(pw);
         idpw.increaseIndent();
         idpw.println("registered=" + mRegistered);

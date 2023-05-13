@@ -36,12 +36,10 @@ import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.display.BrightnessSynchronizer;
 import com.android.server.display.config.AutoBrightness;
-import com.android.server.display.config.BlockingZoneConfig;
 import com.android.server.display.config.BrightnessThresholds;
 import com.android.server.display.config.BrightnessThrottlingMap;
 import com.android.server.display.config.BrightnessThrottlingPoint;
 import com.android.server.display.config.Density;
-import com.android.server.display.config.DisplayBrightnessPoint;
 import com.android.server.display.config.DisplayConfiguration;
 import com.android.server.display.config.DisplayQuirks;
 import com.android.server.display.config.HbmTiming;
@@ -49,7 +47,6 @@ import com.android.server.display.config.HighBrightnessMode;
 import com.android.server.display.config.IntegerArray;
 import com.android.server.display.config.NitsMap;
 import com.android.server.display.config.Point;
-import com.android.server.display.config.RefreshRateConfigs;
 import com.android.server.display.config.RefreshRateRange;
 import com.android.server.display.config.SdrHdrRatioMap;
 import com.android.server.display.config.SdrHdrRatioPoint;
@@ -133,35 +130,6 @@ import javax.xml.datatype.DatatypeConfigurationException;
  *          </brightnessThrottlingPoint>
  *        </brightnessThrottlingMap>
  *      </thermalThrottling>
- *
- *      <refreshRate>
- *        <lowerBlockingZoneConfigs>
- *          <defaultRefreshRate>75</defaultRefreshRate>
- *          <blockingZoneThreshold>
- *            <displayBrightnessPoint>
- *              <lux>50</lux>
- *              <nits>45.3</nits>
- *            </displayBrightnessPoint>
- *            <displayBrightnessPoint>
- *              <lux>60</lux>
- *              <nits>55.2</nits>
- *            </displayBrightnessPoint>
- *          </blockingZoneThreshold>
- *        </lowerBlockingZoneConfigs>
- *        <higherBlockingZoneConfigs>
- *          <defaultRefreshRate>90</defaultRefreshRate>
- *          <blockingZoneThreshold>
- *            <displayBrightnessPoint>
- *              <lux>500</lux>
- *              <nits>245.3</nits>
- *            </displayBrightnessPoint>
- *            <displayBrightnessPoint>
- *              <lux>600</lux>
- *              <nits>232.3</nits>
- *            </displayBrightnessPoint>
- *          </blockingZoneThreshold>
- *        </higherBlockingZoneConfigs>
- *      </refreshRate>
  *
  *      <highBrightnessMode enabled="true">
  *        <transitionPoint>0.62</transitionPoint>
@@ -402,9 +370,6 @@ public class DisplayDeviceConfig {
     private static final String STABLE_ID_SUFFIX_FORMAT = "id_%d";
     private static final String NO_SUFFIX_FORMAT = "%d";
     private static final long STABLE_FLAG = 1L << 62;
-    private static final int DEFAULT_LOW_REFRESH_RATE = 60;
-    private static final int DEFAULT_HIGH_REFRESH_RATE = 0;
-    private static final int[] DEFAULT_BRIGHTNESS_THRESHOLDS = new int[]{};
 
     private static final float[] DEFAULT_AMBIENT_THRESHOLD_LEVELS = new float[]{0f};
     private static final float[] DEFAULT_AMBIENT_BRIGHTENING_THRESHOLDS = new float[]{100f};
@@ -564,49 +529,6 @@ public class DisplayDeviceConfig {
     private boolean mAutoBrightnessAvailable = false;
     // This stores the raw value loaded from the config file - true if not written.
     private boolean mDdcAutoBrightnessAvailable = true;
-
-    /**
-     * The default peak refresh rate for a given device. This value prevents the framework from
-     * using higher refresh rates, even if display modes with higher refresh rates are available
-     * from hardware composer. Only has an effect if the value is non-zero.
-     */
-    private int mDefaultHighRefreshRate = DEFAULT_HIGH_REFRESH_RATE;
-
-    /**
-     * The default refresh rate for a given device. This value sets the higher default
-     * refresh rate. If the hardware composer on the device supports display modes with
-     * a higher refresh rate than the default value specified here, the framework may use those
-     * higher refresh rate modes if an app chooses one by setting preferredDisplayModeId or calling
-     * setFrameRate(). We have historically allowed fallback to mDefaultHighRefreshRate if
-     * mDefaultLowRefreshRate is set to 0, but this is not supported anymore.
-     */
-    private int mDefaultLowRefreshRate = DEFAULT_LOW_REFRESH_RATE;
-
-    /**
-     * The display uses different gamma curves for different refresh rates. It's hard for panel
-     * vendors to tune the curves to have exact same brightness for different refresh rate. So
-     * brightness flickers could be observed at switch time. The issue is worse at the gamma lower
-     * end. In addition, human eyes are more sensitive to the flicker at darker environment. To
-     * prevent flicker, we only support higher refresh rates if the display brightness is above a
-     * threshold. For example, no higher refresh rate if display brightness <= disp0 && ambient
-     * brightness <= amb0 || display brightness <= disp1 && ambient brightness <= amb1
-     */
-    private int[] mLowDisplayBrightnessThresholds = DEFAULT_BRIGHTNESS_THRESHOLDS;
-    private int[] mLowAmbientBrightnessThresholds = DEFAULT_BRIGHTNESS_THRESHOLDS;
-
-    /**
-     * The display uses different gamma curves for different refresh rates. It's hard for panel
-     * vendors to tune the curves to have exact same brightness for different refresh rate. So
-     * brightness flickers could be observed at switch time. The issue can be observed on the screen
-     * with even full white content at the high brightness. To prevent flickering, we support fixed
-     * refresh rates if the display and ambient brightness are equal to or above the provided
-     * thresholds. You can define multiple threshold levels as higher brightness environments may
-     * have lower display brightness requirements for the flickering is visible. For example, fixed
-     * refresh rate if display brightness >= disp0 && ambient brightness >= amb0 || display
-     * brightness >= disp1 && ambient brightness >= amb1
-     */
-    private int[] mHighDisplayBrightnessThresholds = DEFAULT_BRIGHTNESS_THRESHOLDS;
-    private int[] mHighAmbientBrightnessThresholds = DEFAULT_BRIGHTNESS_THRESHOLDS;
 
     // Brightness Throttling data may be updated via the DeviceConfig. Here we store the original
     // data, which comes from the ddc, and the current one, which may be the DeviceConfig
@@ -795,6 +717,7 @@ public class DisplayDeviceConfig {
      */
     public float getNitsFromBacklight(float backlight) {
         if (mBacklightToNitsSpline == null) {
+            Slog.wtf(TAG, "requesting nits when no mapping exists.");
             return NITS_INVALID;
         }
         backlight = Math.max(backlight, mBacklightMinimum);
@@ -1295,15 +1218,15 @@ public class DisplayDeviceConfig {
     /**
      * @return Default peak refresh rate of the associated display
      */
-    public int getDefaultHighRefreshRate() {
-        return mDefaultHighRefreshRate;
+    public int getDefaultPeakRefreshRate() {
+        return mContext.getResources().getInteger(R.integer.config_defaultPeakRefreshRate);
     }
 
     /**
      * @return Default refresh rate of the associated display
      */
-    public int getDefaultLowRefreshRate() {
-        return mDefaultLowRefreshRate;
+    public int getDefaultRefreshRate() {
+        return mContext.getResources().getInteger(R.integer.config_defaultRefreshRate);
     }
 
     /**
@@ -1312,7 +1235,8 @@ public class DisplayDeviceConfig {
      * allowed
      */
     public int[] getLowDisplayBrightnessThresholds() {
-        return mLowDisplayBrightnessThresholds;
+        return mContext.getResources().getIntArray(
+                R.array.config_brightnessThresholdsOfPeakRefreshRate);
     }
 
     /**
@@ -1321,7 +1245,8 @@ public class DisplayDeviceConfig {
      * allowed
      */
     public int[] getLowAmbientBrightnessThresholds() {
-        return mLowAmbientBrightnessThresholds;
+        return mContext.getResources().getIntArray(
+                R.array.config_ambientThresholdsOfPeakRefreshRate);
     }
 
     /**
@@ -1330,7 +1255,8 @@ public class DisplayDeviceConfig {
      * allowed
      */
     public int[] getHighDisplayBrightnessThresholds() {
-        return mHighDisplayBrightnessThresholds;
+        return mContext.getResources().getIntArray(
+                R.array.config_highDisplayBrightnessThresholdsOfFixedRefreshRate);
     }
 
     /**
@@ -1339,7 +1265,8 @@ public class DisplayDeviceConfig {
      * allowed
      */
     public int[] getHighAmbientBrightnessThresholds() {
-        return mHighAmbientBrightnessThresholds;
+        return mContext.getResources().getIntArray(
+                R.array.config_highAmbientBrightnessThresholdsOfFixedRefreshRate);
     }
 
     /**
@@ -1440,18 +1367,6 @@ public class DisplayDeviceConfig {
                 + ", mBrightnessLevelsNits= " + Arrays.toString(mBrightnessLevelsNits)
                 + ", mDdcAutoBrightnessAvailable= " + mDdcAutoBrightnessAvailable
                 + ", mAutoBrightnessAvailable= " + mAutoBrightnessAvailable
-                + "\n"
-                + ", mDefaultRefreshRate= " + mDefaultLowRefreshRate
-                + ", mDefaultPeakRefreshRate= " + mDefaultHighRefreshRate
-                + ", mLowDisplayBrightnessThresholds= "
-                + Arrays.toString(mLowDisplayBrightnessThresholds)
-                + ", mLowAmbientBrightnessThresholds= "
-                + Arrays.toString(mLowAmbientBrightnessThresholds)
-                + ", mHighDisplayBrightnessThresholds= "
-                + Arrays.toString(mHighDisplayBrightnessThresholds)
-                + ", mHighAmbientBrightnessThresholds= "
-                + Arrays.toString(mHighAmbientBrightnessThresholds)
-                + "\n"
                 + ", mScreenOffBrightnessSensorValueToLux=" + Arrays.toString(
                 mScreenOffBrightnessSensorValueToLux)
                 + "}";
@@ -1512,7 +1427,6 @@ public class DisplayDeviceConfig {
                 loadAmbientHorizonFromDdc(config);
                 loadBrightnessChangeThresholds(config);
                 loadAutoBrightnessConfigValues(config);
-                loadRefreshRateSetting(config);
                 loadScreenOffBrightnessSensorValueToLuxFromDdc(config);
             } else {
                 Slog.w(TAG, "DisplayDeviceConfig file is null");
@@ -1533,10 +1447,9 @@ public class DisplayDeviceConfig {
         loadBrightnessRampsFromConfigXml();
         loadAmbientLightSensorFromConfigXml();
         loadBrightnessChangeThresholdsFromXml();
-        useFallbackProxSensor();
+        setProxSensorUnspecified();
         loadAutoBrightnessConfigsFromConfigXml();
         loadAutoBrightnessAvailableFromConfigXml();
-        loadRefreshRateSetting(null);
         mLoadedFrom = "<config.xml>";
     }
 
@@ -1554,7 +1467,7 @@ public class DisplayDeviceConfig {
         mBrightnessRampIncreaseMaxMillis = 0;
         setSimpleMappingStrategyValues();
         loadAmbientLightSensorFromConfigXml();
-        useFallbackProxSensor();
+        setProxSensorUnspecified();
         loadAutoBrightnessAvailableFromConfigXml();
     }
 
@@ -1744,143 +1657,6 @@ public class DisplayDeviceConfig {
         if (!badConfig) {
             mBrightnessThrottlingData = BrightnessThrottlingData.create(throttlingLevels);
             mOriginalBrightnessThrottlingData = mBrightnessThrottlingData;
-        }
-    }
-
-    private void loadRefreshRateSetting(DisplayConfiguration config) {
-        final RefreshRateConfigs refreshRateConfigs =
-                (config == null) ? null : config.getRefreshRate();
-        BlockingZoneConfig lowerBlockingZoneConfig =
-                (refreshRateConfigs == null) ? null
-                        : refreshRateConfigs.getLowerBlockingZoneConfigs();
-        BlockingZoneConfig higherBlockingZoneConfig =
-                (refreshRateConfigs == null) ? null
-                        : refreshRateConfigs.getHigherBlockingZoneConfigs();
-        loadLowerRefreshRateBlockingZones(lowerBlockingZoneConfig);
-        loadHigherRefreshRateBlockingZones(higherBlockingZoneConfig);
-    }
-
-
-    /**
-     * Loads the refresh rate configurations pertaining to the upper blocking zones.
-     */
-    private void loadLowerRefreshRateBlockingZones(BlockingZoneConfig lowerBlockingZoneConfig) {
-        loadLowerBlockingZoneDefaultRefreshRate(lowerBlockingZoneConfig);
-        loadLowerBrightnessThresholds(lowerBlockingZoneConfig);
-    }
-
-    /**
-     * Loads the refresh rate configurations pertaining to the upper blocking zones.
-     */
-    private void loadHigherRefreshRateBlockingZones(BlockingZoneConfig upperBlockingZoneConfig) {
-        loadHigherBlockingZoneDefaultRefreshRate(upperBlockingZoneConfig);
-        loadHigherBrightnessThresholds(upperBlockingZoneConfig);
-    }
-
-    /**
-     * Loads the default peak refresh rate. Internally, this takes care of loading
-     * the value from the display config, and if not present, falls back to config.xml.
-     */
-    private void loadHigherBlockingZoneDefaultRefreshRate(
-                BlockingZoneConfig upperBlockingZoneConfig) {
-        if (upperBlockingZoneConfig == null) {
-            mDefaultHighRefreshRate = mContext.getResources().getInteger(
-                com.android.internal.R.integer.config_defaultPeakRefreshRate);
-        } else {
-            mDefaultHighRefreshRate =
-                upperBlockingZoneConfig.getDefaultRefreshRate().intValue();
-        }
-    }
-
-    /**
-     * Loads the default refresh rate. Internally, this takes care of loading
-     * the value from the display config, and if not present, falls back to config.xml.
-     */
-    private void loadLowerBlockingZoneDefaultRefreshRate(
-                BlockingZoneConfig lowerBlockingZoneConfig) {
-        if (lowerBlockingZoneConfig == null) {
-            mDefaultLowRefreshRate = mContext.getResources().getInteger(
-                com.android.internal.R.integer.config_defaultRefreshRate);
-        } else {
-            mDefaultLowRefreshRate =
-                lowerBlockingZoneConfig.getDefaultRefreshRate().intValue();
-        }
-    }
-
-    /**
-     * Loads the lower brightness thresholds for refresh rate switching. Internally, this takes care
-     * of loading the value from the display config, and if not present, falls back to config.xml.
-     */
-    private void loadLowerBrightnessThresholds(BlockingZoneConfig lowerBlockingZoneConfig) {
-        if (lowerBlockingZoneConfig == null) {
-            mLowDisplayBrightnessThresholds = mContext.getResources().getIntArray(
-                R.array.config_brightnessThresholdsOfPeakRefreshRate);
-            mLowAmbientBrightnessThresholds = mContext.getResources().getIntArray(
-                R.array.config_ambientThresholdsOfPeakRefreshRate);
-            if (mLowDisplayBrightnessThresholds == null || mLowAmbientBrightnessThresholds == null
-                    || mLowDisplayBrightnessThresholds.length
-                    != mLowAmbientBrightnessThresholds.length) {
-                throw new RuntimeException("display low brightness threshold array and ambient "
-                    + "brightness threshold array have different length: "
-                    + "mLowDisplayBrightnessThresholds="
-                    + Arrays.toString(mLowDisplayBrightnessThresholds)
-                    + ", mLowAmbientBrightnessThresholds="
-                    + Arrays.toString(mLowAmbientBrightnessThresholds));
-            }
-        } else {
-            List<DisplayBrightnessPoint> lowerThresholdDisplayBrightnessPoints =
-                    lowerBlockingZoneConfig.getBlockingZoneThreshold().getDisplayBrightnessPoint();
-            int size = lowerThresholdDisplayBrightnessPoints.size();
-            mLowDisplayBrightnessThresholds = new int[size];
-            mLowAmbientBrightnessThresholds = new int[size];
-            for (int i = 0; i < size; i++) {
-                // We are explicitly casting this value to an integer to be able to reuse the
-                // existing DisplayBrightnessPoint type. It is fine to do this because the round off
-                // will have the negligible and unnoticeable impact on the loaded thresholds.
-                mLowDisplayBrightnessThresholds[i] = (int) lowerThresholdDisplayBrightnessPoints
-                    .get(i).getNits().floatValue();
-                mLowAmbientBrightnessThresholds[i] = lowerThresholdDisplayBrightnessPoints
-                    .get(i).getLux().intValue();
-            }
-        }
-    }
-
-    /**
-     * Loads the higher brightness thresholds for refresh rate switching. Internally, this takes
-     * care of loading the value from the display config, and if not present, falls back to
-     * config.xml.
-     */
-    private void loadHigherBrightnessThresholds(BlockingZoneConfig blockingZoneConfig) {
-        if (blockingZoneConfig == null) {
-            mHighDisplayBrightnessThresholds = mContext.getResources().getIntArray(
-                R.array.config_highDisplayBrightnessThresholdsOfFixedRefreshRate);
-            mHighAmbientBrightnessThresholds = mContext.getResources().getIntArray(
-                R.array.config_highAmbientBrightnessThresholdsOfFixedRefreshRate);
-            if (mHighAmbientBrightnessThresholds == null || mHighDisplayBrightnessThresholds == null
-                    || mHighAmbientBrightnessThresholds.length
-                    != mHighDisplayBrightnessThresholds.length) {
-                throw new RuntimeException("display high brightness threshold array and ambient "
-                    + "brightness threshold array have different length: "
-                    + "mHighDisplayBrightnessThresholds="
-                    + Arrays.toString(mHighDisplayBrightnessThresholds)
-                    + ", mHighAmbientBrightnessThresholds="
-                    + Arrays.toString(mHighAmbientBrightnessThresholds));
-            }
-        } else {
-            List<DisplayBrightnessPoint> higherThresholdDisplayBrightnessPoints =
-                    blockingZoneConfig.getBlockingZoneThreshold().getDisplayBrightnessPoint();
-            int size = higherThresholdDisplayBrightnessPoints.size();
-            mHighDisplayBrightnessThresholds = new int[size];
-            mHighAmbientBrightnessThresholds = new int[size];
-            for (int i = 0; i < size; i++) {
-                // We are explicitly casting this value to an integer to be able to reuse the
-                // existing DisplayBrightnessPoint type. It is fine to do this because the round off
-                // will have the negligible and unnoticeable impact on the loaded thresholds.
-                mHighDisplayBrightnessThresholds[i] = (int) higherThresholdDisplayBrightnessPoints
-                    .get(i).getNits().floatValue();
-                mHighAmbientBrightnessThresholds[i] = higherThresholdDisplayBrightnessPoints
-                    .get(i).getLux().intValue();
-            }
         }
     }
 
@@ -2200,12 +1976,7 @@ public class DisplayDeviceConfig {
         }
     }
 
-    private void useFallbackProxSensor() {
-        mProximitySensor.name = null;
-        mProximitySensor.type = null;
-    }
-
-    private void useNullProxSensor() {
+    private void setProxSensorUnspecified() {
         mProximitySensor.name = "";
         mProximitySensor.type = "";
     }
@@ -2221,12 +1992,6 @@ public class DisplayDeviceConfig {
     private void loadProxSensorFromDdc(DisplayConfiguration config) {
         SensorDetails sensorDetails = config.getProxSensor();
         if (sensorDetails != null) {
-            if (sensorDetails.getName() == null && sensorDetails.getType() == null) {
-                // If prox sensor is defined, but no details given, this is assumed that
-                // the display does not have or wish to use a prox sensor for it.
-                useNullProxSensor();
-                return;
-            }
             mProximitySensor.name = sensorDetails.getName();
             mProximitySensor.type = sensorDetails.getType();
             final RefreshRateRange rr = sensorDetails.getRefreshRate();
@@ -2235,8 +2000,7 @@ public class DisplayDeviceConfig {
                 mProximitySensor.maxRefreshRate = rr.getMaximum().floatValue();
             }
         } else {
-            // If prox sensor is unspecified, then use a fallback.
-            useFallbackProxSensor();
+            setProxSensorUnspecified();
         }
     }
 
@@ -2643,9 +2407,6 @@ public class DisplayDeviceConfig {
         }
     }
 
-    /**
-     * Uniquely identifies a Sensor, with the combination of Type and Name.
-     */
     static class SensorData {
         public String type;
         public String name;

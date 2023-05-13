@@ -260,12 +260,6 @@ class DialogLaunchAnimatorTest : SysuiTestCase() {
         assertThat(touchSurface.visibility).isEqualTo(View.GONE)
     }
 
-    @Test
-    fun showFromDialogDoesNotCrashWhenShownFromRandomDialog() {
-        val dialog = createDialogAndShowFromDialog(animateFrom = TestDialog(context))
-        dialog.dismiss()
-    }
-
     private fun createAndShowDialog(
         animator: DialogLaunchAnimator = dialogLaunchAnimator,
     ): TestDialog {

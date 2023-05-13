@@ -40,7 +40,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -75,7 +74,6 @@ import android.provider.Settings;
 import android.test.mock.MockContentResolver;
 import android.util.Slog;
 import android.util.SparseArray;
-import android.util.TypedValue;
 import android.view.Display;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -104,7 +102,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1899,8 +1896,8 @@ public class DisplayModeDirectorTest {
 
         // Notify that the default display is updated, such that DisplayDeviceConfig has new values
         DisplayDeviceConfig displayDeviceConfig = mock(DisplayDeviceConfig.class);
-        when(displayDeviceConfig.getDefaultLowRefreshRate()).thenReturn(50);
-        when(displayDeviceConfig.getDefaultHighRefreshRate()).thenReturn(55);
+        when(displayDeviceConfig.getDefaultRefreshRate()).thenReturn(50);
+        when(displayDeviceConfig.getDefaultPeakRefreshRate()).thenReturn(55);
         when(displayDeviceConfig.getLowDisplayBrightnessThresholds()).thenReturn(new int[]{25});
         when(displayDeviceConfig.getLowAmbientBrightnessThresholds()).thenReturn(new int[]{30});
         when(displayDeviceConfig.getHighDisplayBrightnessThresholds()).thenReturn(new int[]{210});
@@ -1943,58 +1940,71 @@ public class DisplayModeDirectorTest {
     }
 
     @Test
-    public void testSensorReloadOnDeviceSwitch() throws Exception {
-        // First, configure brightness zones or DMD won't register for sensor data.
-        final FakeDeviceConfig config = mInjector.getDeviceConfig();
-        config.setRefreshRateInHighZone(60);
-        config.setHighDisplayBrightnessThresholds(new int[] { 255 });
-        config.setHighAmbientBrightnessThresholds(new int[] { 8000 });
-
+    public void testAuthenticationPossibleSetsPhysicalRateRangesToMax() throws RemoteException {
         DisplayModeDirector director =
-                createDirectorFromRefreshRateArray(new float[] {60.f, 90.f}, 0);
-        setPeakRefreshRate(90 /*fps*/);
-        director.getSettingsObserver().setDefaultRefreshRate(90);
-        director.getBrightnessObserver().setDefaultDisplayState(Display.STATE_ON);
+                createDirectorFromRefreshRateArray(new float[]{60.0f, 90.0f}, 0);
+        // don't call director.start(createMockSensorManager());
+        // DisplayObserver will reset mSupportedModesByDisplay
+        director.onBootCompleted();
+        ArgumentCaptor<IUdfpsHbmListener> captor =
+                ArgumentCaptor.forClass(IUdfpsHbmListener.class);
+        verify(mStatusBarMock).setUdfpsHbmListener(captor.capture());
 
-        Sensor lightSensorOne = TestUtils.createSensor(Sensor.TYPE_LIGHT, Sensor.STRING_TYPE_LIGHT);
-        Sensor lightSensorTwo = TestUtils.createSensor(Sensor.TYPE_LIGHT, Sensor.STRING_TYPE_LIGHT);
-        SensorManager sensorManager = createMockSensorManager(lightSensorOne, lightSensorTwo);
-        when(sensorManager.getDefaultSensor(5)).thenReturn(lightSensorOne, lightSensorTwo);
-        director.start(sensorManager);
-        ArgumentCaptor<SensorEventListener> listenerCaptor =
-                ArgumentCaptor.forClass(SensorEventListener.class);
-        verify(sensorManager, Mockito.timeout(TimeUnit.SECONDS.toMillis(1)))
-                .registerListener(
-                        listenerCaptor.capture(),
-                        eq(lightSensorOne),
-                        anyInt(),
-                        any(Handler.class));
+        captor.getValue().onAuthenticationPossible(DISPLAY_ID, true);
 
-        DisplayDeviceConfig ddcMock = mock(DisplayDeviceConfig.class);
-        when(ddcMock.getDefaultLowRefreshRate()).thenReturn(50);
-        when(ddcMock.getDefaultHighRefreshRate()).thenReturn(55);
-        when(ddcMock.getLowDisplayBrightnessThresholds()).thenReturn(new int[]{25});
-        when(ddcMock.getLowAmbientBrightnessThresholds()).thenReturn(new int[]{30});
-        when(ddcMock.getHighDisplayBrightnessThresholds()).thenReturn(new int[]{210});
-        when(ddcMock.getHighAmbientBrightnessThresholds()).thenReturn(new int[]{2100});
+        Vote vote = director.getVote(DISPLAY_ID, Vote.PRIORITY_AUTH_OPTIMIZER_RENDER_FRAME_RATE);
+        assertThat(vote.refreshRateRange.min).isWithin(FLOAT_TOLERANCE).of(90);
+        assertThat(vote.refreshRateRange.max).isWithin(FLOAT_TOLERANCE).of(90);
+    }
 
-        Resources resMock = mock(Resources.class);
-        when(resMock.getInteger(
-                com.android.internal.R.integer.config_displayWhiteBalanceBrightnessFilterHorizon))
-                .thenReturn(3);
-        ArgumentCaptor<TypedValue> valueArgumentCaptor = ArgumentCaptor.forClass(TypedValue.class);
-        doAnswer((Answer<Void>) invocation -> {
-            valueArgumentCaptor.getValue().type = 4;
-            valueArgumentCaptor.getValue().data = 13;
-            return null;
-        }).when(resMock).getValue(anyInt(), valueArgumentCaptor.capture(), eq(true));
-        when(mContext.getResources()).thenReturn(resMock);
+    @Test
+    public void testAuthenticationPossibleUnsetsVote() throws RemoteException {
+        DisplayModeDirector director =
+                createDirectorFromRefreshRateArray(new float[]{60.0f, 90.0f}, 0);
+        director.start(createMockSensorManager());
+        director.onBootCompleted();
+        ArgumentCaptor<IUdfpsHbmListener> captor =
+                ArgumentCaptor.forClass(IUdfpsHbmListener.class);
+        verify(mStatusBarMock).setUdfpsHbmListener(captor.capture());
+        captor.getValue().onAuthenticationPossible(DISPLAY_ID, true);
+        captor.getValue().onAuthenticationPossible(DISPLAY_ID, false);
 
-        director.defaultDisplayDeviceUpdated(ddcMock);
+        Vote vote = director.getVote(DISPLAY_ID, Vote.PRIORITY_AUTH_OPTIMIZER_RENDER_FRAME_RATE);
+        assertNull(vote);
+    }
 
-        verify(sensorManager).unregisterListener(any(SensorEventListener.class));
-        verify(sensorManager).registerListener(any(SensorEventListener.class),
-                eq(lightSensorTwo), anyInt(), any(Handler.class));
+    @Test
+    public void testUdfpsRequestSetsPhysicalRateRangesToMax() throws RemoteException {
+        DisplayModeDirector director =
+                createDirectorFromRefreshRateArray(new float[]{60.0f, 90.0f}, 0);
+        // don't call director.start(createMockSensorManager());
+        // DisplayObserver will reset mSupportedModesByDisplay
+        director.onBootCompleted();
+        ArgumentCaptor<IUdfpsHbmListener> captor =
+                ArgumentCaptor.forClass(IUdfpsHbmListener.class);
+        verify(mStatusBarMock).setUdfpsHbmListener(captor.capture());
+
+        captor.getValue().onHbmEnabled(DISPLAY_ID);
+
+        Vote vote = director.getVote(DISPLAY_ID, Vote.PRIORITY_UDFPS);
+        assertThat(vote.refreshRateRange.min).isWithin(FLOAT_TOLERANCE).of(90);
+        assertThat(vote.refreshRateRange.max).isWithin(FLOAT_TOLERANCE).of(90);
+    }
+
+    @Test
+    public void testUdfpsRequestUnsetsUnsetsVote() throws RemoteException {
+        DisplayModeDirector director =
+                createDirectorFromRefreshRateArray(new float[]{60.0f, 90.0f}, 0);
+        director.start(createMockSensorManager());
+        director.onBootCompleted();
+        ArgumentCaptor<IUdfpsHbmListener> captor =
+                ArgumentCaptor.forClass(IUdfpsHbmListener.class);
+        verify(mStatusBarMock).setUdfpsHbmListener(captor.capture());
+        captor.getValue().onHbmEnabled(DISPLAY_ID);
+        captor.getValue().onHbmEnabled(DISPLAY_ID);
+
+        Vote vote = director.getVote(DISPLAY_ID, Vote.PRIORITY_UDFPS);
+        assertNull(vote);
     }
 
     private Temperature getSkinTemp(@Temperature.ThrottlingStatus int status) {
