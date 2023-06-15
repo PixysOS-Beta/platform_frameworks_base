@@ -58,7 +58,7 @@ public class PowerShareTile extends QSTileImpl<BooleanState>
     private NotificationManager mNotificationManager;
     private Notification mNotification;
     public static final String TILE_SPEC = "powershare";
-    private static final String CHANNEL_ID = "powershare";
+    private static final String CHANNEL_ID = "TILE_SPEC";
     private static final int NOTIFICATION_ID = 273298;
 
     @Inject
