@@ -65,7 +65,8 @@ public class PixelPropsUtils {
             "com.google.android.apps.privacy.wildlife",
             "com.google.android.apps.wallpaper.pixel",
             "com.google.android.apps.wallpaper",
-            "com.google.android.apps.subscriptions.red"
+            "com.google.android.apps.subscriptions.red",
+            "com.google.android.apps.emojiwallpaper"
     };
 
    private static final String[] packagesToChangePixel6Pro = {
