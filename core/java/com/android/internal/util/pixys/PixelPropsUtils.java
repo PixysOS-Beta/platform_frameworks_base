@@ -74,7 +74,8 @@ public class PixelPropsUtils {
             "com.google.android.gms",
             "com.google.android.googlequicksearchbox",
             "com.google.android.inputmethod.latin",
-            "com.google.android.as"
+            "com.google.android.as",
+            "com.android.vending"
     };
 
     private static final String[] packagesToChangePixelXL = {
@@ -93,7 +94,6 @@ public class PixelPropsUtils {
 
     private static final String[] extraPackagesToChange = {
             "com.android.chrome",
-            "com.android.vending",
             "com.breel.wallpapers20",
             "com.nhs.online.nhsonline",
             "com.netflix.mediaclient",
