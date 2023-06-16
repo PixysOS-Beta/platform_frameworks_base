@@ -260,7 +260,6 @@ public class PixelPropsUtils {
                 return;
             } else if (packageName.equals("com.android.vending")) {
                 sIsFinsky = true;
-                return;
             } else {
                 if (Arrays.asList(packagesToChangePixel7Pro).contains(packageName)) {
                     propsToChange.putAll(propsToChangePixel7Pro);
