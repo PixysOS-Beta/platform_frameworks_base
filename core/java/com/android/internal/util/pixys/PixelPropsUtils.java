@@ -53,6 +53,7 @@ public class PixelPropsUtils {
     private static final Map<String, Object> propsToChangePixel6Pro;
     private static final Map<String, Object> propsToChangePixel5;
     private static final Map<String, Object> propsToChangePixelXL;
+    private static final Map<String, Object> propsToChangePixelTablet;
     private static final Map<String, Object> propsToChangeROG1;
     private static final Map<String, Object> propsToChangeXP5;
     private static final Map<String, Object> propsToChangeOP8P;
@@ -69,9 +70,12 @@ public class PixelPropsUtils {
             "com.google.pixel.livewallpaper"
     };
 
-   private static final String[] packagesToChangePixel6Pro = {
-            "com.google.android.apps.googleassistant",
+    private static final String[] packagesToChangePixelTablet = {   
             "com.google.android.googlequicksearchbox",
+            "com.google.android.apps.googleassistant",
+    };
+
+   private static final String[] packagesToChangePixel6Pro = {
             "com.google.android.inputmethod.latin",
             "com.google.android.as",
             "com.google.android.wallpaper.effects",
@@ -183,6 +187,13 @@ public class PixelPropsUtils {
     static {
         propsToKeep = new HashMap<>();
         propsToKeep.put("com.google.android.settings.intelligence", new ArrayList<>(Collections.singletonList("FINGERPRINT")));
+        propsToChangePixelTablet = new HashMap<>();
+        propsToChangePixelTablet.put("BRAND", "google");
+        propsToChangePixelTablet.put("MANUFACTURER", "Google");
+        propsToChangePixelTablet.put("DEVICE", "tangorpro");
+        propsToChangePixelTablet.put("PRODUCT", "tangorpro");
+        propsToChangePixelTablet.put("MODEL", "Pixel Tablet");
+        propsToChangePixelTablet.put("FINGERPRINT", "google/tangorpro/tangorpro:13/TQ3A.230605.009.A1/10100517:user/release-keys");
         propsToChangePixel7Pro = new HashMap<>();
         propsToChangePixel7Pro.put("BRAND", "google");
         propsToChangePixel7Pro.put("MANUFACTURER", "Google");
@@ -311,6 +322,8 @@ public class PixelPropsUtils {
                     propsToChange.putAll(propsToChangePixel7Pro);
                 } else if (Arrays.asList(packagesToChangePixelXL).contains(packageName)) {
                     propsToChange.putAll(propsToChangePixelXL);
+                } else if (Arrays.asList(packagesToChangePixelTablet).contains(packageName)) {
+                    propsToChange.putAll(propsToChangePixelTablet);
                 } else if (Arrays.asList(packagesToChangePixel6Pro).contains(packageName)) {
                     propsToChange.putAll(propsToChangePixel6Pro);
                 } else {
