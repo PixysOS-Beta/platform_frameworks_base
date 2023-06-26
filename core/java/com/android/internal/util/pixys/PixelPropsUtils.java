@@ -43,6 +43,8 @@ public class PixelPropsUtils {
     private static final String TAG = PixelPropsUtils.class.getSimpleName();
     private static final String DEVICE = "ro.pixys.device";
 
+    private static final String SAMSUNG = "com.samsung.";
+
     private static final String PACKAGE_GMS = "com.google.android.gms";
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
             "com.google.android.gms/.auth.uiflows.minutemaid.MinuteMaidActivity");
@@ -63,65 +65,56 @@ public class PixelPropsUtils {
     private static final Map<String, ArrayList<String>> propsToKeep;
 
     private static final String[] packagesToChangePixel7Pro = {
-            "com.google.android.apps.privacy.wildlife",
             "com.google.android.apps.wallpaper.pixel",
             "com.google.android.apps.wallpaper",
-            "com.google.android.apps.subscriptions.red",
-            "com.google.pixel.livewallpaper"
+            "com.google.pixel.livewallpaper",
+            "com.google.android.wallpaper.effects",
+            "com.google.android.apps.emojiwallpaper"
     };
 
    private static final String[] packagesToChangePixel6Pro = {
+            "com.google.android.gms",
             "com.google.android.apps.googleassistant",
             "com.google.android.googlequicksearchbox",
             "com.google.android.inputmethod.latin",
-            "com.google.android.as",
-            "com.google.android.wallpaper.effects",
-            "com.google.android.apps.emojiwallpaper",
+            "com.google.android.as"
     };
 
     private static final String[] packagesToChangePixelXL = {
-            "com.samsung.accessory",
-            "com.samsung.accessory.fridaymgr",
-            "com.samsung.accessory.berrymgr",
-            "com.samsung.accessory.neobeanmgr",
-            "com.samsung.android.app.watchmanager",
-            "com.samsung.android.geargplugin",
-            "com.samsung.android.gearnplugin",
-            "com.samsung.android.modenplugin",
-            "com.samsung.android.neatplugin",
-            "com.samsung.android.waterplugin",
-            "com.snapchat.android"
-    };
-
-    private static final String[] extraPackagesToChange = {
-            "com.android.chrome",
-            "com.android.vending",
-            "com.breel.wallpapers20",
-            "com.nhs.online.nhsonline",
-            "com.netflix.mediaclient",
+            "com.snapchat.android",
             "com.nothing.smartcenter"
     };
 
+    private static final String[] extraPackagesToChange = {
+            "com.android.vending",
+            "com.android.chrome",
+            "com.breel.wallpapers20",
+            "com.microsoft.android.smsorganizer",
+            "com.nhs.online.nhsonline",
+            "com.amazon.avod.thirdpartyclient",
+            "com.disney.disneyplus",
+            "com.netflix.mediaclient",
+            "in.startv.hotstar"
+    };
+
     private static final String[] packagesToKeep = {
-            "com.google.android.GoogleCamera",
-            "com.google.android.GoogleCamera.Cameight",
-            "com.google.android.GoogleCamera.Go",
-            "com.google.android.GoogleCamera.Urnyx",
-            "com.google.android.GoogleCameraAsp",
-            "com.google.android.GoogleCameraCVM",
-            "com.google.android.GoogleCameraEng",
-            "com.google.android.GoogleCameraEng2",
-            "com.google.android.GoogleCameraGood",
-            "com.google.android.MTCL83",
-            "com.google.android.UltraCVM",
-            "com.google.android.apps.cameralite",
-            "com.google.android.dialer",
             "com.google.android.euicc",
             "com.google.ar.core",
             "com.google.android.youtube",
             "com.google.android.apps.youtube.kids",
             "com.google.android.apps.youtube.music",
-            "com.google.android.apps.recorder"
+            "com.google.android.apps.wearables.maestro.companion",
+            "com.google.android.apps.subscriptions.red",
+            "com.google.android.apps.tachyon",
+            "com.google.android.apps.tycho",
+            "it.ingdirect.app",
+            "com.google.android.apps.nexuslauncher"
+    };
+
+    private static final String[] customGoogleCameraPackages = {
+            "com.google.android.MTCL83",
+            "com.google.android.UltraCVM",
+            "com.google.android.apps.cameralite"
     };
 
     private static final String[] packagesToChangeROG1 = {
@@ -167,6 +160,7 @@ public class PixelPropsUtils {
 
     // Codenames for currently supported Pixels by Google
     private static final String[] pixelCodenames = {
+            "lynx",
             "cheetah",
             "panther",
             "bluejay",
@@ -240,13 +234,15 @@ public class PixelPropsUtils {
         propsToChangeK30U.put("MANUFACTURER", "Xiaomi");
     }
 
+    private static boolean isGoogleCameraPackage(String packageName){
+        return packageName.startsWith("com.google.android.GoogleCamera") ||
+            Arrays.asList(customGoogleCameraPackages).contains(packageName);
+    }
+
     public static void setProps(String packageName) {
         propsToChangeGeneric.forEach((k, v) -> setPropValue(k, v));
 
         if (packageName == null || packageName.isEmpty()) {
-            return;
-        }
-        if (Arrays.asList(packagesToKeep).contains(packageName)) {
             return;
         }
 
@@ -292,6 +288,8 @@ public class PixelPropsUtils {
         }
 
         if (packageName.startsWith("com.google.")
+                || packageName.startsWith(SAMSUNG)
+                || Arrays.asList(packagesToChangePixelXL).contains(packageName)
                 || Arrays.asList(extraPackagesToChange).contains(packageName)) {
 
             boolean isPixelDevice = Arrays.asList(pixelCodenames).contains(SystemProperties.get(DEVICE));
@@ -305,19 +303,22 @@ public class PixelPropsUtils {
                     propsToChange.putAll(propsToChangePixelXL);
                 } else {
                     if (isPixelDevice) return;
-                    propsToChange.putAll(propsToChangePixel5);
+                    propsToChange.putAll(propsToChangePixel6Pro);
                 }
             } else if (isPixelDevice) {
                 return;
             } else {
-                if (Arrays.asList(packagesToChangePixel7Pro).contains(packageName)) {
-                    propsToChange.putAll(propsToChangePixel7Pro);
-                } else if (Arrays.asList(packagesToChangePixelXL).contains(packageName)) {
-                    propsToChange.putAll(propsToChangePixelXL);
-                } else if (Arrays.asList(packagesToChangePixel6Pro).contains(packageName)) {
-                    propsToChange.putAll(propsToChangePixel6Pro);
-                } else {
-                    propsToChange.putAll(propsToChangePixel5);
+            if (Arrays.asList(packagesToChangePixelXL).contains(packageName)) {
+                if (isPixelDevice) return;
+                propsToChange.putAll(propsToChangePixelXL);
+            } else if (Arrays.asList(packagesToChangePixel7Pro).contains(packageName)) {
+                if (isPixelDevice) return;
+                propsToChange.putAll(propsToChangePixel7Pro);
+           } else if (Arrays.asList(packagesToChangePixel6Pro).contains(packageName)) {
+                if (isPixelDevice) return;
+                propsToChange.putAll(propsToChangePixel6Pro);
+            } else {
+                propsToChange.putAll(propsToChangePixel5);
                 }
             }
 
