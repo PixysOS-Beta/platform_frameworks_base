@@ -1223,7 +1223,7 @@ public class SettingsProvider extends ContentProvider {
             String globalSettingValue = persistentValue ? "1" : "0";
             mSettingsRegistry.insertSettingLocked(SETTINGS_TYPE_GLOBAL,
                     UserHandle.USER_SYSTEM, Settings.Global.DEVICE_CONFIG_SYNC_DISABLED,
-                    globalSettingValue, /*tag=*/null, /*makeDefault=*/false,
+                    globalSettingValue, /*tag=*/null, /*makeDefault=*/true,
                     SettingsState.SYSTEM_PACKAGE_NAME, /*forceNotify=*/false,
                     /*criticalSettings=*/null, Settings.DEFAULT_OVERRIDEABLE_BY_RESTORE);
         } finally {
