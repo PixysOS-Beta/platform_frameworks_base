@@ -24,4 +24,9 @@
     <!-- Define device configs on boot -->
     <java-symbol type="array" name="global_device_configs_override" />
     <java-symbol type="array" name="device_configs_override" />
+
+    <!-- PixelPropUtils -->
+    <java-symbol type="string" name="build_device" />
+    <java-symbol type="string" name="build_fp" />
+    <java-symbol type="string" name="build_model" />
 </resources>
