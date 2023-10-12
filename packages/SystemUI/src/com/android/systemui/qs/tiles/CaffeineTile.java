@@ -48,6 +48,7 @@ import com.android.systemui.qs.QSHost;
 import com.android.systemui.qs.tileimpl.QSTileImpl;
 import com.android.systemui.R;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
+import com.android.systemui.qs.QsEventLogger
 
 import javax.inject.Inject;
 
@@ -78,6 +79,7 @@ public class CaffeineTile extends QSTileImpl<BooleanState> {
             QSHost host,
             @Background Looper backgroundLooper,
             @Main Handler mainHandler,
+            uiEventLogger QsEventLogger,
             FalsingManager falsingManager,
             MetricsLogger metricsLogger,
             StatusBarStateController statusBarStateController,
@@ -86,7 +88,7 @@ public class CaffeineTile extends QSTileImpl<BooleanState> {
             BroadcastDispatcher broadcastDispatcher,
             KeyguardStateController keyguardStateController
     ) {
-        super(host, backgroundLooper, mainHandler, falsingManager, metricsLogger,
+        super(host, backgroundLooper, mainHandler, uiEventLogger, falsingManager, metricsLogger,
                 statusBarStateController, activityStarter, qsLogger);
         mWakeLock = ((PowerManager) mContext.getSystemService(Context.POWER_SERVICE)).newWakeLock(
                 PowerManager.FULL_WAKE_LOCK, "CaffeineTile");
