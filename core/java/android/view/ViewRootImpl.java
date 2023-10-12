@@ -8809,14 +8809,6 @@ public final class ViewRootImpl implements ViewParent,
             mOnBackInvokedDispatcher.detachFromWindow();
             if (mAdded) {
                 dispatchDetachedFromWindow();
-            } else {
-                Log.w(mTag, "add view failed and remove related objects");
-
-                mAccessibilityManager.removeAccessibilityStateChangeListener(
-                        mAccessibilityInteractionConnectionManager);
-                mAccessibilityManager.removeHighTextContrastStateChangeListener(
-                        mHighContrastTextManager);
-                mDisplayManager.unregisterDisplayListener(mDisplayListener);
             }
 
             if (mAdded && !mFirst) {
