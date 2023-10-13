@@ -36,7 +36,7 @@ import com.android.systemui.qs.QSHost;
 import com.android.systemui.qs.logging.QSLogger;
 import com.android.systemui.qs.tileimpl.QSTileImpl;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
-import com.android.systemui.qs.QsEventLogger;
+import com.android.systemui.qs.QsEventLogger
 
 import java.util.List;
 
@@ -72,7 +72,7 @@ public class DataSwitchTile extends QSTileImpl<BooleanState> {
             QSHost host,
             @Background Looper backgroundLooper,
             @Main Handler mainHandler,
-            QsEventLogger uiEventLogger,
+            uiEventLogger QsEventLogger,
             FalsingManager falsingManager,
             MetricsLogger metricsLogger,
             StatusBarStateController statusBarStateController,
