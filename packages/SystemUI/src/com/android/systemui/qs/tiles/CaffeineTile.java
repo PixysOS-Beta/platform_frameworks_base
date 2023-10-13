@@ -67,7 +67,7 @@ public class CaffeineTile extends QSTileImpl<BooleanState> {
         30 * 60,  // 30 min
         -1,       // infinity
     };
-    private static final int INFINITE_DURATION_INDEX = DURATIONS.length - 1;
+    private static int mDurationEgg = 5 * 60 + 45; // 5 min 45 secs. Perfect.
     private CountDownTimer mCountdownTimer = null;
     public long mLastClickTime = -1;
     private final Receiver mReceiver = new Receiver();
@@ -152,15 +152,16 @@ public class CaffeineTile extends QSTileImpl<BooleanState> {
 
     @Override
     protected void handleLongClick(@Nullable View view) {
-        if (mWakeLock.isHeld()) {
-            if (mDuration == INFINITE_DURATION_INDEX) {
-                return;
-            }
-        } else {
+        if (!mWakeLock.isHeld()) {
             mWakeLock.acquire();
+            startCountDown(mDurationEgg);
+        } else {
+            mWakeLock.release();
+            stopCountDown();
+            // turn it off
+            mDuration = -1;
         }
-        mDuration = INFINITE_DURATION_INDEX;
-        startCountDown(DURATIONS[INFINITE_DURATION_INDEX]);
+        mLastClickTime = SystemClock.elapsedRealtime();
         refreshState();
     }
 
