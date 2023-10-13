@@ -41,7 +41,6 @@ import com.android.systemui.qs.QSHost;
 import com.android.systemui.qs.logging.QSLogger;
 import com.android.systemui.qs.tileimpl.QSTileImpl;
 import com.android.systemui.statusbar.policy.BatteryController;
-import com.android.systemui.qs.QsEventLogger;
 
 import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
 
@@ -65,7 +64,6 @@ public class PowerShareTile extends QSTileImpl<BooleanState>
     @Inject
     public PowerShareTile(
             QSHost host,
-            uiEventLogger: QsEventLogger,
             @Background Looper backgroundLooper,
             @Main Handler mainHandler,
             FalsingManager falsingManager,
@@ -74,7 +72,7 @@ public class PowerShareTile extends QSTileImpl<BooleanState>
             ActivityStarter activityStarter,
             QSLogger qsLogger,
             BatteryController batteryController) {
-        super(host, uiEventLogger, backgroundLooper, mainHandler, falsingManager, metricsLogger,
+        super(host, backgroundLooper, mainHandler, falsingManager, metricsLogger,
                 statusBarStateController, activityStarter, qsLogger);
         mPowerShare = getPowerShare();
         if (mPowerShare == null) {
