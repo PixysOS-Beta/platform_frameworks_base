@@ -65,7 +65,7 @@ public class PowerShareTile extends QSTileImpl<BooleanState>
     @Inject
     public PowerShareTile(
             QSHost host,
-            uiEventLogger: QsEventLogger,
+            QsEventLogger uiEventLogger,
             @Background Looper backgroundLooper,
             @Main Handler mainHandler,
             FalsingManager falsingManager,
