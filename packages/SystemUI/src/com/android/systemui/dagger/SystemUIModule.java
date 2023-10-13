@@ -66,7 +66,6 @@ import com.android.systemui.motiontool.MotionToolModule;
 import com.android.systemui.navigationbar.NavigationBarComponent;
 import com.android.systemui.notetask.NoteTaskModule;
 import com.android.systemui.pixys.CaffeineModule;
-import com.android.systemui.pixys.HeadsUpModule;
 import com.android.systemui.people.PeopleModule;
 import com.android.systemui.plugins.BcSmartspaceConfigPlugin;
 import com.android.systemui.plugins.BcSmartspaceDataPlugin;
@@ -185,7 +184,6 @@ import javax.inject.Named;
             DemoModeModule.class,
             FalsingModule.class,
             FlagsModule.class,
-	    HeadsUpModule.class,
             SystemPropertiesFlagsModule.class,
             FooterActionsModule.class,
             GarbageMonitorModule.class,
