@@ -268,6 +268,17 @@ object Flags {
     @JvmField
     val KEYGUARD_TALKBACK_FIX = releasedFlag(238, "keyguard_talkback_fix")
 
+    /** Stop running face auth when the display state changes to OFF. */
+    // TODO(b/294221702): Tracking bug.
+    @JvmField val STOP_FACE_AUTH_ON_DISPLAY_OFF = resourceBooleanFlag(245,
+            R.bool.flag_stop_face_auth_on_display_off, "stop_face_auth_on_display_off")
+
+    /** Flag to disable the face scanning animation pulsing. */
+    // TODO(b/295245791): Tracking bug.
+    @JvmField val STOP_PULSING_FACE_SCANNING_ANIMATION = resourceBooleanFlag(246,
+            R.bool.flag_stop_pulsing_face_scanning_animation,
+            "stop_pulsing_face_scanning_animation")
+
     // 300 - power menu
     // TODO(b/254512600): Tracking Bug
     @JvmField val POWER_MENU_LITE = releasedFlag(300, "power_menu_lite")

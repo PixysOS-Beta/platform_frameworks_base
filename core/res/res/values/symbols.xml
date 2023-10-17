@@ -2207,6 +2207,7 @@
   <java-symbol type="array" name="config_supportedDreamComplications" />
   <java-symbol type="array" name="config_disabledDreamComponents" />
   <java-symbol type="bool" name="config_dismissDreamOnActivityStart" />
+  <java-symbol type="bool" name="config_resetScreenTimeoutOnUnexpectedDreamExit" />
   <java-symbol type="integer" name="config_dreamOverlayReconnectTimeoutMs" />
   <java-symbol type="integer" name="config_dreamOverlayMaxReconnectAttempts" />
   <java-symbol type="integer" name="config_minDreamOverlayDurationMs" />
@@ -2590,6 +2591,7 @@
   <java-symbol type="string" name="fingerprint_error_vendor_unknown" />
   <java-symbol type="string" name="fingerprint_error_not_match" />
   <java-symbol type="string" name="fingerprint_udfps_error_not_match" />
+  <java-symbol type="string" name="fingerprint_dialog_use_fingerprint_instead" />
   <java-symbol type="string" name="fingerprint_acquired_partial" />
   <java-symbol type="string" name="fingerprint_acquired_insufficient" />
   <java-symbol type="string" name="fingerprint_acquired_imager_dirty" />
