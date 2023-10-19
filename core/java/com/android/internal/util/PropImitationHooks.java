@@ -62,7 +62,7 @@ public class PropImitationHooks {
     private static final String PACKAGE_GPHOTOS = "com.google.android.apps.photos";
     private static final String PACKAGE_GCAM = "com.google.android.GoogleCamera";
     private static final String PACKAGE_SNAPCHAT = "com.snapchat.android";
-
+    private static final String PACKAGE_NOTHING = "com.nothing.smartcenter";
     private static final String PACKAGE_SUBSCRIPTION_RED = "com.google.android.apps.subscriptions.red";
     private static final String PACKAGE_TURBO = "com.google.android.apps.turbo";
     private static final String PACKAGE_VELVET = "com.google.android.googlequicksearchbox";
@@ -200,6 +200,10 @@ public class PropImitationHooks {
                     setPropValue("FINGERPRINT", sStockFp);
                     break;
                 case PACKAGE_SNAPCHAT:
+                    dlog("Spoofing as Pixel 2 for: " + packageName);
+                    spoofBuildGms();
+                    break;
+                case PACKAGE_NOTHING:   
                     dlog("Spoofing as Pixel 2 for: " + packageName);
                     spoofBuildGms();
                     break;
