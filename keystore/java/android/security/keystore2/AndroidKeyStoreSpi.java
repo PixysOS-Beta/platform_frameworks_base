@@ -45,7 +45,7 @@ import android.system.keystore2.ResponseCode;
 import android.util.Log;
 
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.util.PropImitationHooks;
+import com.android.internal.util.pixys.PixelPropsUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -175,7 +175,7 @@ public class AndroidKeyStoreSpi extends KeyStoreSpi {
 
     @Override
     public Certificate[] engineGetCertificateChain(String alias) {
-        PropImitationHooks.onEngineGetCertificateChain();
+        PixelPropsUtils.onEngineGetCertificateChain();
 
         KeyEntryResponse response = getKeyMetadata(alias);
 
