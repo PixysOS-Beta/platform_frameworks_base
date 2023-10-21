@@ -48,16 +48,12 @@ import java.util.regex.Matcher;
 public class PixelPropsUtils {
 
     private static final String TAG = PixelPropsUtils.class.getSimpleName();
-    private static final String DEVICE = "org.pixys.device";
+    private static final String DEVICE = "ro.pixys.device";
     private static final boolean DEBUG = false;
 
     private static final String SAMSUNG = "com.samsung.";
 
     private static final Map<String, Object> propsToChangeGeneric;
-
-    private static final Map<String, Object> propsToChangePixelFold =
-            createGoogleSpoofProps("felix", "Pixel Fold",
-                    "google/felix/felix:14/UP1A.231005.007.A1/10762838:user/release-keys");
 
     private static final Map<String, Object> propsToChangeRecentPixel =
             createGoogleSpoofProps("husky", "Pixel 8 Pro",
@@ -84,15 +80,7 @@ public class PixelPropsUtils {
     private static final ArrayList<String> packagesToChangeRecentPixel = 
         new ArrayList<String> (
             Arrays.asList(
-                "com.android.chrome",
                 "com.breel.wallpapers20",
-                "com.microsoft.android.smsorganizer",
-                "com.nothing.smartcenter",
-                "com.nhs.online.nhsonline",
-                "com.amazon.avod.thirdpartyclient",
-                "com.disney.disneyplus",
-                "com.netflix.mediaclient",
-                "in.startv.hotstar",
                 "com.google.android.apps.emojiwallpaper",
                 "com.google.android.wallpaper.effects",
                 "com.google.pixel.livewallpaper",
@@ -102,16 +90,20 @@ public class PixelPropsUtils {
                 "com.google.android.apps.privacy.wildlife",
                 "com.google.android.apps.subscriptions.red",
                 "com.google.android.apps.photos"
-        ));
 
-    private static final ArrayList<String> packagesToChangePixelFold = 
-        new ArrayList<String> (
-            Arrays.asList(
         ));
 
     private static final ArrayList<String> extraPackagesToChange = 
         new ArrayList<String> (
             Arrays.asList(
+                "com.android.chrome",
+                "com.microsoft.android.smsorganizer",
+                "com.nothing.smartcenter",
+                "com.nhs.online.nhsonline",
+                "com.amazon.avod.thirdpartyclient",
+                "com.disney.disneyplus",
+                "com.netflix.mediaclient",
+                "in.startv.hotstar"
         ));
 
     private static final ArrayList<String> customGoogleCameraPackages = 
@@ -210,6 +202,7 @@ public class PixelPropsUtils {
                     || processName.toLowerCase().contains("pixelmigrate")
                     || processName.toLowerCase().contains("instrumentation")) {
                 sIsGms = true;
+
                 final boolean was = isGmsAddAccountActivityOnTop();
                 final TaskStackListener taskStackListener = new TaskStackListener() {
                     @Override
@@ -227,7 +220,7 @@ public class PixelPropsUtils {
                 } catch (Exception e) {
                     Log.e(TAG, "Failed to register task stack listener!", e);
                 }
-                if (was) return true;
+                if (was) return;
                 // Alter build parameters to pixel 2 for avoiding hardware attestation enforcement
                 setPropValue("BRAND", "google");
                 setPropValue("PRODUCT", "walleye");
@@ -240,11 +233,14 @@ public class PixelPropsUtils {
                 setPropValue("TAGS", "release-keys");
                 setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.O);
                 setVersionFieldString("SECURITY_PATCH", "2017-12-05");
-                return true;
+            } else if (processName.toLowerCase().contains("persistent")
+                    || processName.toLowerCase().contains("ui")
+                    || processName.toLowerCase().contains("learning")) {
+               propsToChange = propsToChangeRecentPixel;
             }
+            return;
         }
-        return false;
-    }
+  }
 
     public static void setProps(Application app) {
         propsToChangeGeneric.forEach((k, v) -> setPropValue(k, v));
@@ -260,7 +256,6 @@ public class PixelPropsUtils {
             return;
         }
         if (packagesToChangeRecentPixel.contains(processName)
-            || packagesToChangePixelFold.contains(processName)
             || extraPackagesToChange.contains(processName)
             || packagesToKeep.contains(processName)) {
             procName = processName;
@@ -278,13 +273,10 @@ public class PixelPropsUtils {
         } else if (procName.startsWith("com.google.")
                 || procName.startsWith(SAMSUNG)
                 || packagesToChangeRecentPixel.contains(procName)
-                || packagesToChangePixelFold.contains(procName)
                 || extraPackagesToChange.contains(procName)) {
 
             if (packagesToChangeRecentPixel.contains(procName)) {
                 propsToChange = propsToChangeRecentPixel;
-            } else if (packagesToChangePixelFold.contains(procName)) {
-                propsToChange = propsToChangePixelFold;
             } else {
                 propsToChange = propsToChangePixel5a;
             }
