@@ -16,7 +16,6 @@
 
 package com.android.internal.util.pixys;
 
-import android.app.Application;
 import android.os.Build;
 import android.os.SystemProperties;
 import android.util.Log;
@@ -102,9 +101,7 @@ public class GamesPropsUtils {
         return map;
     }
 
-    public static void setProps(Application app) {
-        final String packageName = app.getPackageName();
-
+    public static void setProps(String packageName) {
         if (packageName == null || packageName.isEmpty()) {
             return;
         }
