@@ -14,7 +14,6 @@
 
 package com.android.systemui.statusbar.phone;
 
-import static com.android.systemui.statusbar.phone.StatusBarIconHolder.TYPE_BLUETOOTH;
 import static com.android.systemui.statusbar.phone.StatusBarIconHolder.TYPE_ICON;
 import static com.android.systemui.statusbar.phone.StatusBarIconHolder.TYPE_MOBILE;
 import static com.android.systemui.statusbar.phone.StatusBarIconHolder.TYPE_MOBILE_NEW;
@@ -43,13 +42,11 @@ import com.android.systemui.demomode.DemoModeCommandReceiver;
 import com.android.systemui.plugins.DarkIconDispatcher;
 import com.android.systemui.plugins.DarkIconDispatcher.DarkReceiver;
 import com.android.systemui.statusbar.BaseStatusBarFrameLayout;
-import com.android.systemui.statusbar.StatusBarBluetoothView;
 import com.android.systemui.statusbar.StatusBarIconView;
 import com.android.systemui.statusbar.StatusBarMobileView;
 import com.android.systemui.statusbar.StatusBarWifiView;
 import com.android.systemui.statusbar.StatusIconDisplayable;
 import com.android.systemui.statusbar.connectivity.ui.MobileContextProvider;
-import com.android.systemui.statusbar.phone.PhoneStatusBarPolicy.BluetoothIconState;
 import com.android.systemui.statusbar.phone.StatusBarSignalPolicy.CallIndicatorIconState;
 import com.android.systemui.statusbar.phone.StatusBarSignalPolicy.MobileIconState;
 import com.android.systemui.statusbar.phone.StatusBarSignalPolicy.WifiIconState;
@@ -115,8 +112,6 @@ public interface StatusBarIconController {
      */
     void setNewWifiIcon();
 
-    /** */
-    void setBluetoothIcon(String slot, BluetoothIconState state);
     /** */
     void setMobileIcons(String slot, List<MobileIconState> states);
 
@@ -483,9 +478,6 @@ public interface StatusBarIconController {
 
                 case TYPE_NETWORK_TRAFFIC:
                     return addNetworkTraffic(index, slot);
-
-                case TYPE_BLUETOOTH:
-                    return addBluetoothIcon(index, slot, holder.getBluetoothState());
             }
 
             return null;
@@ -588,14 +580,6 @@ public interface StatusBarIconController {
             return view;
         }
 
-        protected StatusBarBluetoothView addBluetoothIcon(
-                int index, String slot, BluetoothIconState state) {
-            StatusBarBluetoothView view = onCreateStatusBarBluetoothView(slot);
-            view.applyBluetoothState(state);
-            mGroup.addView(view, index, onCreateLayoutParams());
-            return view;
-        }
-
         private StatusBarIconView onCreateStatusBarIconView(String slot, boolean blocked) {
             return new StatusBarIconView(mContext, slot, null, blocked);
         }
@@ -632,11 +616,6 @@ public interface StatusBarIconController {
                             slot,
                             mMobileIconsViewModel.viewModelForSub(subId, mLocation)
                         );
-        }
-
-        private StatusBarBluetoothView onCreateStatusBarBluetoothView(String slot) {
-            StatusBarBluetoothView view = StatusBarBluetoothView.fromContext(mContext, slot);
-            return view;
         }
 
         protected LinearLayout.LayoutParams onCreateLayoutParams() {
@@ -694,9 +673,6 @@ public interface StatusBarIconController {
                 case TYPE_WIFI_NEW:
                     // Nothing, the new icons update themselves
                     return;
-                case TYPE_BLUETOOTH:
-                    onSetBluetoothIcon(viewIndex, holder.getBluetoothState());
-                    return;
                 default:
                     break;
             }
@@ -733,13 +709,6 @@ public interface StatusBarIconController {
                 Context mobileContext = mMobileContextProvider
                         .getMobileContextForSub(state.subId, mContext);
                 mDemoStatusIcons.updateMobileState(state, mobileContext);
-            }
-        }
-
-        public void onSetBluetoothIcon(int viewIndex, BluetoothIconState state) {
-            StatusBarBluetoothView view = (StatusBarBluetoothView) mGroup.getChildAt(viewIndex);
-            if (view != null) {
-                view.applyBluetoothState(state);
             }
         }
 
