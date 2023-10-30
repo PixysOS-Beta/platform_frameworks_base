@@ -72,6 +72,7 @@ import android.util.SparseBooleanArray;
 import android.util.Xml;
 import android.view.IWindowManager;
 import android.view.WindowManagerGlobal;
+import com.android.server.LocalServices;
 
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.content.PackageMonitor;
