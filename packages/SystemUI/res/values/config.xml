@@ -926,6 +926,4 @@
     <!-- Flag controlling whether visual query attention detection has been enabled. -->
     <bool name="config_enableVisualQueryAttentionDetection">false</bool>
 
-     <!-- Move status bar and navigation bar to prevent burn in when screen is powered on -->
-    <bool name="config_enableMoveSystemBars">true</bool>
 </resources>
