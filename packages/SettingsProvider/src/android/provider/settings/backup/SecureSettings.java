@@ -109,6 +109,8 @@ public class SecureSettings {
         Settings.Secure.POWER_MENU_LOCKED_SHOW_CONTENT,
         Settings.Secure.DOZE_ENABLED,
         Settings.Secure.DOZE_ALWAYS_ON,
+        Settings.Secure.DOZE_ALWAYS_ON_AUTO_MODE,
+        Settings.Secure.DOZE_ALWAYS_ON_AUTO_TIME,
         Settings.Secure.DOZE_PICK_UP_GESTURE,
         Settings.Secure.DOZE_DOUBLE_TAP_GESTURE,
         Settings.Secure.DOZE_TAP_SCREEN_GESTURE,
@@ -242,5 +244,8 @@ public class SecureSettings {
         Settings.Secure.HEARING_AID_SYSTEM_SOUNDS_ROUTING,
         Settings.Secure.ACCESSIBILITY_FONT_SCALING_HAS_BEEN_CHANGED,
         Settings.Secure.SYSTEM_BLACK_THEME,
+        Settings.Secure.DOZE_DOUBLE_TAP_GESTURE_AMBIENT,
+        Settings.Secure.DOZE_PICK_UP_GESTURE_AMBIENT,
+        Settings.Secure.DOZE_SINGLE_TAP_GESTURE_AMBIENT,
     };
 }

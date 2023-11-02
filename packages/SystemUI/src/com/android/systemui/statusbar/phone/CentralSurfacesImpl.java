@@ -236,6 +236,7 @@ import com.android.systemui.statusbar.phone.fragment.CollapsedStatusBarFragment;
 import com.android.systemui.statusbar.phone.ongoingcall.OngoingCallController;
 import com.android.systemui.statusbar.policy.BatteryController;
 import com.android.systemui.statusbar.policy.BrightnessMirrorController;
+import com.android.systemui.statusbar.policy.BurnInProtectionController;
 import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.statusbar.policy.ConfigurationController.ConfigurationListener;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController;
@@ -309,11 +310,6 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
 
     /** If true, the lockscreen will show a distinct wallpaper */
     public static final boolean ENABLE_LOCKSCREEN_WALLPAPER = true;
-
-    /**
-     * The threshold sleep time of moving system bars to avoid burn in.
-     */
-    private static final int THRESHOLD_SLEEP_TIME_MILLIS = 10000;
 
     private static final UiEventLogger sUiEventLogger = new UiEventLoggerImpl();
 
@@ -704,6 +700,8 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
 
     private final InteractionJankMonitor mJankMonitor;
 
+    private final BurnInProtectionController mBurnInProtectionController;
+
     /** Existing callback that handles back gesture invoked for the Shade. */
     private final OnBackInvokedCallback mOnBackInvokedCallback = () -> {
         if (DEBUG) {
@@ -845,7 +843,8 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
             UserTracker userTracker,
             Provider<FingerprintManager> fingerprintManager,
             ActivityStarter activityStarter,
-            TunerService tunerService
+            TunerService tunerService,
+            BurnInProtectionController burnInProtectionController
     ) {
         mContext = context;
         mNotificationsController = notificationsController;
@@ -942,6 +941,7 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
         statusBarWindowStateController.addListener(this::onStatusBarWindowStateChanged);
 
         mScreenOffAnimationController = screenOffAnimationController;
+        mBurnInProtectionController = burnInProtectionController;
 
         ShadeExpansionListener shadeExpansionListener = this::onPanelExpansionChanged;
         ShadeExpansionChangeEvent currentState =
@@ -991,9 +991,6 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
                 });
         bubbles.setExpandListener(listener);
     }
-
-    // move nav and system bar to prevent burn in at screen on
-    private boolean mIsMoveSystemBarsEnabled;
 
     @Override
     public void start() {
@@ -1218,8 +1215,6 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
                     }
                 }, OverlayPlugin.class, true /* Allow multiple plugins */);
 
-        mIsMoveSystemBarsEnabled = mContext.getResources()
-                .getBoolean(R.bool.config_enableMoveSystemBars);
         mStartingSurfaceOptional.ifPresent(startingSurface -> startingSurface.setSysuiProxy(
                 (requestTopUi, componentTag) -> mMainExecutor.execute(() ->
                         mNotificationShadeWindowController.setRequestTopUi(
@@ -1332,6 +1327,7 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
                     mShadeSurface.updateExpansionAndVisibility();
                     setBouncerShowingForStatusBarComponents(mBouncerShowing);
                     checkBarModes();
+                    mBurnInProtectionController.setPhoneStatusBarView(mStatusBarView);
                 });
         mStatusBarInitializer.initializeStatusBar(
                 mCentralSurfacesComponent::createCollapsedStatusBarFragment);
@@ -1676,6 +1672,7 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
     // Try to remove this.
     protected void createNavigationBar(@Nullable RegisterStatusBarResult result) {
         mNavigationBarController.createNavigationBars(true /* includeDefaultDisplay */, result);
+        mBurnInProtectionController.setNavigationBarView(getNavigationBarView());
     }
 
     /**
@@ -3198,8 +3195,6 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
 
     @VisibleForTesting
     final WakefulnessLifecycle.Observer mWakefulnessObserver = new WakefulnessLifecycle.Observer() {
-        private long mStartSleepTime;
-
         @Override
         public void onFinishedGoingToSleep() {
             mCameraLauncherLazy.get().setLaunchingAffordance(false);
@@ -3211,6 +3206,8 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
 
             updateNotificationPanelTouchState();
             mNotificationShadeWindowViewController.cancelCurrentTouch();
+
+            mBurnInProtectionController.stopShiftTimer();
             if (mLaunchCameraOnFinishedGoingToSleep) {
                 mLaunchCameraOnFinishedGoingToSleep = false;
 
@@ -3229,8 +3226,6 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
                         () -> mCommandQueueCallbacks.onEmergencyActionLaunchGestureDetected());
             }
             updateIsKeyguard();
-
-            mStartSleepTime = SystemClock.uptimeMillis();
         }
 
         @Override
@@ -3316,18 +3311,6 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
                 }
             });
             DejankUtils.stopDetectingBlockingIpcs(tag);
-
-            if (mIsMoveSystemBarsEnabled) {
-                mStatusBarView.moveStatusBar();
-                NavigationBarView navigationBarView =
-                        mNavigationBarController.getDefaultNavigationBarView();
-                if (SystemClock.uptimeMillis() - mStartSleepTime >= THRESHOLD_SLEEP_TIME_MILLIS) {
-                    mStatusBarView.moveStatusBar();
-                    if (navigationBarView != null) {
-                        navigationBarView.moveNavigationBar();
-                    }
-                }
-            }
         }
 
         /**
@@ -3385,6 +3368,7 @@ public class CentralSurfacesImpl implements CoreStartable, TunerService.Tunable,
                 }
             }
             updateScrimController();
+            mBurnInProtectionController.startShiftTimer();
         }
     };
 

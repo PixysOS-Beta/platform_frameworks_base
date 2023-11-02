@@ -72,6 +72,7 @@ import com.android.systemui.navigationbar.buttons.KeyButtonDrawable;
 import com.android.systemui.navigationbar.buttons.NearestTouchFrame;
 import com.android.systemui.navigationbar.buttons.RotationContextButton;
 import com.android.systemui.navigationbar.gestural.EdgeBackGestureHandler;
+import com.android.systemui.navigationbar.gestural.NavigationHandle;
 import com.android.systemui.recents.Recents;
 import com.android.systemui.settings.DisplayTracker;
 import com.android.systemui.shade.ShadeViewController;
@@ -82,6 +83,11 @@ import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.statusbar.phone.AutoHideController;
 import com.android.systemui.statusbar.phone.CentralSurfaces;
 import com.android.systemui.statusbar.phone.LightBarTransitionsController;
+<<<<<<< HEAD
+=======
+import com.android.systemui.tuner.TunerService;
+import com.android.systemui.statusbar.policy.Offset;
+>>>>>>> 0f419bc52934 (SystemUI: Implement burn-in protection for status/navbar)
 import com.android.wm.shell.back.BackAnimation;
 import com.android.wm.shell.pip.Pip;
 
@@ -177,11 +183,17 @@ public class NavigationBarView extends FrameLayout {
     private boolean mShowSwipeUpUi;
     private UpdateActiveTouchRegionsCallback mUpdateActiveTouchRegionsCallback;
 
-    private final int mNavigationBarPaddingX;
-    private final int mNavigationBarPaddingY;
-    private View mCenterGroup;
-    private View mEndsGroup;
+<<<<<<< HEAD
+=======
+    private boolean mShowCursorKeys;
+    private boolean mImeVisible;
 
+    private boolean mBlockedGesturalNavigation;
+
+    @Nullable
+    private ViewGroup mNavigationBarContents = null;
+
+>>>>>>> 0f419bc52934 (SystemUI: Implement burn-in protection for status/navbar)
     private class NavTransitionListener implements TransitionListener {
         private boolean mBackTransitioning;
         private boolean mHomeAppearing;
@@ -329,11 +341,6 @@ public class NavigationBarView extends FrameLayout {
         mButtonDispatchers.put(R.id.accessibility_button, accessibilityButton);
         mButtonDispatchers.put(R.id.menu_container, mContextualButtonGroup);
         mDeadZone = new DeadZone(this);
-
-        mNavigationBarPaddingX = context.getResources().getDimensionPixelSize(
-                R.dimen.navigationbar_burn_in_prevention_padding_x_max);
-        mNavigationBarPaddingY = context.getResources().getDimensionPixelSize(
-                R.dimen.navigationbar_burn_in_prevention_padding_y_max);
     }
 
     public void setEdgeBackGestureHandler(EdgeBackGestureHandler edgeBackGestureHandler) {
@@ -861,17 +868,33 @@ public class NavigationBarView extends FrameLayout {
         mContextualButtonGroup.setButtonVisibility(R.id.accessibility_button, visible);
     }
 
+    public void offsetNavBar(Offset offset) {
+        if (isGesturalMode(mNavBarMode)) {
+            final NavigationHandle handle = (NavigationHandle) getHomeHandle().getCurrentView();
+            if (handle != null) {
+                handle.setTranslationY(offset.getY());
+                handle.invalidate();
+            }
+            return;
+        }
+        if (mNavigationBarContents == null) {
+            return;
+        }
+        mNavigationBarContents.setTranslationX(offset.getX());
+        mNavigationBarContents.setTranslationY(offset.getY());
+        invalidate();
+    }
+
     @Override
     public void onFinishInflate() {
         super.onFinishInflate();
         mNavigationInflaterView = findViewById(R.id.navigation_inflater);
         mNavigationInflaterView.setButtonDispatchers(mButtonDispatchers);
 
+        mNavigationBarContents = (ViewGroup) findViewById(R.id.nav_buttons);
+
         updateOrientationViews();
         reloadNavIcons();
-
-        mCenterGroup = getCurrentView().findViewById(R.id.center_group);
-        mEndsGroup = getCurrentView().findViewById(R.id.ends_group);
     }
 
     @Override
@@ -885,8 +908,6 @@ public class NavigationBarView extends FrameLayout {
         super.onLayout(changed, left, top, right, bottom);
 
         notifyActiveTouchRegions();
-        mCenterGroup = getCurrentView().findViewById(R.id.center_group);
-        mEndsGroup = getCurrentView().findViewById(R.id.ends_group);
     }
 
     /**
@@ -1233,34 +1254,6 @@ public class NavigationBarView extends FrameLayout {
         mEdgeBackGestureHandler.setPipStashExclusionBounds(bounds);
     });
 
-
-    /**
-     *  Moves the Navigation bar to prevent burn in, called if
-     *  config_enableMoveSystemBars is enabled
-     */
-    public final void moveNavigationBar() {
-        int navigationBarPaddingX = (int) (Math.random() * mNavigationBarPaddingX);
-        int navigationBarPaddingY = (int) (Math.random() * mNavigationBarPaddingY);
-
-        if (isVertical()) {
-            int tmp = navigationBarPaddingX;
-            navigationBarPaddingX = navigationBarPaddingY;
-            navigationBarPaddingY = tmp;
-        }
-
-        // Move NavigationBar to right-down side or left-up side with a half probability
-        if ((System.currentTimeMillis() % 2) > 0) {
-            mCenterGroup.setPaddingRelative(navigationBarPaddingX, navigationBarPaddingY,
-                    -navigationBarPaddingX, -navigationBarPaddingY);
-            mEndsGroup.setPaddingRelative(navigationBarPaddingX, navigationBarPaddingY,
-                    -navigationBarPaddingX, -navigationBarPaddingY);
-        } else {
-            mCenterGroup.setPaddingRelative(-navigationBarPaddingX, -navigationBarPaddingY,
-                    navigationBarPaddingX, navigationBarPaddingY);
-            mEndsGroup.setPaddingRelative(-navigationBarPaddingX, -navigationBarPaddingY,
-                    navigationBarPaddingX, navigationBarPaddingY);
-        }
-    }
 
     interface UpdateActiveTouchRegionsCallback {
         void update();
