@@ -11658,12 +11658,6 @@ public final class Settings {
                 "com.android.server.display.HBM_SETTING_KEY";
 
         /**
-         * Whether to turn on black theme
-         * @hide
-         */
-        public static final String SYSTEM_BLACK_THEME = "system_black_theme";
-
-        /**
          * Our GameSpace can't write to device_config directly [GTS]
          * Use this as intermediate to pass device_config property
          * from our GameSpace to com.android.server.app.GameManagerService
