@@ -83,11 +83,7 @@ import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.statusbar.phone.AutoHideController;
 import com.android.systemui.statusbar.phone.CentralSurfaces;
 import com.android.systemui.statusbar.phone.LightBarTransitionsController;
-<<<<<<< HEAD
-=======
-import com.android.systemui.tuner.TunerService;
 import com.android.systemui.statusbar.policy.Offset;
->>>>>>> 0f419bc52934 (SystemUI: Implement burn-in protection for status/navbar)
 import com.android.wm.shell.back.BackAnimation;
 import com.android.wm.shell.pip.Pip;
 
@@ -183,17 +179,10 @@ public class NavigationBarView extends FrameLayout {
     private boolean mShowSwipeUpUi;
     private UpdateActiveTouchRegionsCallback mUpdateActiveTouchRegionsCallback;
 
-<<<<<<< HEAD
-=======
-    private boolean mShowCursorKeys;
-    private boolean mImeVisible;
-
-    private boolean mBlockedGesturalNavigation;
 
     @Nullable
     private ViewGroup mNavigationBarContents = null;
 
->>>>>>> 0f419bc52934 (SystemUI: Implement burn-in protection for status/navbar)
     private class NavTransitionListener implements TransitionListener {
         private boolean mBackTransitioning;
         private boolean mHomeAppearing;
