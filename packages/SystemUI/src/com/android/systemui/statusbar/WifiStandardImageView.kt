@@ -63,6 +63,9 @@ class WifiStandardImageView @JvmOverloads constructor(
             override fun onAvailable(network: Network) {
                 val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
                 networkCapabilities?.let { setWifiStandard(it) }
+                post {
+                    visibility = if (wifiStandardEnabled) VISIBLE else GONE
+                }
             }
             override fun onLost(network: Network) {
                 post {
@@ -85,7 +88,6 @@ class WifiStandardImageView @JvmOverloads constructor(
             if (identifier > 0) {
                 post {
                     setImageDrawable(context.getDrawable(identifier))
-                    visibility = VISIBLE
                 }
             }
         }
