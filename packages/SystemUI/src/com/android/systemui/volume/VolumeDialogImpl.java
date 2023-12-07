@@ -26,7 +26,6 @@ import static android.media.AudioManager.STREAM_MUSIC;
 import static android.media.AudioManager.STREAM_NOTIFICATION;
 import static android.media.AudioManager.STREAM_RING;
 import static android.media.AudioManager.STREAM_VOICE_CALL;
-import static android.provider.Settings.System.VOLUME_PANEL_ON_LEFT;
 import static android.view.View.ACCESSIBILITY_LIVE_REGION_POLITE;
 import static android.view.View.GONE;
 import static android.view.View.INVISIBLE;
@@ -58,7 +57,6 @@ import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.database.ContentObserver;
 import android.graphics.Color;
 import android.graphics.Outline;
 import android.graphics.PixelFormat;
@@ -76,7 +74,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.os.Trace;
-import android.os.UserHandle;
 import android.os.VibrationEffect;
 import android.provider.Settings;
 import android.provider.Settings.Global;
@@ -290,9 +287,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
     private ViewStub mODICaptionsTooltipViewStub;
     private View mODICaptionsTooltipView = null;
 
-    // Volume panel placement left or right
-    private boolean mVolumePanelOnLeft;
-
     private final boolean mUseBackgroundBlur;
     private Consumer<Boolean> mCrossWindowBlurEnabledListener;
     private BackgroundBlurDrawable mDialogRowsViewBackground;
@@ -316,38 +310,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
     private VolumeRow mDefaultRow = null;
 
     private FrameLayout mRoundedBorderBottom;
-
-    private final SettingsObserver mSettingsObserver = new SettingsObserver();
-    private class SettingsObserver extends ContentObserver {
-        SettingsObserver() {
-            super(mHandler);
-        }
-
-        void observe() {
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(VOLUME_PANEL_ON_LEFT),
-                    false, this, UserHandle.USER_ALL);
-        }
-
-        void stop() {
-            mContext.getContentResolver().unregisterContentObserver(this);
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            update();
-        }
-
-        void update() {
-            final boolean def = mContext.getResources().getBoolean(
-                    R.bool.config_audioPanelOnLeftSide);
-            mVolumePanelOnLeft = Settings.System.getInt(mContext.getContentResolver(),
-                    VOLUME_PANEL_ON_LEFT, def ? 1 : 0) == 1;
-            mHandler.post(() -> {
-                mControllerCallbackH.onConfigurationChanged();
-            });
-        }
-    }
 
     public VolumeDialogImpl(
             Context context,
@@ -410,11 +372,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
             };
         }
 
-        if (!mShowActiveStreamOnly) {
-            mSettingsObserver.observe();
-            mSettingsObserver.update();
-        }
-
         initDimens();
 
         mOrientation = mContext.getResources().getConfiguration().orientation;
@@ -474,7 +431,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
         if (mDevicePostureController != null) {
             mDevicePostureController.removeCallback(mDevicePostureControllerCallback);
         }
-        if (!mShowActiveStreamOnly) mSettingsObserver.stop();
     }
 
     @Override
@@ -506,8 +462,8 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
         final int[] locInWindow = new int[2];
         view.getLocationInWindow(locInWindow);
 
-        float xExtraSize = 0;
-        float yExtraSize = 0;
+        float x = locInWindow[0];
+        float y = locInWindow[1];
 
         // The ringer and rows container has extra height at the top to fit the expanded ringer
         // drawer. This area should not be touchable unless the ringer drawer is open.
@@ -515,27 +471,18 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
         // are multiple rows they are touchable.
         if (view == mTopContainer && !mIsRingerDrawerOpen) {
             if (!isLandscape()) {
-                yExtraSize += getRingerDrawerOpenExtraSize();
+                y += getRingerDrawerOpenExtraSize();
             } else if (getRingerDrawerOpenExtraSize() > getVisibleRowsExtraSize()) {
-                xExtraSize += (getRingerDrawerOpenExtraSize() - getVisibleRowsExtraSize());
+                x += (getRingerDrawerOpenExtraSize() - getVisibleRowsExtraSize());
             }
         }
 
-        if (mVolumePanelOnLeft && isLandscape()) {
-            mTouchableRegion.op(
-                    locInWindow[0],
-                    locInWindow[1],
-                    locInWindow[0] + view.getWidth() - (int) xExtraSize,
-                    locInWindow[1] + view.getHeight(),
-                    Region.Op.UNION);
-        } else {
-            mTouchableRegion.op(
-                    locInWindow[0] + (int) xExtraSize,
-                    locInWindow[1] + (int) yExtraSize,
-                    locInWindow[0] + view.getWidth(),
-                    locInWindow[1] + view.getHeight(),
-                    Region.Op.UNION);
-        }
+        mTouchableRegion.op(
+                (int) x,
+                (int) y,
+                locInWindow[0] + view.getWidth(),
+                locInWindow[1] + view.getHeight(),
+                Region.Op.UNION);
     }
 
     private void initDialog(int lockTaskModeState) {
@@ -568,11 +515,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
         mWindowGravity = Gravity.getAbsoluteGravity(mOriginalGravity,
                 mContext.getResources().getConfiguration().getLayoutDirection());
         lp.gravity = mWindowGravity;
-
-        if (!mShowActiveStreamOnly) {
-            lp.gravity &= ~(Gravity.LEFT | Gravity.RIGHT);
-            lp.gravity |= mVolumePanelOnLeft ? Gravity.LEFT : Gravity.RIGHT;
-        }
 
         mWindow.setAttributes(lp);
         mWindow.setLayout(WRAP_CONTENT, WRAP_CONTENT);
@@ -726,37 +668,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
 
         mRoundedBorderBottom = mDialog.findViewById(R.id.rounded_border_bottom);
 
-        if (mVolumePanelOnLeft) {
-            if (mRingerAndDrawerContainer != null) {
-                mRingerAndDrawerContainer.setLayoutDirection(LAYOUT_DIRECTION_RTL);
-            }
-
-            ViewGroup container = mDialog.findViewById(R.id.volume_dialog_container);
-            setGravity(container, Gravity.LEFT);
-            setLayoutGravity(container, Gravity.LEFT);
-
-            setGravity(mDialogView, Gravity.LEFT);
-            setLayoutGravity(mDialogView, Gravity.LEFT);
-
-            setGravity((ViewGroup) mTopContainer, Gravity.LEFT);
-
-            setLayoutGravity(mSelectedRingerContainer, Gravity.BOTTOM | Gravity.LEFT);
-
-            setLayoutGravity(mRingerDrawerNewSelectionBg, Gravity.BOTTOM | Gravity.LEFT);
-
-            setGravity(mRinger, Gravity.LEFT);
-            setLayoutGravity(mRinger, Gravity.BOTTOM | Gravity.LEFT);
-
-            setGravity(mDialogRowsViewContainer, Gravity.LEFT);
-            setLayoutGravity(mDialogRowsViewContainer, Gravity.LEFT);
-
-            setGravity(mODICaptionsView, Gravity.LEFT);
-            setLayoutGravity(mODICaptionsView, Gravity.LEFT);
-
-            //((ViewStub.LayoutParams) mODICaptionsTooltipViewStub.getLayoutParams())
-            //        .gravity = Gravity.BOTTOM | Gravity.LEFT;
-        }
-
         if (mRows.isEmpty()) {
             if (!AudioSystem.isSingleVolume(mContext)) {
                 addRow(STREAM_ACCESSIBILITY, R.drawable.ic_volume_accessibility,
@@ -808,25 +719,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
 
         // Normal, mute, and possibly vibrate.
         mRingerCount = mShowVibrate ? 3 : 2;
-    }
-
-    // Helper to set gravity.
-    private void setGravity(ViewGroup viewGroup, int gravity) {
-        if (viewGroup instanceof LinearLayout) {
-            ((LinearLayout) viewGroup).setGravity(gravity);
-        }
-    }
-
-    // Helper to set layout gravity.
-    private void setLayoutGravity(ViewGroup viewGroup, int gravity) {
-        if (viewGroup != null) {
-            Object obj = viewGroup.getLayoutParams();
-            if (obj instanceof FrameLayout.LayoutParams) {
-                ((FrameLayout.LayoutParams) obj).gravity = gravity;
-            } else if (obj instanceof LinearLayout.LayoutParams) {
-                ((LinearLayout.LayoutParams) obj).gravity = gravity;
-            }
-        }
     }
 
     protected ViewGroup getDialogView() {
@@ -1043,12 +935,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
                     mDialogView.getPaddingTop(),
                     mDialogView.getPaddingRight(),
                     mDialogView.getPaddingBottom() + getRingerDrawerOpenExtraSize());
-        } else if (mVolumePanelOnLeft) {
-            mDialogView.setPadding(
-                    mDialogView.getPaddingLeft(),
-                    mDialogView.getPaddingTop(),
-                    mDialogView.getPaddingRight() + getRingerDrawerOpenExtraSize(),
-                    mDialogView.getPaddingBottom());
         } else {
             mDialogView.setPadding(
                     mDialogView.getPaddingLeft() + getRingerDrawerOpenExtraSize(),
@@ -1119,22 +1005,15 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
     }
 
     /**
-     * Translation to apply form the origin (either top or left/right) to overlap the selection
-     * background with the given mode in the drawer.
+     * Translation to apply form the origin (either top or left) to overlap the selection background
+     * with the given mode in the drawer.
      */
     private float getTranslationInDrawerForRingerMode(int mode) {
-        return (mode == RINGER_MODE_VIBRATE
+        return mode == RINGER_MODE_VIBRATE
                 ? -mRingerDrawerItemSize * 2
                 : mode == RINGER_MODE_SILENT
                         ? -mRingerDrawerItemSize
-                        : 0)
-                * (isLandscape()
-                        ? getTranslationForPanelLocation()
-                        : 1);
-    }
-
-    private float getTranslationForPanelLocation() {
-        return mVolumePanelOnLeft ? -1 : 1;
+                        : 0;
     }
 
     @VisibleForTesting String getSelectedRingerContainerDescription() {
@@ -1178,13 +1057,12 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
                     getTranslationInDrawerForRingerMode(mState.ringerModeInternal));
         }
 
-        // Move the drawer so that the top/outmost ringer choice overlaps with the selected ringer
+        // Move the drawer so that the top/rightmost ringer choice overlaps with the selected ringer
         // icon.
         if (!isLandscape()) {
             mRingerDrawerContainer.setTranslationY(mRingerDrawerItemSize * (mRingerCount - 1));
         } else {
-            mRingerDrawerContainer.setTranslationX(
-                    getTranslationForPanelLocation() * mRingerDrawerItemSize * (mRingerCount - 1));
+            mRingerDrawerContainer.setTranslationX(mRingerDrawerItemSize * (mRingerCount - 1));
         }
         mRingerDrawerContainer.setAlpha(0f);
         mRingerDrawerContainer.setVisibility(VISIBLE);
@@ -1261,7 +1139,7 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
                     .start();
         } else {
             mRingerDrawerContainer.animate()
-                    .translationX(getTranslationForPanelLocation() * mRingerDrawerItemSize * 2)
+                    .translationX(mRingerDrawerItemSize * 2)
                     .start();
         }
 
@@ -1787,10 +1665,8 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
             trimObsoleteH();
         }
 
-        boolean isOutmostIndexMax = mVolumePanelOnLeft ? isRtl() : !isRtl();
-
         // Index of the last row that is actually visible.
-        int outmostVisibleRowIndex = isOutmostIndexMax ? -1 : Short.MAX_VALUE;
+        int rightmostVisibleRowIndex = !isRtl() ? -1 : Short.MAX_VALUE;
 
         // apply changes to all rows
         for (final VolumeRow row : mRows) {
@@ -1799,11 +1675,14 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
             Util.setVisOrGone(row.view, shouldBeVisible);
 
             if (shouldBeVisible && mRingerAndDrawerContainerBackground != null) {
-                // For RTL, the outmost row has the lowest index since child views are laid out
+                // For RTL, the rightmost row has the lowest index since child views are laid out
                 // from right to left.
-                outmostVisibleRowIndex = isOutmostIndexMax
-                        ? Math.max(outmostVisibleRowIndex, mDialogRowsView.indexOfChild(row.view))
-                        : Math.min(outmostVisibleRowIndex, mDialogRowsView.indexOfChild(row.view));
+                rightmostVisibleRowIndex =
+                        !isRtl()
+                                ? Math.max(rightmostVisibleRowIndex,
+                                mDialogRowsView.indexOfChild(row.view))
+                                : Math.min(rightmostVisibleRowIndex,
+                                        mDialogRowsView.indexOfChild(row.view));
 
                 // Add spacing between each of the visible rows - we'll remove the spacing from the
                 // last row after the loop.
@@ -1811,7 +1690,7 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
                 if (layoutParams instanceof LinearLayout.LayoutParams) {
                     final LinearLayout.LayoutParams linearLayoutParams =
                             ((LinearLayout.LayoutParams) layoutParams);
-                    if (isOutmostIndexMax) {
+                    if (!isRtl()) {
                         linearLayoutParams.setMarginEnd(mRingerRowsPadding);
                     } else {
                         linearLayoutParams.setMarginStart(mRingerRowsPadding);
@@ -1829,8 +1708,8 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
             }
         }
 
-        if (outmostVisibleRowIndex > -1 && outmostVisibleRowIndex < Short.MAX_VALUE) {
-            final View lastVisibleChild = mDialogRowsView.getChildAt(outmostVisibleRowIndex);
+        if (rightmostVisibleRowIndex > -1 && rightmostVisibleRowIndex < Short.MAX_VALUE) {
+            final View lastVisibleChild = mDialogRowsView.getChildAt(rightmostVisibleRowIndex);
             final ViewGroup.LayoutParams layoutParams = lastVisibleChild.getLayoutParams();
             // Remove the spacing on the last row, and remove its background since the container is
             // drawing a background for this row.
@@ -2383,9 +2262,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
         final Rect bounds = mRingerAndDrawerContainerBackground.copyBounds();
         if (!isLandscape()) {
             bounds.top = (int) (mRingerDrawerClosedAmount * getRingerDrawerOpenExtraSize());
-        } else if (mVolumePanelOnLeft) {
-            bounds.right = (int) ((mDialogCornerRadius / 2) + mRingerDrawerItemSize
-                    + (1f - mRingerDrawerClosedAmount) * getRingerDrawerOpenExtraSize());
         } else {
             bounds.left = (int) (mRingerDrawerClosedAmount * getRingerDrawerOpenExtraSize());
         }
@@ -2393,7 +2269,7 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
     }
 
     /*
-     * The top container is responsible for drawing the solid color background behind the outmost
+     * The top container is responsible for drawing the solid color background behind the rightmost
      * (primary) volume row. This is because the volume drawer animates in from below, initially
      * overlapping the primary row. We need the drawer to draw below the row's SeekBar, since it
      * looks strange to overlap it, but above the row's background color, since otherwise it will be
@@ -2427,9 +2303,8 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
                         ? mDialogRowsViewContainer.getTop()
                         : mDialogRowsViewContainer.getTop() - mDialogCornerRadius);
 
-        // Set gravity to top and opposite side where additional rows will be added.
-        background.setLayerGravity(
-                0, mVolumePanelOnLeft ? Gravity.TOP | Gravity.LEFT : Gravity.TOP | Gravity.RIGHT);
+        // Set gravity to top-right, since additional rows will be added on the left.
+        background.setLayerGravity(0, Gravity.TOP | Gravity.RIGHT);
 
         // In landscape, the ringer drawer animates out to the left (instead of down). Since the
         // drawer comes from the right (beyond the bounds of the dialog), we should clip it so it

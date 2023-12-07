@@ -5799,14 +5799,6 @@ public final class Settings {
         public static final String SWIPE_TO_SCREENSHOT = "swipe_to_screenshot";
 
         /**
-         * Whether to show volume panel on the left side
-         * Defaults to com.android.systemui.R.bool.config_audioPanelOnLeftSide
-         * @hide
-         */
-        @Readable
-        public static final String VOLUME_PANEL_ON_LEFT = "volume_panel_on_left";
-
-        /**
          * Whether the phone vibrates on call connect
          * @hide
          */
