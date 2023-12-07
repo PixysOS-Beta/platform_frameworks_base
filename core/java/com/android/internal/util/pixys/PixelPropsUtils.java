@@ -122,7 +122,7 @@ public class PixelPropsUtils {
         propsToChangePixel8Pro.put("HARDWARE", "husky");
         propsToChangePixel8Pro.put("MODEL", "Pixel 8 Pro");
         propsToChangePixel8Pro.put("ID", "UD1A.230803.041");
-        propsToChangePixel8Pro.put("FINGERPRINT", "google/husky/husky:14/UD1A.230803.041/10808477:user/release-keys");
+        propsToChangePixel8Pro.put("FINGERPRINT", "google/husky/husky:14/UQ1A.231205.015/11084887:user/release-keys");
         propsToChangePixel5a = new HashMap<>();
         propsToChangePixel5a.put("BRAND", "google");
         propsToChangePixel5a.put("MANUFACTURER", "Google");
@@ -131,7 +131,7 @@ public class PixelPropsUtils {
         propsToChangePixel5a.put("HARDWARE", "barbet");
         propsToChangePixel5a.put("MODEL", "Pixel 5a");
         propsToChangePixel5a.put("ID", "UP1A.231005.007");
-        propsToChangePixel5a.put("FINGERPRINT", "google/barbet/barbet:14/UP1A.231005.007/10754064:user/release-keys");
+        propsToChangePixel5a.put("FINGERPRINT", "google/barbet/barbet:14/UQ1A.231205.014/11049176:user/release-keys");
         propsToChangePixelXL = new HashMap<>();
         propsToChangePixelXL.put("BRAND", "google");
         propsToChangePixelXL.put("MANUFACTURER", "Google");
