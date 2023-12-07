@@ -9,6 +9,3 @@
 -keep class * implements com.android.systemui.biometrics.UdfpsDisplayModeProvider {
     public <init>(...);
 }
-
--keep class com.google.** { *; }
--keep class vendor.google.** { *; }
