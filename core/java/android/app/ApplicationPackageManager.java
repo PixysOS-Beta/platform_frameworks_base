@@ -812,13 +812,6 @@ public class ApplicationPackageManager extends PackageManager {
 
     private static final Set<String> googlePackages = new HashSet<>(Arrays.asList(
             "com.android.vending",
-            "com.google.android.gms",
-            "com.google.android.googlequicksearchbox",
-            "com.google.android.inputmethod.latin",
-            "com.google.android.setupwizard",
-            "com.google.android.settings.intelligence",
-            "com.google.android.apps.miphone.aiai.AiaiApplication",
-            "com.google.android.apps.googleassistant",
             "com.google.android.as.oss",
             "com.google.android.as",
             "com.google.android.apps.recorder"
@@ -858,8 +851,6 @@ public class ApplicationPackageManager extends PackageManager {
             "com.google.photos.trust_debug_certs",
             "com.google.android.feature.AER_OPTIMIZED",
             "com.google.android.feature.NEXT_GENERATION_ASSISTANT",
-            "android.software.game_service",
-            "com.google.android.feature.GMS_GAME_SERVICE",
             "com.google.android.feature.EXCHANGE_6_2",
             "com.google.android.apps.dialer.call_recording_audio",
             "com.google.android.apps.dialer.SUPPORTED"

@@ -65,7 +65,8 @@ public class PixelPropsUtils {
                 "com.google.android.apps.customization.pixel",
                 "com.google.android.apps.privacy.wildlife",
                 "com.google.android.apps.subscriptions.red",
-                "com.google.android.apps.photos"
+                "com.google.android.apps.photos",
+        	"com.google.android.aicore"
     };
 
     private static final String[] packagesToChangePixelXL = {
