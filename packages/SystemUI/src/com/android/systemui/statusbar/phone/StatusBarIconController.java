@@ -206,8 +206,10 @@ public interface StatusBarIconController {
 
         @Override
         public void onSetIcon(int viewIndex, StatusBarIcon icon) {
-            super.onSetIcon(viewIndex, icon);
-            mDarkIconDispatcher.applyDark((DarkReceiver) mGroup.getChildAt(viewIndex));
+            View view = mGroup.getChildAt(viewIndex);
+            if (view instanceof StatusBarIconView) {
+                ((StatusBarIconView) view).set(icon);
+            }
         }
 
         @Override
@@ -455,7 +457,6 @@ public interface StatusBarIconController {
             if (mIsInDemoMode) {
                 mDemoStatusIcons.addModernWifiView(mWifiViewModel);
             }
-
             return view;
         }
 
@@ -488,12 +489,6 @@ public interface StatusBarIconController {
             return ModernStatusBarWifiView.constructAndBind(mContext, slot, mWifiViewModel);
         }
 
-       private NetworkTrafficSB onCreateNetworkTraffic(String slot) {
-            NetworkTrafficSB view = new NetworkTrafficSB(mContext);
-            view.setPadding(2, 0, 2, 0);
-            return view;
-       }
-
         private ModernStatusBarMobileView onCreateModernStatusBarMobileView(
                 String slot, int subId) {
             Context mobileContext = mMobileContextProvider.getMobileContextForSub(subId, mContext);
@@ -504,6 +499,12 @@ public interface StatusBarIconController {
                             slot,
                             mMobileIconsViewModel.viewModelForSub(subId, mLocation)
                         );
+        }
+
+        private NetworkTrafficSB onCreateNetworkTraffic(String slot) {
+            NetworkTrafficSB view = new NetworkTrafficSB(mContext);
+            view.setPadding(2, 0, 2, 0);
+            return view;
         }
 
         protected LinearLayout.LayoutParams onCreateLayoutParams() {
@@ -527,10 +528,8 @@ public interface StatusBarIconController {
         }
 
         public void onSetIcon(int viewIndex, StatusBarIcon icon) {
-            View view = mGroup.getChildAt(viewIndex);
-            if (view instanceof StatusBarIconView) {
-                ((StatusBarIconView) view).set(icon);
-            }
+            StatusBarIconView view = (StatusBarIconView) mGroup.getChildAt(viewIndex);
+            view.set(icon);
         }
 
         public void onSetIconHolder(int viewIndex, StatusBarIconHolder holder) {
