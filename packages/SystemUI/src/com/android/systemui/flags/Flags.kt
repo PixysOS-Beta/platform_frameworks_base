@@ -375,7 +375,7 @@ object Flags {
     /** Enables new QS Edit Mode visual refresh */
     // TODO(b/269787742): Tracking Bug
     @JvmField
-    val ENABLE_NEW_QS_EDIT_MODE = unreleasedFlag("enable_new_qs_edit_mode", teamfood = false)
+    val ENABLE_NEW_QS_EDIT_MODE = releasedFlag("enable_new_qs_edit_mode")
 
     // 600- status bar
 
@@ -727,7 +727,7 @@ object Flags {
     // TODO(b/285059790) : Tracking Bug
     @JvmField
     val LOCKSCREEN_WALLPAPER_DREAM_ENABLED =
-        unreleasedFlag(name = "enable_lockscreen_wallpaper_dream")
+        releasedFlag(name = "enable_lockscreen_wallpaper_dream")
 
     // TODO(b/283084712): Tracking Bug
     @JvmField val IMPROVED_HUN_ANIMATIONS = unreleasedFlag("improved_hun_animations")
@@ -745,7 +745,7 @@ object Flags {
     // TODO(b/283740863): Tracking Bug
     @JvmField
     val ENABLE_NEW_PRIVACY_DIALOG =
-        unreleasedFlag("enable_new_privacy_dialog", teamfood = true)
+        releasedFlag("enable_new_privacy_dialog")
 
     // TODO(b/289573946): Tracking Bug
     @JvmField val PRECOMPUTED_TEXT = unreleasedFlag("precomputed_text")
@@ -765,15 +765,15 @@ object Flags {
 
     /** TODO(b/296223317): Enables the new keyguard presentation containing a clock. */
     @JvmField
-    val ENABLE_CLOCK_KEYGUARD_PRESENTATION = unreleasedFlag("enable_clock_keyguard_presentation")
+    val ENABLE_CLOCK_KEYGUARD_PRESENTATION = releasedFlag("enable_clock_keyguard_presentation")
 
     /** Enable the Compose implementation of the PeopleSpaceActivity. */
     @JvmField
-    val COMPOSE_PEOPLE_SPACE = unreleasedFlag("compose_people_space")
+    val COMPOSE_PEOPLE_SPACE = releasedFlag("compose_people_space")
 
     /** Enable the Compose implementation of the Quick Settings footer actions. */
     @JvmField
-    val COMPOSE_QS_FOOTER_ACTIONS = unreleasedFlag("compose_qs_footer_actions")
+    val COMPOSE_QS_FOOTER_ACTIONS = releasedFlag("compose_qs_footer_actions")
 
     /** Enable the share wifi button in Quick Settings internet dialog. */
     @JvmField
