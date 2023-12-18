@@ -441,10 +441,6 @@ public class BcSmartspaceView extends FrameLayout implements BcSmartspaceDataPlu
         this.mAdapter.mIsDreaming = isDreaming;
     }
 
-    public void setUiSurface(String uiSurface) {
-        this.mAdapter.mUiSurface = uiSurface;
-    }
-
     public void setKeyguardBypassEnabled(boolean isEnabled) {
         this.mAdapter.mKeyguardBypassEnabled = isEnabled;
         this.mAdapter.updateTargetVisibility();
