@@ -5381,8 +5381,5 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
         return mKeyguardBottomArea;
     }
 
-    protected int getOneFingerQuickSettingsIntercept() {
-        return mOneFingerQuickSettingsIntercept;
-    }
 }
 
