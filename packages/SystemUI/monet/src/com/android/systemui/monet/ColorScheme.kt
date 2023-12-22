@@ -335,7 +335,7 @@ internal constructor(
     chromaFactor: Float = 1f
 ) {
     val seedCam: Cam = Cam.fromInt(seedColor)
-    val allShades: List<Int> = spec.shades(seedCam)
+    val allShades: List<Int> = spec.shades(seedCam, luminanceFactor, chromaFactor)
     val allShadesMapped: Map<Int, Int> = SHADE_KEYS.zip(allShades).toMap()
     val baseColor: Int
 
