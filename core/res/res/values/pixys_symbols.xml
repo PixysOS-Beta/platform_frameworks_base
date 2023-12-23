@@ -77,4 +77,11 @@
 
     <!-- Whether to cancel fingerprint operation if not idle -->
     <java-symbol type="bool" name="config_fpCancelIfNotIdle" />
+
+    <!-- Whether Pixel props is enabled -->
+    <java-symbol type="bool" name="config_enablePixelProps" />
+
+    <!-- Build properties from a GMS certified device -->
+    <java-symbol type="array" name="config_certifiedBuildProperties" />
+
 </resources>
