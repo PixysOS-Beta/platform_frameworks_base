@@ -135,7 +135,8 @@ public class PixelPropsUtils {
                 "com.google.android.apps.restore",
                 "com.google.oslo",
                 "it.ingdirect.app",
-		"com.google.android.gms"
+		"com.google.android.gms",
+                "com.google.android.googlequicksearchbox"
         ));
 
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
@@ -286,13 +287,6 @@ public class PixelPropsUtils {
             } else {
                 propsToChange = propsToChangePixel5a;
             }
-
-         if (procName.equals("com.google.android.gms")
-                || processName.equals("com.google.android.gms.com.ui")
-                || processName.equals("com.google.android.gms.learning")
-                || processName.equals("com.google.android.gms.persistent")) {
-               propsToChange = propsToChangeRecentPixel;
-	    }
 
             if (procName.equals("com.google.android.apps.photos")) {
                 if (SystemProperties.getBoolean("persist.sys.pixelprops.gphotos", true)) {

@@ -812,6 +812,11 @@ public class ApplicationPackageManager extends PackageManager {
 
     private static final Set<String> googlePackages = new HashSet<>(Arrays.asList(
             "com.android.vending",
+            "com.google.android.gms",
+            "com.google.android.googlequicksearchbox",
+            "com.google.android.inputmethod.latin",
+            "com.google.android.apps.miphone.aiai.AiaiApplication",
+            "com.google.android.apps.googleassistant",
             "com.google.android.as",
             "com.google.android.apps.recorder"
     ));
