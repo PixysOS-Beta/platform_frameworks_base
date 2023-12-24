@@ -85,15 +85,7 @@ public class PixelPropsUtils {
     private static final ArrayList<String> packagesToChangeRecentPixel = 
         new ArrayList<String> (
             Arrays.asList(
-                "com.android.chrome",
                 "com.breel.wallpapers20",
-                "com.microsoft.android.smsorganizer",
-                "com.nothing.smartcenter",
-                "com.nhs.online.nhsonline",
-                "com.amazon.avod.thirdpartyclient",
-                "com.disney.disneyplus",
-                "com.netflix.mediaclient",
-                "in.startv.hotstar",
                 "com.google.android.apps.emojiwallpaper",
                 "com.google.android.wallpaper.effects",
                 "com.google.pixel.livewallpaper",
@@ -129,7 +121,7 @@ public class PixelPropsUtils {
     private static final ArrayList<String> packagesToKeep = 
         new ArrayList<String> (
             Arrays.asList(
-                "com.google.android.as",
+	        "com.google.android.as",
                 "com.google.android.apps.motionsense.bridge",
                 "com.google.android.euicc",
                 "com.google.ar.core",
@@ -141,7 +133,9 @@ public class PixelPropsUtils {
                 "com.google.android.apps.tachyon",
                 "com.google.android.apps.tycho",
                 "com.google.android.apps.restore",
-                "com.google.oslo"
+                "com.google.oslo",
+                "it.ingdirect.app",
+		"com.google.android.gms"
         ));
 
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
@@ -259,10 +253,9 @@ public class PixelPropsUtils {
         }
 
         String procName = packageName;
-
         if (procName.equals("com.android.vending")) {
             sIsFinsky = true;
-        } else if (procName.equals("com.google.android.gms")) {
+        } else if (procName.equals("com.google.android.gms") && processName.equals("com.google.android.gms.unstable")) {
             sIsGms = true;
         } else if (procName.equals("com.google.android.setupwizard")) {
             sIsSetupWizard = true;
@@ -272,7 +265,6 @@ public class PixelPropsUtils {
         }
 
         if (packagesToChangeRecentPixel.contains(processName)
-            || packagesToChangePixelFold.contains(processName)
             || extraPackagesToChange.contains(processName)
             || packagesToKeep.contains(processName)) {
             procName = processName;
@@ -294,6 +286,14 @@ public class PixelPropsUtils {
             } else {
                 propsToChange = propsToChangePixel5a;
             }
+
+         if (procName.equals("com.google.android.gms")
+                || processName.equals("com.google.android.gms.com.ui")
+                || processName.equals("com.google.android.gms.learning")
+                || processName.equals("com.google.android.gms.persistent")) {
+               propsToChange = propsToChangeRecentPixel;
+	    }
+
             if (procName.equals("com.google.android.apps.photos")) {
                 if (SystemProperties.getBoolean("persist.sys.pixelprops.gphotos", true)) {
                     propsToChange = propsToChangePixelXL;
