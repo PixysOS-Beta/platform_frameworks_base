@@ -134,9 +134,7 @@ public class PixelPropsUtils {
                 "com.google.android.apps.tycho",
                 "com.google.android.apps.restore",
                 "com.google.oslo",
-                "it.ingdirect.app",
-		"com.google.android.gms",
-                "com.google.android.googlequicksearchbox"
+                "it.ingdirect.app"
         ));
 
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
