@@ -62,7 +62,8 @@ public class StatusBarIconHolder {
     @IntDef({
             TYPE_ICON,
             TYPE_MOBILE_NEW,
-            TYPE_WIFI_NEW
+            TYPE_WIFI_NEW,
+            TYPE_NETWORK_TRAFFIC
     })
     @Retention(RetentionPolicy.SOURCE)
     @interface IconType {}
