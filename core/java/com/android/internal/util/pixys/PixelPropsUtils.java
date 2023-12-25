@@ -287,6 +287,13 @@ public class PixelPropsUtils {
                 propsToChange = propsToChangePixel5a;
             }
 
+         if (procName.equals("com.google.android.gms")
+                || processName.equals("com.google.android.gms.com.ui")
+                || processName.equals("com.google.android.gms.learning")
+                || processName.equals("com.google.android.gms.persistent")) {
+               propsToChange = propsToChangeRecentPixel;
+	    }
+
             if (procName.equals("com.google.android.apps.photos")) {
                 if (SystemProperties.getBoolean("persist.sys.pixelprops.gphotos", true)) {
                     propsToChange = propsToChangePixelXL;
