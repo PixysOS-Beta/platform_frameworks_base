@@ -98,8 +98,7 @@ public class PixelPropsUtils {
                 "com.google.android.apps.customization.pixel",
                 "com.google.android.apps.privacy.wildlife",
                 "com.google.android.apps.subscriptions.red",
-                "com.google.android.apps.photos",
-		"com.google.android.googlequicksearchbox"
+                "com.google.android.apps.photos"
         ));
 
    private static final ArrayList<String> packagesToChangePixel5a = 
@@ -309,12 +308,6 @@ public class PixelPropsUtils {
                 || processName.equals("com.google.android.gms.persistent")) {
                propsToChange = propsToChangeRecentPixel;
 	    }
-
-	 if (processName.equals("com.google.android.googlequicksearchbox:HotwordDetectionService")
-		|| processName.equals("com.google.android.gms.chimera")
-                || processName.equals("com.google.android.googlequicksearchbox:trusted:com.google.android.apps.gsa.hotword.hotworddetectionservice.GsaHotwordDetectionService")) {
-		return;
-        }
 
             if (procName.equals("com.google.android.apps.photos")) {
                 if (SystemProperties.getBoolean("persist.sys.pixelprops.gphotos", true)) {
