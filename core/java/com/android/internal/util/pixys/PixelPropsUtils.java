@@ -68,6 +68,10 @@ public class PixelPropsUtils {
             createGoogleSpoofProps("Pixel 5a",
                     "google/barbet/barbet:14/UQ1A.240105.002/11129216:user/release-keys");
 
+   private static final Map<String, Object> propsToChangePixel6 =
+            createGoogleSpoofProps("Pixel 6 Pro",
+                    "google/raven/raven:14/UQ1A.240105.002/11129216:user/release-keys");
+
     private static final Map<String, Object> propsToChangePixelXL =
             createGoogleSpoofProps("Pixel XL",
                     "google/marlin/marlin:10/QP1A.191005.007.A3/5972272:user/release-keys");
@@ -94,8 +98,15 @@ public class PixelPropsUtils {
                 "com.google.android.apps.customization.pixel",
                 "com.google.android.apps.privacy.wildlife",
                 "com.google.android.apps.subscriptions.red",
-                "com.google.android.apps.photos"
+                "com.google.android.apps.photos",
+		"com.google.android.googlequicksearchbox"
         ));
+
+   private static final ArrayList<String> packagesToChangePixel5a = 
+        new ArrayList<String> (
+            Arrays.asList(
+		"com.google.android.tts"
+       ));
 
     private static final ArrayList<String> extraPackagesToChange = 
         new ArrayList<String> (
@@ -121,7 +132,7 @@ public class PixelPropsUtils {
     private static final ArrayList<String> packagesToKeep = 
         new ArrayList<String> (
             Arrays.asList(
-	        "com.google.android.as",
+               "com.google.android.as",
                 "com.google.android.apps.motionsense.bridge",
                 "com.google.android.euicc",
                 "com.google.ar.core",
@@ -135,6 +146,8 @@ public class PixelPropsUtils {
                 "com.google.android.apps.restore",
                 "com.google.oslo",
                 "it.ingdirect.app",
+                "com.google.android.apps.nexuslauncher",
+		"com.google.intelligence.sense",
 		"com.google.android.gms"
         ));
 
@@ -283,16 +296,25 @@ public class PixelPropsUtils {
 
             if (packagesToChangeRecentPixel.contains(procName)) {
                 propsToChange = propsToChangeRecentPixel;
-            } else {
+            } else if (packagesToChangePixel5a.contains(procName)) {
                 propsToChange = propsToChangePixel5a;
+            } else {
+                propsToChange = propsToChangePixel6;
             }
 
-         if (procName.equals("com.google.android.gms")
-                || processName.equals("com.google.android.gms.com.ui")
+         if (processName.equals("com.google.android.gms.com.ui")
+		|| processName.equals("com.google.process.gservices")
+		|| processName.equals("com.google.process.gapps")
                 || processName.equals("com.google.android.gms.learning")
                 || processName.equals("com.google.android.gms.persistent")) {
                propsToChange = propsToChangeRecentPixel;
 	    }
+
+	 if (processName.equals("com.google.android.googlequicksearchbox:HotwordDetectionService")
+		|| processName.equals("com.google.android.gms.chimera")
+                || processName.equals("com.google.android.googlequicksearchbox:trusted:com.google.android.apps.gsa.hotword.hotworddetectionservice.GsaHotwordDetectionService")) {
+		return;
+        }
 
             if (procName.equals("com.google.android.apps.photos")) {
                 if (SystemProperties.getBoolean("persist.sys.pixelprops.gphotos", true)) {
