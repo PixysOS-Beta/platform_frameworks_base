@@ -308,13 +308,12 @@ public class PixelPropsUtils {
                 propsToChange = propsToChangePixel6;
             }
 
-         if (processName.equals("com.google.android.gms.com.ui")
-		|| processName.equals("com.google.process.gservices")
-		|| processName.equals("com.google.process.gapps")
-                || processName.equals("com.google.android.gms.learning")
-                || processName.equals("com.google.android.gms.persistent")) {
-               propsToChange = propsToChangeRecentPixel;
-	    }
+	  if (!processName.toLowerCase().contains("ui")
+             && !processName.toLowerCase().contains("pixelmigrate")
+             && !processName.toLowerCase().contains("learning")
+             && !processName.toLowerCase().contains("persistent")) {
+	       propsToChange = propsToChangeRecentPixel;
+            }
 
             if (procName.equals("com.google.android.apps.photos")) {
                 if (SystemProperties.getBoolean("persist.sys.pixelprops.gphotos", true)) {
