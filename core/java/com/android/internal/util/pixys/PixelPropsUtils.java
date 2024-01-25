@@ -147,7 +147,9 @@ public class PixelPropsUtils {
                 "it.ingdirect.app",
                 "com.google.android.apps.nexuslauncher",
 		"com.google.intelligence.sense",
-		"com.google.android.gms"
+		"com.google.android.gms",
+		"com.google.android.googlequicksearchbox"
+
         ));
 
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
@@ -309,7 +311,7 @@ public class PixelPropsUtils {
             }
 
 	  if (!processName.toLowerCase().contains("ui")
-             && !processName.toLowerCase().contains("pixelmigrate")
+             && !processName.toLowerCase().contains("search")
              && !processName.toLowerCase().contains("learning")
              && !processName.toLowerCase().contains("persistent")) {
 	       propsToChange = propsToChangeRecentPixel;
