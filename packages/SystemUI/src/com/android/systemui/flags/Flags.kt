@@ -62,7 +62,7 @@ object Flags {
         )
 
     // TODO(b/254512538): Tracking Bug
-    val INSTANT_VOICE_REPLY = unreleasedFlag("instant_voice_reply")
+    val INSTANT_VOICE_REPLY = releasedFlag("instant_voice_reply")
 
     /**
      * This flag controls whether we register a listener for StatsD notification memory reports.
@@ -75,7 +75,7 @@ object Flags {
     // TODO(b/260335638): Tracking Bug
     @JvmField
     val NOTIFICATION_INLINE_REPLY_ANIMATION =
-        unreleasedFlag("notification_inline_reply_animation")
+        releasedFlag("notification_inline_reply_animation")
 
     /** Makes sure notification panel is updated before the user switch is complete. */
     // TODO(b/278873737): Tracking Bug
