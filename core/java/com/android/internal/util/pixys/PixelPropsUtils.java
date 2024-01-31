@@ -98,7 +98,9 @@ public class PixelPropsUtils {
                 "com.google.android.apps.customization.pixel",
                 "com.google.android.apps.privacy.wildlife",
                 "com.google.android.apps.subscriptions.red",
-                "com.google.android.apps.photos"
+                "com.google.android.apps.photos",
+		"com.google.android.googlequicksearchbox",
+		"com.google.android.gms"
         ));
 
    private static final ArrayList<String> packagesToChangePixel5a = 
@@ -146,9 +148,7 @@ public class PixelPropsUtils {
                 "com.google.oslo",
                 "it.ingdirect.app",
                 "com.google.android.apps.nexuslauncher",
-		"com.google.intelligence.sense",
-		"com.google.android.gms",
-		"com.google.android.googlequicksearchbox"
+		"com.google.intelligence.sense"
 
         ));
 
@@ -199,6 +199,7 @@ public class PixelPropsUtils {
 
         final String processName = Application.getProcessName();
         if (!processName.toLowerCase().contains("unstable")
+		&& !processName.toLowerCase().contains("chimera")
                 && !processName.toLowerCase().contains("pixelmigrate")
                 && !processName.toLowerCase().contains("instrumentation")) {
             return false;
@@ -311,7 +312,8 @@ public class PixelPropsUtils {
             }
 
 	  if (!processName.toLowerCase().contains("ui")
-             && !processName.toLowerCase().contains("search")
+	     && !processName.toLowerCase().contains("gservice")
+	     && !processName.toLowerCase().contains("gapps")
              && !processName.toLowerCase().contains("learning")
              && !processName.toLowerCase().contains("persistent")) {
 	       propsToChange = propsToChangeRecentPixel;

@@ -827,6 +827,8 @@ public class ApplicationPackageManager extends PackageManager {
             "com.google.android.apps.photos.PIXEL_2019_MIDYEAR_PRELOAD",
             "com.google.android.apps.photos.PIXEL_2018_PRELOAD",
             "com.google.android.apps.photos.PIXEL_2017_PRELOAD",
+	    "com.google.android.feature.PIXEL_2021_EXPERIENCE",
+	    "com.google.android.feature.PIXEL_2021_MIDYEAR_EXPERIENCE",
             "com.google.android.feature.PIXEL_2020_EXPERIENCE",
             "com.google.android.feature.PIXEL_2020_MIDYEAR_EXPERIENCE",
             "com.google.android.feature.PIXEL_2019_EXPERIENCE",
@@ -865,9 +867,7 @@ public class ApplicationPackageManager extends PackageManager {
 
     private static final String[] featuresTensor = {
             "com.google.android.feature.PIXEL_2022_EXPERIENCE",
-            "com.google.android.feature.PIXEL_2022_MIDYEAR_EXPERIENCE",
-            "com.google.android.feature.PIXEL_2021_EXPERIENCE",
-            "com.google.android.feature.PIXEL_2021_MIDYEAR_EXPERIENCE"
+            "com.google.android.feature.PIXEL_2022_MIDYEAR_EXPERIENCE"
     };
 
     private static final String[] featuresNexus = {
@@ -893,11 +893,12 @@ public class ApplicationPackageManager extends PackageManager {
         if (Arrays.asList(featuresTensor).contains(name) &&
                 !Arrays.asList(pTensorCodenames).contains(SystemProperties.get("ro.product.device"))) {
             return false;
-        } else if (packageName != null && Arrays.asList(featuresTensor).contains(name)) {
-            if (packageName.contains("com.google.android.apps.nexuslauncher")) {
+        } else if (packageName != null &&
+	      (packageName.contains("com.google.android.apps.nexuslauncher")
+		|| packageName.contains("com.android.vending"))
+		&& Arrays.asList(featuresTensor).contains(name)) {
                 return false;
             }
-        }
         if (Arrays.asList(featuresPixel).contains(name)) return true;
         if (Arrays.asList(featuresPixelOthers).contains(name)) return true;
         return mHasSystemFeatureCache.query(new HasSystemFeatureQuery(name, version));
