@@ -70,8 +70,6 @@ class PhoneStatusBarViewController private constructor(
     }
 
     override fun onViewAttached() {
-        statusContainer = mView.requireViewById(R.id.system_icons)
-
         progressProvider?.setReadyToHandleTransition(true)
         configurationController.addCallback(configurationListener)
 
