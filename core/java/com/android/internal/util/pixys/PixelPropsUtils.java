@@ -76,10 +76,6 @@ public class PixelPropsUtils {
             createGoogleSpoofProps("Pixel XL",
                     "google/marlin/marlin:10/QP1A.191005.007.A3/5972272:user/release-keys");
 
-    private static final Map<String, Object> propsToChangeS24U =
-	    createSamsungSpoofProps("SM-S928B", "qssi_64",
-		     "samsung/e3qxxx/qssi_64:14/UP1A.231005.007/S928BXXU1AWM9:user/release-keys");
-
     private static final Map<String, ArrayList<String>> propsToKeep;
 
     static {
@@ -124,13 +120,6 @@ public class PixelPropsUtils {
                 "in.startv.hotstar"
         ));
 
-
-      private static final ArrayList<String> packagesToChangeS24U =
-	new ArrayList<String> ( 
-            Arrays.asList(
-		"com.google.android.googlequicksearchbox"
-       ));
-
     private static final ArrayList<String> customGoogleCameraPackages = 
         new ArrayList<String> (
             Arrays.asList(
@@ -157,8 +146,7 @@ public class PixelPropsUtils {
                 "com.google.oslo",
                 "it.ingdirect.app",
                 "com.google.android.apps.nexuslauncher",
-		"com.google.intelligence.sense",
-		"com.google.android.gms"
+		"com.google.intelligence.sense"
 
         ));
 
@@ -197,20 +185,6 @@ public class PixelPropsUtils {
         props.put("TYPE", "user");
         props.put("TAGS", "release-keys");
         return props;
-    }
-
-    private static Map<String, Object> createSamsungSpoofProps(String model, String device, String fingerprint) {        
-	Map<String, Object> props = new HashMap<>();        
-	props.put("BRAND", "samsung");        
-	props.put("MANUFACTURER", "samsung");        
-	props.put("ID", getBuildID(fingerprint));        
-	props.put("DEVICE", device);
-	props.put("PRODUCT", getDeviceName(fingerprint));
-	props.put("MODEL", model);        
-	props.put("FINGERPRINT", fingerprint);        
-	props.put("TYPE", "user");        
-	props.put("TAGS", "release-keys");        
-	return props;    
     }
 
     private static boolean isGoogleCameraPackage(String packageName){
@@ -331,13 +305,12 @@ public class PixelPropsUtils {
                 propsToChange = propsToChangeRecentPixel;
             } else if (packagesToChangePixel5a.contains(procName)) {
                 propsToChange = propsToChangePixel5a;
-       	    } else if (packagesToChangeS24U.contains(procName)) {
-                propsToChange = propsToChangeS24U;
             } else {
                 propsToChange = propsToChangePixel6;
             }
 
 	  if (!processName.toLowerCase().contains("ui")
+	     && !processName.toLowerCase().contains("search")
 	     && !processName.toLowerCase().contains("gservice")
 	     && !processName.toLowerCase().contains("gapps")
              && !processName.toLowerCase().contains("learning")
