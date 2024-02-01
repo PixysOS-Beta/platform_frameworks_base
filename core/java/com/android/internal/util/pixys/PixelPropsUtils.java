@@ -146,8 +146,8 @@ public class PixelPropsUtils {
                 "com.google.oslo",
                 "it.ingdirect.app",
                 "com.google.android.apps.nexuslauncher",
-		"com.google.intelligence.sense"
-
+		"com.google.intelligence.sense",
+		"com.google.android.gms"
         ));
 
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
@@ -310,7 +310,6 @@ public class PixelPropsUtils {
             }
 
 	  if (!processName.toLowerCase().contains("ui")
-	     && !processName.toLowerCase().contains("search")
 	     && !processName.toLowerCase().contains("gservice")
 	     && !processName.toLowerCase().contains("gapps")
              && !processName.toLowerCase().contains("learning")
@@ -323,6 +322,13 @@ public class PixelPropsUtils {
                     propsToChange = propsToChangePixelXL;
                 }
             }
+
+	    if (procName.equals("com.google.android.googlequicksearchbox")) {
+	        if (SystemProperties.getBoolean("persist.sys.pixelprops.velvet", true)) {
+                    propsToChange = propsToChangeRecentPixel;
+                }
+	   }
+
         }
         if (propsToChange == null || propsToChange.isEmpty()) return;
         dlog("Defining props for: " + procName);
