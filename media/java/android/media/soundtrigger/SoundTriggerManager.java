@@ -209,11 +209,8 @@ public final class SoundTriggerManager {
 
     /**
      * Updates the given sound trigger model.
-     * @deprecated replace with {@link #loadSoundModel}
-     * SoundTriggerService model database will be removed
      */
     @RequiresPermission(android.Manifest.permission.MANAGE_SOUND_TRIGGER)
-    @Deprecated
     public void updateModel(Model model) {
         if (mSoundTriggerSession == null) {
             throw new IllegalStateException("No underlying SoundTriggerModule available");
@@ -230,11 +227,9 @@ public final class SoundTriggerManager {
      *
      * @param soundModelId UUID associated with a loaded model
      * @return {@link SoundTriggerManager.Model} associated with UUID soundModelId
-     * @deprecated SoundTriggerService model database will be removed
      */
     @RequiresPermission(android.Manifest.permission.MANAGE_SOUND_TRIGGER)
     @Nullable
-    @Deprecated
     public Model getModel(UUID soundModelId) {
         if (mSoundTriggerSession == null) {
             throw new IllegalStateException("No underlying SoundTriggerModule available");
@@ -254,11 +249,8 @@ public final class SoundTriggerManager {
 
     /**
      * Deletes the sound model represented by the provided UUID.
-     * @deprecated replace with {@link #unloadSoundModel}
-     * SoundTriggerService model database will be removed
      */
     @RequiresPermission(android.Manifest.permission.MANAGE_SOUND_TRIGGER)
-    @Deprecated
     public void deleteModel(UUID soundModelId) {
         if (mSoundTriggerSession == null) {
             throw new IllegalStateException("No underlying SoundTriggerModule available");
@@ -282,12 +274,8 @@ public final class SoundTriggerManager {
      * @param handler The Handler to use for the callback operations. A null value will use the
      * current thread's Looper.
      * @return Instance of {@link SoundTriggerDetector} or null on error.
-     * @deprecated Use {@link SoundTriggerManager} directly. SoundTriggerDetector does not
-     * ensure callbacks are delivered, and its model state is prone to mismatch.
-     * It will be removed in a subsequent release.
      */
     @Nullable
-    @Deprecated
     @RequiresPermission(android.Manifest.permission.MANAGE_SOUND_TRIGGER)
     public SoundTriggerDetector createSoundTriggerDetector(UUID soundModelId,
             @NonNull SoundTriggerDetector.Callback callback, @Nullable Handler handler) {
