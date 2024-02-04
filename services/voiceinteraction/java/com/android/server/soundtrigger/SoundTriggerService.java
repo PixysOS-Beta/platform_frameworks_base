@@ -494,12 +494,6 @@ public class SoundTriggerService extends SystemService {
             try (SafeCloseable ignored = ClearCallingIdentityContext.create()) {
                 enforceCallingPermission(Manifest.permission.MANAGE_SOUND_TRIGGER);
 
-                if (soundModel == null) {
-                    mEventLogger.enqueue(new SessionEvent(Type.START_RECOGNITION,
-                                getUuid(soundModel), "Invalid sound model").printLog(ALOGW, TAG));
-                    return STATUS_ERROR;
-                }
-
                 if (runInBatterySaverMode) {
                     enforceCallingPermission(Manifest.permission.SOUND_TRIGGER_RUN_IN_BATTERY_SAVER);
                 }
