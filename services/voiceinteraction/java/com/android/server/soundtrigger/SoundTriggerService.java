@@ -489,7 +489,7 @@ public class SoundTriggerService extends SystemService {
         @Override
         public int startRecognition(ParcelUuid parcelUuid, IRecognitionStatusCallback callback,
                 RecognitionConfig config, boolean runInBatterySaverMode) {
-            mEventLogger.enqueue(new SessionEvent(Type.START_RECOGNITION, getUuid(soundModel)));
+            mEventLogger.enqueue(new SessionEvent(Type.START_RECOGNITION, getUuid(parcelUuid)));
 
             try (SafeCloseable ignored = ClearCallingIdentityContext.create()) {
                 enforceCallingPermission(Manifest.permission.MANAGE_SOUND_TRIGGER);
@@ -503,7 +503,7 @@ public class SoundTriggerService extends SystemService {
                     Slog.w(TAG, "Null model in database for id: " + parcelUuid);
 
 		    mEventLogger.enqueue(new SessionEvent(Type.START_RECOGNITION,
-                                getUuid(soundModel), "Invalid sound model").printLog(ALOGW, TAG));
+                                getUuid(parcelUuid), "Invalid sound model").printLog(ALOGW, TAG));
 
                     return STATUS_ERROR;
                 }
