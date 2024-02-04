@@ -498,19 +498,12 @@ public class SoundTriggerService extends SystemService {
                     enforceCallingPermission(Manifest.permission.SOUND_TRIGGER_RUN_IN_BATTERY_SAVER);
                 }
 
-                if (DEBUG) {
-                    Slog.i(TAG, "startRecognition(): Uuid : " + parcelUuid);
-                }
-
-                sEventLogger.enqueue(new EventLogger.StringEvent(
-                        "startRecognition(): Uuid : " + parcelUuid));
-
                 GenericSoundModel model = getSoundModel(parcelUuid);
                 if (model == null) {
                     Slog.w(TAG, "Null model in database for id: " + parcelUuid);
 
-                    sEventLogger.enqueue(new EventLogger.StringEvent(
-                            "startRecognition(): Null model in database for id: " + parcelUuid));
+		    mEventLogger.enqueue(new SessionEvent(Type.START_RECOGNITION,
+                                getUuid(soundModel), "Invalid sound model").printLog(ALOGW, TAG));
 
                     return STATUS_ERROR;
                 }
