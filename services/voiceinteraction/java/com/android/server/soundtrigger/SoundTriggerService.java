@@ -487,8 +487,7 @@ public class SoundTriggerService extends SystemService {
         }
 
         @Override
-        public int startRecognition(GenericSoundModel soundModel,
-                IRecognitionStatusCallback callback,
+        public int startRecognition(ParcelUuid parcelUuid, IRecognitionStatusCallback callback,
                 RecognitionConfig config, boolean runInBatterySaverMode) {
             mEventLogger.enqueue(new SessionEvent(Type.START_RECOGNITION, getUuid(soundModel)));
 
@@ -505,11 +504,27 @@ public class SoundTriggerService extends SystemService {
                     enforceCallingPermission(Manifest.permission.SOUND_TRIGGER_RUN_IN_BATTERY_SAVER);
                 }
 
-                int ret = mSoundTriggerHelper.startGenericRecognition(soundModel.getUuid(),
-                        soundModel,
+                if (DEBUG) {
+                    Slog.i(TAG, "startRecognition(): Uuid : " + parcelUuid);
+                }
+
+                sEventLogger.enqueue(new EventLogger.StringEvent(
+                        "startRecognition(): Uuid : " + parcelUuid));
+
+                GenericSoundModel model = getSoundModel(parcelUuid);
+                if (model == null) {
+                    Slog.w(TAG, "Null model in database for id: " + parcelUuid);
+
+                    sEventLogger.enqueue(new EventLogger.StringEvent(
+                            "startRecognition(): Null model in database for id: " + parcelUuid));
+
+                    return STATUS_ERROR;
+                }
+
+               int ret = mSoundTriggerHelper.startGenericRecognition(parcelUuid.getUuid(), model,
                         callback, config, runInBatterySaverMode);
                 if (ret == STATUS_OK) {
-                    mSoundModelStatTracker.onStart(soundModel.getUuid());
+                    mSoundModelStatTracker.onStart(parcelUuid.getUuid());
                 }
                 return ret;
             }
