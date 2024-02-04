@@ -312,9 +312,8 @@ public class PixelPropsUtils {
 
 	  if (!processName.toLowerCase().contains("ui")
 	     && !processName.toLowerCase().contains("gservice")
-	     && !processName.toLowerCase().contains("gapps")
              && !processName.toLowerCase().contains("learning")
-             && !processName.toLowerCase().contains("persistent")) {
+             && !processName.toLowerCase().contains("gapps")) {
 	       propsToChange = propsToChangeRecentPixel;
             }
 
