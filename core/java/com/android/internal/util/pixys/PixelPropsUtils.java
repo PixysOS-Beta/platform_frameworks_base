@@ -56,8 +56,6 @@ public class PixelPropsUtils {
     private static final Boolean sEnablePixelProps =
             Resources.getSystem().getBoolean(R.bool.config_enablePixelProps);
 
-    private static final String SAMSUNG = "com.samsung.";
-
     private static final Map<String, Object> propsToChangeGeneric;
 
     private static final Map<String, Object> propsToChangeRecentPixel =
@@ -98,7 +96,12 @@ public class PixelPropsUtils {
                 "com.google.android.apps.privacy.wildlife",
                 "com.google.android.apps.subscriptions.red",
                 "com.google.android.apps.photos",
-		"com.google.android.googlequicksearchbox"
+		"com.google.android.googlequicksearchbox",
+                "com.google.android.gms.ui",
+                "com.google.android.gms.learning",
+                "com.google.android.gms.persistent",
+                "com.google.process.gapps",
+		"com.google.process.gservices"
         ));
 
    private static final ArrayList<String> packagesToChangePixel5a = 
@@ -118,7 +121,8 @@ public class PixelPropsUtils {
                 "com.amazon.avod.thirdpartyclient",
                 "com.disney.disneyplus",
                 "com.netflix.mediaclient",
-                "in.startv.hotstar"
+                "in.startv.hotstar",
+                "jp.id_credit_sp2.android"
         ));
 
     private static final ArrayList<String> customGoogleCameraPackages = 
@@ -150,13 +154,14 @@ public class PixelPropsUtils {
 		"com.google.intelligence.sense",
 		"com.google.android.apps.tips",
 		"com.google.android.apps.dreamliner",
-		"com.google.android.apps.dreamlinerupdater"
+		"com.google.android.apps.dreamlinerupdater",
+		"com.google.android.gms.update"
         ));
 
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
             "com.google.android.gms/.auth.uiflows.minutemaid.MinuteMaidActivity");
 
-    private static volatile boolean sIsGms, sIsFinsky, sIsSetupWizard;
+    private static volatile boolean sIsGms, sIsFinsky, sIsSetupWizard, sIsGoogle, sIsSamsung;
 
     private static String getBuildID(String fingerprint) {
         Pattern pattern = Pattern.compile("([A-Za-z0-9]+\\.\\d+\\.\\d+\\.\\w+)");
@@ -260,7 +265,7 @@ public class PixelPropsUtils {
         setPropValue("TAGS", sCertifiedProps[10].isEmpty() ? "release-keys" : sCertifiedProps[10]);
     }
 
-    public static void setProps(Application app) {
+    public static void setProps(Context context) {
         if (!sEnablePixelProps) {
             dlog("Pixel props is disabled by config");
             return;
@@ -268,80 +273,64 @@ public class PixelPropsUtils {
 
         propsToChangeGeneric.forEach((k, v) -> setPropValue(k, v));
 
-        final String packageName = app.getPackageName();
-        final String processName = app.getProcessName();
-
-        if (packageName == null || packageName.isEmpty()) {
+        final String packageName = context.getPackageName();
+        final String processName = Application.getProcessName();
+        if (packageName == null || processName == null || packageName.isEmpty()) {
             return;
         }
+        Context appContext = context.getApplicationContext();
+	sIsGoogle = packageName.toLowerCase().contains("com.google");
+        sIsSamsung = packageName.toLowerCase().contains("samsung") || processName.toLowerCase().contains("samsung");
+        sIsGms = processName.equals("com.google.android.gms.unstable");
+        sIsFinsky = packageName.equals("com.android.vending");
+        sIsSetupWizard = packageName.equals("com.google.android.setupwizard");
 
-        String procName = packageName;
-        if (procName.equals("com.android.vending")) {
-            sIsFinsky = true;
-        } else if (procName.equals("com.google.android.gms") && processName.equals("com.google.android.gms.unstable")) {
-            sIsGms = true;
-        } else if (procName.equals("com.google.android.setupwizard")) {
-            sIsSetupWizard = true;
-        }
         if (shouldTryToCertifyDevice()) {
             return;
         }
-
-        if (packagesToChangeRecentPixel.contains(processName)
-            || extraPackagesToChange.contains(processName)
+        if (packagesToKeep.contains(packageName)
             || packagesToKeep.contains(processName)) {
-            procName = processName;
-        // Allow process spoofing for GoogleCamera packages
-        } else if (isGoogleCameraPackage(procName)) {
-            return;
-        }
-        if (packagesToKeep.contains(procName)) {
             return;
         }
         Map<String, Object> propsToChange = new HashMap<>();
-        if (procName.startsWith("com.google.")
-                || procName.startsWith(SAMSUNG)
-                || packagesToChangeRecentPixel.contains(procName)
-                || extraPackagesToChange.contains(procName)) {
+        if (sIsGoogle || sIsSamsung
+            || extraPackagesToChange.contains(packageName)
+            || extraPackagesToChange.contains(processName)) {
 
-            if (packagesToChangeRecentPixel.contains(procName)) {
+            if (packagesToChangeRecentPixel.contains(packageName)
+                || packagesToChangeRecentPixel.contains(processName)) {
                 propsToChange = propsToChangeRecentPixel;
-            } else if (packagesToChangePixel5a.contains(procName)) {
+            } else if (packagesToChangePixel5a.contains(packageName)) {
                 propsToChange = propsToChangePixel5a;
             } else {
                 propsToChange = propsToChangePixel6;
+
             }
 
-	  if (!processName.toLowerCase().contains("ui")
-	     && !processName.toLowerCase().contains("gservice")
-	     && !processName.toLowerCase().contains("gapps")
-             && !processName.toLowerCase().contains("learning")
-	     && !processName.toLowerCase().contains("search")
-             && !processName.toLowerCase().contains("persistent")) {
-	       propsToChange = propsToChangeRecentPixel;
-            }
-
-            if (procName.equals("com.google.android.apps.photos")) {
+            if (packageName.equals("com.google.android.apps.photos")) {
                 if (SystemProperties.getBoolean("persist.sys.pixelprops.gphotos", true)) {
                     propsToChange = propsToChangePixelXL;
                 }
             }
-
+            // Allow process spoofing for GoogleCamera packages
+            if (isGoogleCameraPackage(packageName) && (propsToChange == null || propsToChange.isEmpty())) {
+                return;
+            }
         }
         if (propsToChange == null || propsToChange.isEmpty()) return;
-        dlog("Defining props for: " + procName);
+        dlog("Defining props for: " + packageName);
         for (Map.Entry<String, Object> prop : propsToChange.entrySet()) {
             String key = prop.getKey();
             Object value = prop.getValue();
-            if (propsToKeep.containsKey(procName) && propsToKeep.get(procName).contains(key)) {
-                dlog("Not defining " + key + " prop for: " + procName);
+            if (propsToKeep.containsKey(packageName) && propsToKeep.get(packageName).contains(key)) {
+                dlog("Not defining " + key + " prop for: " + packageName);
                 continue;
             }
-            dlog("Defining " + key + " prop for: " + procName);
+            dlog("Defining " + key + " prop for: " + packageName);
             setPropValue(key, value);
         }
         // Set proper indexing fingerprint
-        if (procName.equals("com.google.android.settings.intelligence")) {
+        if (packageName.equals("com.google.android.settings.intelligence")) {
             setPropValue("FINGERPRINT", Build.VERSION.INCREMENTAL);
             return;
         }
@@ -422,7 +411,11 @@ public class PixelPropsUtils {
 
     public static void onEngineGetCertificateChain() {
         // Check stack for SafetyNet or Play Integrity
-        if ((isCallerSafetyNet() || sIsFinsky) && !sIsSetupWizard && shouldTryToCertifyDevice()) {
+        if (sIsSetupWizard || !shouldTryToCertifyDevice()) {
+            Process.killProcess(Process.myPid());
+            return;
+        }
+        if (isCallerSafetyNet() || sIsFinsky) {
             dlog("Blocked key attestation sIsGms=" + sIsGms + " sIsFinsky=" + sIsFinsky);
             throw new UnsupportedOperationException();
         }
