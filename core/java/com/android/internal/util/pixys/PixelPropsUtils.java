@@ -279,7 +279,7 @@ public class PixelPropsUtils {
             return;
         }
         Context appContext = context.getApplicationContext();
-        sIsGoogle = packageName.toLowerCase().contains("google") || processName.toLowerCase().contains("google");
+	sIsGoogle = packageName.toLowerCase().contains("com.google");
         sIsSamsung = packageName.toLowerCase().contains("samsung") || processName.toLowerCase().contains("samsung");
         sIsGms = processName.equals("com.google.android.gms.unstable");
         sIsFinsky = packageName.equals("com.android.vending");
