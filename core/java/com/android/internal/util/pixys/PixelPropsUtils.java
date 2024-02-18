@@ -108,7 +108,8 @@ public class PixelPropsUtils {
         new ArrayList<String> (
             Arrays.asList(
 		"com.google.android.tts",
-		"com.breel.wallpapers20"
+		"com.breel.wallpapers20",
+		"com.whatsapp"
        ));
 
     private static final ArrayList<String> extraPackagesToChange = 
@@ -290,9 +291,6 @@ public class PixelPropsUtils {
         }
         if (packagesToKeep.contains(packageName)
             || packagesToKeep.contains(processName)) {
-            return;
-        }
-        if (packagesToKeep.contains(packageName)) {
             return;
         }
         Map<String, Object> propsToChange = new HashMap<>();
