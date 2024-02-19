@@ -22,7 +22,7 @@
 
 package com.android.internal.util.pixys;
 
-import android.app.ActivityTaskManager;
+import android.app.ActivityManager;
 import android.app.Application;
 import android.app.TaskStackListener;
 import android.content.Context;
@@ -39,6 +39,7 @@ import com.android.internal.R;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -271,15 +272,36 @@ public class PixelPropsUtils {
             return;
         }
 
-        propsToChangeGeneric.forEach((k, v) -> setPropValue(k, v));
+        if (context == null) return;
 
         final String packageName = context.getPackageName();
-        final String processName = Application.getProcessName();
-        if (packageName == null || processName == null || packageName.isEmpty()) {
+        if (packageName == null || packageName.isEmpty()) {
             return;
         }
-        Context appContext = context.getApplicationContext();
-	sIsGoogle = packageName.toLowerCase().contains("com.google");
+
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        if (manager == null) return;
+        List<ActivityManager.RunningAppProcessInfo> runningProcesses = null;
+        try {
+            runningProcesses = manager.getRunningAppProcesses();
+        } catch (Exception e) {
+            runningProcesses = null;
+        }
+        if (runningProcesses == null) return;
+
+        String processName = null;
+        for (ActivityManager.RunningAppProcessInfo processInfo : runningProcesses) {
+            if (processInfo.pid == android.os.Process.myPid()) {
+                processName = processInfo.processName;
+                break;
+            }
+        }
+        if (processName == null) return;
+
+        propsToChangeGeneric.forEach((k, v) -> setPropValue(k, v));
+
+        final boolean sIsTablet = isDeviceTablet(context);
+        sIsGoogle = packageName.toLowerCase().contains("com.google");
         sIsSamsung = packageName.toLowerCase().contains("samsung") || processName.toLowerCase().contains("samsung");
         sIsGms = processName.equals("com.google.android.gms.unstable");
         sIsFinsky = packageName.equals("com.android.vending");
@@ -338,13 +360,40 @@ public class PixelPropsUtils {
 
     private static void setPropValue(String key, Object value) {
         try {
-            dlog("Defining prop " + key + " to " + value.toString());
-            Field field = Build.class.getDeclaredField(key);
-            field.setAccessible(true);
-            field.set(null, value);
-            field.setAccessible(false);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            Log.e(TAG, "Failed to set prop " + key, e);
+            if (value == null || (value instanceof String && ((String) value).isEmpty())) {
+                dlog(TAG + " Skipping setting empty value for key: " + key);
+                return;
+            }
+            dlog(TAG + " Setting property for key: " + key + ", value: " + value.toString());
+            Field field;
+            Class<?> targetClass;
+            try {
+                targetClass = Build.class;
+                field = targetClass.getDeclaredField(key);
+            } catch (NoSuchFieldException e) {
+                targetClass = Build.VERSION.class;
+                field = targetClass.getDeclaredField(key);
+            }
+            if (field != null) {
+                field.setAccessible(true);
+                Class<?> fieldType = field.getType();
+                if (fieldType == int.class || fieldType == Integer.class) {
+                    if (value instanceof Integer) {
+                        field.set(null, value);
+                    } else if (value instanceof String) {
+                        int convertedValue = Integer.parseInt((String) value);
+                        field.set(null, convertedValue);
+                        dlog(TAG + " Converted value for key " + key + ": " + convertedValue);
+                    }
+                } else if (fieldType == String.class) {
+                    field.set(null, String.valueOf(value));
+                }
+                field.setAccessible(false);
+            }
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            dlog(TAG + " Failed to set prop " + key);
+        } catch (NumberFormatException e) {
+            dlog(TAG + " Failed to parse value for field " + key);
         }
     }
 
