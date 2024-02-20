@@ -464,7 +464,7 @@ public class PixelPropsUtils {
             Process.killProcess(Process.myPid());
             return;
         }
-        if (isCallerSafetyNet() || sIsFinsky) {
+        if ((isCallerSafetyNet() || sIsFinsky) && !sIsSetupWizard) {
             dlog("Blocked key attestation sIsGms=" + sIsGms + " sIsFinsky=" + sIsFinsky);
             throw new UnsupportedOperationException();
         }
