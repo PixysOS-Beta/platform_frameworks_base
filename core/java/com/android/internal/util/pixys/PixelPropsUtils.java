@@ -49,7 +49,7 @@ import java.util.regex.Matcher;
 public class PixelPropsUtils {
 
     private static final String TAG = PixelPropsUtils.class.getSimpleName();
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private static final String[] sCertifiedProps =
             Resources.getSystem().getStringArray(R.array.config_certifiedBuildProperties);
