@@ -22,6 +22,7 @@
 
 package com.android.internal.util.pixys;
 
+import android.app.ActivityTaskManager;
 import android.app.ActivityManager;
 import android.app.Application;
 import android.app.TaskStackListener;
@@ -246,7 +247,21 @@ public class PixelPropsUtils {
         return shouldCertify[0];
     }
 
-    private static void spoofBuildGms() {
+    private static void spoofBuildGms() { 
+        String[] sCertifiedProps = { 
+	SystemProperties.get("persist.sys.pihooks.product_name", ""), 
+	SystemProperties.get("persist.sys.pihooks.product_device", ""), 
+        SystemProperties.get("persist.sys.pihooks.manufacturer", ""), 
+	SystemProperties.get("persist.sys.pihooks.brand", ""), 
+	SystemProperties.get("persist.sys.pihooks.product_model", ""), 
+            SystemProperties.get("persist.sys.pihooks.build_fingerprint", ""), 
+            SystemProperties.get("persist.sys.pihooks.security_patch", ""), 
+            SystemProperties.get("persist.sys.pihooks.first_api_level", ""), 
+            SystemProperties.get("persist.sys.pihooks.build_id", ""), 
+	SystemProperties.get("persist.sys.pihooks.build_type", ""), 
+	SystemProperties.get("persist.sys.pihooks.build_tags", "")
+        };
+
         if (sCertifiedProps == null || sCertifiedProps.length == 0) return;
         // Alter model name and fingerprint to avoid hardware attestation enforcement
         setPropValue("PRODUCT", sCertifiedProps[0].isEmpty() ? getDeviceName(sCertifiedProps[4]) : sCertifiedProps[0]);
@@ -300,7 +315,6 @@ public class PixelPropsUtils {
 
         propsToChangeGeneric.forEach((k, v) -> setPropValue(k, v));
 
-        final boolean sIsTablet = isDeviceTablet(context);
         sIsGoogle = packageName.toLowerCase().contains("com.google");
         sIsSamsung = packageName.toLowerCase().contains("samsung") || processName.toLowerCase().contains("samsung");
         sIsGms = processName.equals("com.google.android.gms.unstable");
