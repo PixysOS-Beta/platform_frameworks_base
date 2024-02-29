@@ -359,7 +359,16 @@ public class PixysUtils {
         new RestartSystemUiTask(context).execute();
     }
 
-    public static void showSystemUiRestartDialog(Context context) {
+    public static void switchScreenOff(Context ctx) { 
+        PowerManager pm = (PowerManager) ctx.getSystemService(Context.POWER_SERVICE);
+        if (pm!= null) {
+            pm.goToSleep(SystemClock.uptimeMillis());
+       
+       } 
+   }
+
+
+    public static void showSystemUiRestartDialog(Context context) { 
         new AlertDialog.Builder(context)
                 .setTitle(R.string.systemui_restart_title)
                 .setMessage(R.string.systemui_restart_message)
