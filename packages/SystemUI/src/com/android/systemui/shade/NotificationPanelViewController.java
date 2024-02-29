@@ -240,7 +240,7 @@ import com.android.systemui.aospa.NotificationLightsView;
 
 import kotlin.Unit;
 
-import com.android.internal.util.awaken.AwakenUtils;
+import com.android.internal.util.pixys.PixysUtils;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -975,7 +975,7 @@ public final class NotificationPanelViewController implements ShadeSurface, Dump
                 new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDoubleTap(MotionEvent e) {
-                AwakenUtils.switchScreenOff(mView.getContext());
+                PixysUtils.switchScreenOff(mView.getContext());
                 return true;
             }
         });
