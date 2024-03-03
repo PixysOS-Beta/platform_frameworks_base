@@ -152,7 +152,11 @@ public class PixelPropsUtils {
 		"com.google.android.apps.tips",
 		"com.google.android.apps.dreamliner",
 		"com.google.android.apps.dreamlinerupdater",
-		"com.google.android.gms.update"
+		"com.google.android.gms.update",
+                "com.google.android.apps.pixelmigrate",
+                "com.google.android.backupuses",
+                "com.google.android.backuptransport"
+
         ));
 
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
