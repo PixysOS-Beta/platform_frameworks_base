@@ -26,7 +26,6 @@ import android.app.PendingIntent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.UserHandle;
-import android.view.MotionEvent;
 import android.view.RemoteAnimationAdapter;
 import android.view.View;
 import android.window.RemoteTransition;
@@ -49,7 +48,6 @@ import com.android.systemui.shade.NotificationShadeWindowView;
 import com.android.systemui.shade.NotificationShadeWindowViewController;
 import com.android.systemui.shade.ShadeViewController;
 import com.android.systemui.shared.system.RemoteAnimationRunnerCompat;
-import com.android.systemui.statusbar.NotificationPresenter;
 import com.android.systemui.statusbar.notification.row.ExpandableNotificationRow;
 import com.android.systemui.util.Compile;
 import com.android.systemui.statusbar.policy.GameSpaceManager;
@@ -189,8 +187,6 @@ public interface CentralSurfaces extends Dumpable, LifecycleOwner {
         return contextForUser.getPackageManager();
     }
 
-    void start();
-
     boolean updateIsKeyguard();
 
     boolean updateIsKeyguard(boolean forceStateChange);
@@ -202,42 +198,12 @@ public interface CentralSurfaces extends Dumpable, LifecycleOwner {
     /** Get the Keyguard Message Area that displays auth messages. */
     AuthKeyguardMessageArea getKeyguardMessageArea();
 
-    int getStatusBarHeight();
-
     boolean isLaunchingActivityOverLockscreen();
 
     void onKeyguardViewManagerStatesUpdated();
 
-    boolean isPulsing();
-
-    boolean isOccluded();
-
-    boolean isDeviceInVrMode();
-
-    NotificationPresenter getPresenter();
-
-    /**
-     * Used to dispatch initial touch events before crossing the threshold to pull down the
-     * notification shade. After that, since the launcher window is set to slippery, input
-     * frameworks take care of routing the events to the notification shade.
-     */
-    void onInputFocusTransfer(boolean start, boolean cancel, float velocity);
-
-    /**
-     * Dispatches status bar motion event to the notification shade. This is different from
-     * {@link #onInputFocusTransfer(boolean, boolean, float)} as it doesn't rely on setting the
-     * launcher window slippery to allow the frameworks to route those events after passing the
-     * initial threshold.
-     */
-    default void onStatusBarTrackpadEvent(MotionEvent event) {}
-
     /** */
     boolean getCommandQueuePanelsEnabled();
-
-    /** */
-    int getStatusBarWindowState();
-
-    BiometricUnlockController getBiometricUnlockController();
 
     void showWirelessChargingAnimation(int batteryLevel);
 
@@ -247,9 +213,6 @@ public interface CentralSurfaces extends Dumpable, LifecycleOwner {
 
     void setInteracting(int barWindow, boolean interacting);
 
-    @Override
-    void dump(PrintWriter pwOriginal, String[] args);
-
     /** @deprecated Use {@link DisplayMetricsRepository} instead. */
     @Deprecated
     float getDisplayWidth();
@@ -257,8 +220,6 @@ public interface CentralSurfaces extends Dumpable, LifecycleOwner {
     /** @deprecated Use {@link DisplayMetricsRepository} instead. */
     @Deprecated
     float getDisplayHeight();
-
-    void readyForKeyguardDone();
 
     void showKeyguard();
 
@@ -292,19 +253,9 @@ public interface CentralSurfaces extends Dumpable, LifecycleOwner {
     // TODO: Figure out way to remove these.
     NavigationBarView getNavigationBarView();
 
-    boolean isOverviewEnabled();
-
-    void showPinningEnterExitToast(boolean entering);
-
-    void showPinningEscapeToast();
-
     void setBouncerShowing(boolean bouncerShowing);
 
-    int getWakefulnessState();
-
     boolean isScreenFullyOff();
-
-    void showScreenPinningRequest(int taskId, boolean allowCancel);
 
     @Nullable
     Intent getEmergencyActionIntent();
@@ -326,23 +277,15 @@ public interface CentralSurfaces extends Dumpable, LifecycleOwner {
     @VisibleForTesting
     void updateScrimController();
 
-    boolean isKeyguardShowing();
-
     boolean shouldIgnoreTouch();
 
     boolean isDeviceInteractive();
 
     void awakenDreams();
 
-    void clearNotificationEffects();
-
     boolean isBouncerShowing();
 
     boolean isBouncerShowingScrimmed();
-
-    boolean isBouncerShowingOverDream();
-
-    boolean isKeyguardSecure();
 
     void updateNotificationPanelTouchState();
 
@@ -351,15 +294,7 @@ public interface CentralSurfaces extends Dumpable, LifecycleOwner {
     @VisibleForTesting
     void setBarStateForTest(int state);
 
-    void showTransientUnchecked();
-
-    void clearTransient();
-
     void acquireGestureWakeLock(long time);
-
-    boolean setAppearance(int appearance);
-
-    int getBarMode();
 
     void resendMessage(int msg);
 
@@ -381,10 +316,13 @@ public interface CentralSurfaces extends Dumpable, LifecycleOwner {
     @Deprecated
     float getDisplayDensity();
 
+<<<<<<< HEAD
     void extendDozePulse();
 
     GameSpaceManager getGameSpaceManager();
 
+=======
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
     public static class KeyboardShortcutsMessage {
         final int mDeviceId;
 

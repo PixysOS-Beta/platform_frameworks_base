@@ -20,11 +20,17 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+<<<<<<< HEAD
 import android.content.Context;
 import android.os.FileUtils;
 import android.util.IntArray;
 
 import androidx.test.InstrumentationRegistry;
+=======
+import android.os.FileUtils;
+import android.util.IntArray;
+
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
@@ -102,9 +108,14 @@ public class BinderfsStatsReaderTest {
     private boolean mHasError;
 
     @Before
+<<<<<<< HEAD
     public void setUp() {
         Context context = InstrumentationRegistry.getContext();
         mStatsDirectory = context.getDir("binder_logs", Context.MODE_PRIVATE);
+=======
+    public void setUp() throws Exception {
+        mStatsDirectory = Files.createTempDirectory("BinderfsStatsReaderTest").toFile();
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
         mFreezerBinderAsyncThreshold = 1024;
         mValidPids = IntArray.fromArray(new int[]{14505, 14461, 542, 540}, 4);
         mStatsPids = new IntArray();
@@ -175,7 +186,11 @@ public class BinderfsStatsReaderTest {
         Files.write(tempFile.toPath(), fileContents.getBytes());
         new BinderfsStatsReader(tempFile.toString()).handleFreeAsyncSpace(
                 // Check if the current process is a valid one
+<<<<<<< HEAD
                 pid -> mValidPids.indexOf(pid) != -1,
+=======
+                mValidPids::contains,
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 
                 // Check if the current process is running out of async binder space
                 (pid, free) -> {
@@ -186,7 +201,13 @@ public class BinderfsStatsReaderTest {
                 },
 
                 // Log the error if binderfs stats can't be accesses or correctly parsed
+<<<<<<< HEAD
                 exception -> mHasError = true);
+=======
+                exception -> {
+                    mHasError = true;
+                });
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
         Files.delete(tempFile.toPath());
     }
 }

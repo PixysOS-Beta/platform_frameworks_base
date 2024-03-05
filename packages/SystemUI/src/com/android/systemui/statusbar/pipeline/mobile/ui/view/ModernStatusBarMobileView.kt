@@ -19,8 +19,12 @@ package com.android.systemui.statusbar.pipeline.mobile.ui.view
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
+<<<<<<< HEAD
 import android.widget.ImageView
 import com.android.systemui.R
+=======
+import com.android.systemui.res.R
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 import com.android.systemui.statusbar.StatusBarIconView.getVisibleStateString
 import com.android.systemui.statusbar.pipeline.mobile.ui.MobileViewLogger
 import com.android.systemui.statusbar.pipeline.mobile.ui.binder.MobileIconBinder

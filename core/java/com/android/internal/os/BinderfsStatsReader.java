@@ -43,6 +43,10 @@ import java.util.function.Predicate;
  * free async space 520192
  * ...
  */
+<<<<<<< HEAD
+=======
+@android.ravenwood.annotation.RavenwoodKeepWholeClass
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 public class BinderfsStatsReader {
     private final String mPath;
 

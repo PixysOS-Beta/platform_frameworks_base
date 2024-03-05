@@ -724,7 +724,20 @@ interface IActivityManager {
      *
      * @param userId      The userId in the multi-user environment.
      */
-    void removeApplicationStartInfoCompleteListener(int userId);
+    void clearApplicationStartInfoCompleteListener(int userId);
+
+
+    /**
+     * Adds a timestamp of the moment called to the calling apps most recent
+     * {@link ApplicationStartInfo}.
+     *
+     *
+     * @param key         Unique key for timestamp.
+     * @param timestampNs Clock monotonic time in nanoseconds of event to be
+     *                    recorded.
+     * @param userId      The userId in the multi-user environment.
+     */
+    void addStartInfoTimestamp(int key, long timestampNs, int userId);
 
     /**
      * Return a list of {@link ApplicationExitInfo} records.
@@ -925,6 +938,11 @@ interface IActivityManager {
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.PACKAGE_USAGE_STATS)")
     int[] getUidFrozenState(in int[] uids);
 
+<<<<<<< HEAD
+=======
+    int checkPermissionForDevice(in String permission, int pid, int uid, int deviceId);
+
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
     /**
      * Notify AMS about binder transactions to frozen apps.
      *
@@ -934,6 +952,7 @@ interface IActivityManager {
      * @param err The binder transaction error
      */
     oneway void frozenBinderTransactionDetected(int debugPid, int code, int flags, int err);
+<<<<<<< HEAD
 
     /**
      *  Should disable touch if three fingers to screen shot is active?
@@ -944,4 +963,7 @@ interface IActivityManager {
      *  Force full screen for devices with cutout
      */
     boolean shouldForceCutoutFullscreen(in String packageName);
+=======
+    int getBindingUidProcessState(int uid, in String callingPackage);
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 }

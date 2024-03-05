@@ -21,12 +21,15 @@ import android.os.HandlerThread;
 
 import androidx.annotation.Nullable;
 
+<<<<<<< HEAD
 import com.android.systemui.SystemUIInitializerFactory;
 import com.android.systemui.tv.TvWMComponent;
+=======
+import com.android.systemui.SystemUIInitializer;
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 import com.android.wm.shell.back.BackAnimation;
 import com.android.wm.shell.bubbles.Bubbles;
 import com.android.wm.shell.common.annotations.ShellMainThread;
-import com.android.wm.shell.dagger.TvWMShellModule;
 import com.android.wm.shell.dagger.WMShellModule;
 import com.android.wm.shell.dagger.WMSingleton;
 import com.android.wm.shell.desktopmode.DesktopMode;
@@ -53,7 +56,7 @@ import java.util.Optional;
  * provided by its particular device/form-factor SystemUI implementation.
  *
  * ie. {@link WMComponent} includes {@link WMShellModule}
- *     and {@link TvWMComponent} includes {@link TvWMShellModule}
+ * and {@code TvWMComponent} includes {@link com.android.wm.shell.dagger.TvWMShellModule}
  */
 @WMSingleton
 @Subcomponent(modules = {WMShellModule.class})

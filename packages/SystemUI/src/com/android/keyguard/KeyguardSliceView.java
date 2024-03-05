@@ -48,8 +48,12 @@ import com.android.app.animation.Interpolators;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.graphics.ColorUtils;
 import com.android.settingslib.Utils;
+<<<<<<< HEAD
 import com.android.systemui.R;
 import com.android.systemui.keyguard.KeyguardSliceProvider;
+=======
+import com.android.systemui.res.R;
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 import com.android.systemui.util.wakelock.KeepAwakeAnimationListener;
 
 import java.io.PrintWriter;

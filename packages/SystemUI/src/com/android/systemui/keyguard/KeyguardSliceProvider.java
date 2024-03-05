@@ -48,8 +48,13 @@ import androidx.slice.builders.SliceAction;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.keyguard.KeyguardUpdateMonitor;
 import com.android.keyguard.KeyguardUpdateMonitorCallback;
+<<<<<<< HEAD
 import com.android.systemui.R;
 import com.android.systemui.SystemUIAppComponentFactory;
+=======
+import com.android.systemui.res.R;
+import com.android.systemui.SystemUIAppComponentFactoryBase;
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.plugins.statusbar.StatusBarStateController;
 import com.android.systemui.settings.UserTracker;

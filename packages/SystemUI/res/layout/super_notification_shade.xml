@@ -26,6 +26,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
+<<<<<<< HEAD
     <com.android.systemui.statusbar.BackDropView
         android:id="@+id/backdrop"
         android:layout_width="match_parent"
@@ -45,11 +46,12 @@
                    android:visibility="invisible" />
     </com.android.systemui.statusbar.BackDropView>
 
+=======
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
     <com.android.systemui.scrim.ScrimView
         android:id="@+id/scrim_behind"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:importantForAccessibility="no"
         sysui:ignoreRightInset="true"
         sysui:ignoreLeftInset="true"
     />
@@ -58,14 +60,14 @@
         android:id="@+id/scrim_notifications"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:importantForAccessibility="no"
         sysui:ignoreRightInset="true"
     />
 
     <com.android.systemui.statusbar.LightRevealScrim
         android:id="@+id/light_reveal_scrim"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        sysui:ignoreRightInset="true" />
 
     <include layout="@layout/status_bar_expanded"
              android:layout_width="match_parent"
@@ -85,13 +87,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Placeholder for the communal UI that will be replaced if the feature is enabled. -->
+    <ViewStub
+        android:id="@+id/communal_ui_stub"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <include layout="@layout/brightness_mirror_container" />
 
     <com.android.systemui.scrim.ScrimView
         android:id="@+id/scrim_in_front"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:importantForAccessibility="no"
         sysui:ignoreRightInset="true"
     />
 

@@ -54,6 +54,7 @@ import static android.app.AppOpsManager.OP_READ_PHONE_NUMBERS;
 import static android.app.AppOpsManager.OP_READ_PHONE_STATE;
 import static android.app.AppOpsManager.OP_READ_SMS;
 import static android.app.AppOpsManager.OP_RECEIVE_AMBIENT_TRIGGER_AUDIO;
+<<<<<<< HEAD
 import static android.app.AppOpsManager.OP_RECEIVE_MMS;
 import static android.app.AppOpsManager.OP_RECEIVE_SMS;
 import static android.app.AppOpsManager.OP_RECEIVE_WAP_PUSH;
@@ -65,6 +66,11 @@ import static android.app.AppOpsManager.OP_WRITE_CALENDAR;
 import static android.app.AppOpsManager.OP_WRITE_CALL_LOG;
 import static android.app.AppOpsManager.OP_WRITE_CONTACTS;
 import static android.app.AppOpsManager.OP_WRITE_EXTERNAL_STORAGE;
+=======
+import static android.app.AppOpsManager.OP_RECEIVE_SANDBOX_TRIGGER_AUDIO;
+import static android.app.AppOpsManager.OP_RECORD_AUDIO;
+import static android.app.AppOpsManager.OP_RESERVED_FOR_TESTING;
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 import static android.app.AppOpsManager.flagsToString;
 import static android.app.AppOpsManager.getUidStateName;
 
@@ -163,6 +169,7 @@ final class DiscreteRegistry {
     private static final String PROPERTY_DISCRETE_OPS_LIST = "discrete_history_ops_cslist";
     private static final String DEFAULT_DISCRETE_OPS = OP_FINE_LOCATION + "," + OP_COARSE_LOCATION
             + "," + OP_CAMERA + "," + OP_RECORD_AUDIO + "," + OP_PHONE_CALL_MICROPHONE + ","
+<<<<<<< HEAD
             + OP_PHONE_CALL_CAMERA + "," + OP_RECEIVE_AMBIENT_TRIGGER_AUDIO
 
     /**
@@ -198,6 +205,10 @@ final class DiscreteRegistry {
             OP_READ_SMS + "," + OP_RECEIVE_WAP_PUSH + "," + OP_RECEIVE_MMS + "," +
             OP_READ_CELL_BROADCASTS
             ;
+=======
+            + OP_PHONE_CALL_CAMERA + "," + OP_RECEIVE_AMBIENT_TRIGGER_AUDIO + ","
+            + OP_RECEIVE_SANDBOX_TRIGGER_AUDIO + "," + OP_RESERVED_FOR_TESTING;
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
     private static final long DEFAULT_DISCRETE_HISTORY_CUTOFF = Duration.ofDays(7).toMillis();
     private static final long MAXIMUM_DISCRETE_HISTORY_CUTOFF = Duration.ofDays(30).toMillis();
     private static final long DEFAULT_DISCRETE_HISTORY_QUANTIZATION =

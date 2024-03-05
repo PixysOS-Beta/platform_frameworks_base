@@ -44,6 +44,10 @@ import android.app.PropertyInvalidatedCache;
 import android.content.pm.UserInfo;
 import android.content.pm.UserInfo.UserInfoFlag;
 import android.content.res.Resources;
+<<<<<<< HEAD
+=======
+import android.multiuser.Flags;
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 import android.os.Looper;
 import android.os.Parcel;
 import android.os.UserHandle;
@@ -133,21 +137,40 @@ public class UserManagerServiceUserInfoTest {
 
         mUserManagerService.putUserInfo(data.info);
 
-        // Set a global and user restriction so they get written out to the user file.
+        //Local restrictions are written to the user specific files and global restrictions
+        // are written to the SYSTEM user file.
         setUserRestrictions(data.info.id, globalRestriction, localRestriction, true);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(baos);
         mUserManagerService.writeUserLP(data, out);
-        byte[] bytes = baos.toByteArray();
+        byte[] secondaryUserBytes = baos.toByteArray();
+        baos.reset();
+
+        byte[] systemUserBytes = new byte[0];
+        if (Flags.saveGlobalAndGuestRestrictionsOnSystemUserXmlReadOnly()) {
+            UserData systemUserData = new UserData();
+            systemUserData.info = mUserManagerService.getUserInfo(UserHandle.USER_SYSTEM);
+            mUserManagerService.writeUserLP(systemUserData, baos);
+            systemUserBytes = baos.toByteArray();
+        }
 
         // Clear the restrictions to see if they are properly read in from the user file.
         setUserRestrictions(data.info.id, globalRestriction, localRestriction, false);
 
         final int userVersion = 10;
         //read the secondary and SYSTEM user file to fetch local/global device policy restrictions.
+<<<<<<< HEAD
         mUserManagerService.readUserLP(data.info.id, new ByteArrayInputStream(bytes),
                 userVersion);
+=======
+        mUserManagerService.readUserLP(data.info.id, new ByteArrayInputStream(secondaryUserBytes),
+                userVersion);
+        if (Flags.saveGlobalAndGuestRestrictionsOnSystemUserXmlReadOnly()) {
+            mUserManagerService.readUserLP(UserHandle.USER_SYSTEM,
+                    new ByteArrayInputStream(systemUserBytes), userVersion);
+        }
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 
         assertTrue(mUserManagerService.hasUserRestrictionOnAnyUser(globalRestriction));
         assertTrue(mUserManagerService.hasUserRestrictionOnAnyUser(localRestriction));

@@ -28,6 +28,7 @@ import com.android.systemui.statusbar.pipeline.mobile.data.repository.MobileConn
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -49,7 +50,7 @@ class FullMobileConnectionRepository(
     override val subId: Int,
     startingIsCarrierMerged: Boolean,
     override val tableLogBuffer: TableLogBuffer,
-    subscriptionModel: StateFlow<SubscriptionModel?>,
+    subscriptionModel: Flow<SubscriptionModel?>,
     private val defaultNetworkName: NetworkNameModel,
     private val networkNameSeparator: String,
     @Application scope: CoroutineScope,
@@ -312,6 +313,7 @@ class FullMobileConnectionRepository(
                 activeRepo.value.isAllowedDuringAirplaneMode.value,
             )
 
+<<<<<<< HEAD
     override val imsState =
         activeRepo
             .flatMapLatest { it.imsState }
@@ -321,6 +323,19 @@ class FullMobileConnectionRepository(
                 activeRepo.value.imsState.value,
             )
 
+=======
+    override val hasPrioritizedNetworkCapabilities =
+        activeRepo
+            .flatMapLatest { it.hasPrioritizedNetworkCapabilities }
+            .stateIn(
+                scope,
+                SharingStarted.WhileSubscribed(),
+                activeRepo.value.hasPrioritizedNetworkCapabilities.value,
+            )
+
+    override suspend fun isInEcmMode(): Boolean = activeRepo.value.isInEcmMode()
+
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
     class Factory
     @Inject
     constructor(
@@ -333,7 +348,7 @@ class FullMobileConnectionRepository(
         fun build(
             subId: Int,
             startingIsCarrierMerged: Boolean,
-            subscriptionModel: StateFlow<SubscriptionModel?>,
+            subscriptionModel: Flow<SubscriptionModel?>,
             defaultNetworkName: NetworkNameModel,
             networkNameSeparator: String,
         ): FullMobileConnectionRepository {

@@ -30,7 +30,7 @@ import androidx.preference.PreferenceFragment;
 import androidx.preference.PreferenceScreen;
 
 import com.android.systemui.Dependency;
-import com.android.systemui.R;
+import com.android.systemui.res.R;
 import com.android.systemui.demomode.DemoModeController;
 import com.android.systemui.fragments.FragmentService;
 import com.android.systemui.util.settings.GlobalSettings;
@@ -64,6 +64,10 @@ public class TunerActivity extends CollapsingToolbarBaseActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
+<<<<<<< HEAD
+=======
+        setTheme(androidx.appcompat.R.style.Theme_AppCompat_DayNight);
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         setContentView(R.layout.tuner_activity);

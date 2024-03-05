@@ -17,8 +17,11 @@
 package com.android.server.wm;
 
 import static android.app.WindowConfiguration.WINDOWING_MODE_PINNED;
+<<<<<<< HEAD
 import static android.view.WindowManager.LayoutParams.TYPE_NAVIGATION_BAR;
 import static android.view.WindowManager.LayoutParams.TYPE_SYSTEM_BLACKSCREEN_OVERLAY;
+=======
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 
 import static com.android.internal.protolog.ProtoLogGroup.WM_DEBUG_ADD_REMOVE;
 import static com.android.internal.protolog.ProtoLogGroup.WM_DEBUG_APP_TRANSITIONS;
@@ -575,6 +578,7 @@ class WindowToken extends WindowContainer<WindowState> {
                 && asActivityRecord() != null && isVisible()) {
             // Trigger an activity level rotation transition.
             mTransitionController.requestTransitionIfNeeded(WindowManager.TRANSIT_CHANGE, this);
+            mTransitionController.collectVisibleChange(this);
             mTransitionController.setReady(this);
         }
         final int originalRotation = getWindowConfiguration().getRotation();
@@ -749,17 +753,6 @@ class WindowToken extends WindowContainer<WindowState> {
     @Override
     WindowToken asWindowToken() {
         return this;
-    }
-
-    /**
-     * Return whether windows from this token can layer above the
-     * system bars, or in other words extend outside of the "Decor Frame"
-     */
-    boolean canLayerAboveSystemBars() {
-        int layer = getWindowLayerFromType();
-        int navLayer = mWmService.mPolicy.getWindowLayerFromTypeLw(TYPE_NAVIGATION_BAR,
-                mOwnerCanManageAppTokens);
-        return mOwnerCanManageAppTokens && (layer > navLayer);
     }
 
     int getWindowLayerFromType() {

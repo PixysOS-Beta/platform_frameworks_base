@@ -86,7 +86,12 @@ class ActivityRecordInputSink {
         final boolean allowPassthrough = activityBelowInTask != null && (
                 activityBelowInTask.mAllowedTouchUid == mActivityRecord.getUid()
                         || activityBelowInTask.isUid(mActivityRecord.getUid()));
+<<<<<<< HEAD
         if (allowPassthrough || !mIsCompatEnabled || mActivityRecord.isInTransition()) {
+=======
+        if (allowPassthrough || !mIsCompatEnabled || mActivityRecord.isInTransition()
+                || !mActivityRecord.mActivityRecordInputSinkEnabled) {
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
             // Set to non-touchable, so the touch events can pass through.
             mInputWindowHandleWrapper.setInputConfigMasked(InputConfig.NOT_TOUCHABLE,
                     InputConfig.NOT_TOUCHABLE);

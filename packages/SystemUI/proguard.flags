@@ -5,9 +5,13 @@
     *;
 }
 
+<<<<<<< HEAD
 -keep class com.android.systemui.tv.TvSystemUIInitializer {
     *;
 }
 
 -keep,allowoptimization,allowaccessmodification class com.android.systemui.dagger.DaggerReferenceGlobalRootComponent** { !synthetic *; }
 -keep,allowoptimization,allowaccessmodification class com.android.systemui.tv.DaggerTvGlobalRootComponent** { !synthetic *; }
+=======
+-keep,allowoptimization,allowaccessmodification class com.android.systemui.dagger.DaggerReferenceGlobalRootComponent** { !synthetic *; }
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26

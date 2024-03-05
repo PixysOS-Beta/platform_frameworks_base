@@ -133,9 +133,23 @@ interface MobileConnectionRepository {
     val isAllowedDuringAirplaneMode: StateFlow<Boolean>
 
     /**
+<<<<<<< HEAD
      * The current state of the IMS with its capabilities
      */
     val imsState: StateFlow<ImsStateModel>
+=======
+     * True if this network has NET_CAPABILITIY_PRIORITIZE_LATENCY, and can be considered to be a
+     * network slice
+     */
+    val hasPrioritizedNetworkCapabilities: StateFlow<Boolean>
+
+    /**
+     * True if this connection is in emergency callback mode.
+     *
+     * @see [TelephonyManager.getEmergencyCallbackMode]
+     */
+    suspend fun isInEcmMode(): Boolean
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
 
     companion object {
         /** The default number of levels to use for [numberOfLevels]. */

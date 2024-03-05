@@ -63,12 +63,12 @@ import com.android.internal.logging.UiEvent;
 import com.android.internal.logging.UiEventLogger;
 import com.android.settingslib.wifi.WifiEnterpriseRestrictionUtils;
 import com.android.systemui.Prefs;
-import com.android.systemui.R;
 import com.android.systemui.accessibility.floatingmenu.AnnotationLinkSpan;
 import com.android.systemui.animation.DialogLaunchAnimator;
 import com.android.systemui.dagger.SysUISingleton;
 import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
+import com.android.systemui.res.R;
 import com.android.systemui.statusbar.phone.SystemUIDialog;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
 import com.android.wifitrackerlib.WifiEntry;
@@ -133,7 +133,7 @@ public class InternetDialog extends SystemUIDialog implements
     private TextView mMobileTitleText;
     private TextView mMobileSummaryText;
     private TextView mSecondaryMobileTitleText;
-    private TextView  mSecondaryMobileSummaryText;
+    private TextView mSecondaryMobileSummaryText;
     private TextView mAirplaneModeSummaryText;
     private Switch mMobileDataToggle;
     private View mMobileToggleDivider;
@@ -145,6 +145,9 @@ public class InternetDialog extends SystemUIDialog implements
     private Switch mWiFiToggle;
     private View mWifiConnectedSpace;
     private Button mDoneButton;
+
+    @VisibleForTesting
+    protected Button mShareWifiButton;
     private Button mAirplaneModeButton;
     private Drawable mBackgroundOn;
     private KeyguardStateController mKeyguard;
@@ -153,7 +156,6 @@ public class InternetDialog extends SystemUIDialog implements
     private int mDefaultDataSubId = SubscriptionManager.INVALID_SUBSCRIPTION_ID;
     private boolean mCanConfigMobileData;
     private boolean mCanChangeWifiState;
-
     // Wi-Fi entries
     private int mWifiNetworkHeight;
     @Nullable
@@ -166,14 +168,6 @@ public class InternetDialog extends SystemUIDialog implements
 
     // Wi-Fi scanning progress bar
     protected boolean mIsProgressBarVisible;
-    protected boolean mIsSearchingHidden;
-    protected final Runnable mHideProgressBarRunnable = () -> {
-        setProgressBarVisible(false);
-    };
-    protected Runnable mHideSearchingRunnable = () -> {
-        mIsSearchingHidden = true;
-        mInternetDialogSubTitle.setText(getSubtitleText());
-    };
 
     @Inject
     public InternetDialog(Context context, InternetDialogFactory internetDialogFactory,
@@ -248,6 +242,7 @@ public class InternetDialog extends SystemUIDialog implements
         mWifiRecyclerView = mDialogView.requireViewById(R.id.wifi_list_layout);
         mSeeAllLayout = mDialogView.requireViewById(R.id.see_all_layout);
         mDoneButton = mDialogView.requireViewById(R.id.done_button);
+        mShareWifiButton = mDialogView.requireViewById(R.id.share_wifi_button);
         mAirplaneModeButton = mDialogView.requireViewById(R.id.apm_button);
         mSignalIcon = mDialogView.requireViewById(R.id.signal_icon);
         mMobileTitleText = mDialogView.requireViewById(R.id.mobile_title);
@@ -293,6 +288,7 @@ public class InternetDialog extends SystemUIDialog implements
         mConnectedWifListLayout.setVisibility(View.GONE);
         mWifiRecyclerView.setVisibility(View.GONE);
         mSeeAllLayout.setVisibility(View.GONE);
+        mShareWifiButton.setVisibility(View.GONE);
     }
 
     @Override
@@ -300,8 +296,6 @@ public class InternetDialog extends SystemUIDialog implements
         if (DEBUG) {
             Log.d(TAG, "onStop");
         }
-        mHandler.removeCallbacks(mHideProgressBarRunnable);
-        mHandler.removeCallbacks(mHideSearchingRunnable);
         mMobileNetworkLayout.setOnClickListener(null);
         mHotspotLayout.setOnClickListener(null);
         mHotspotToggle.setOnCheckedChangeListener(null);
@@ -312,6 +306,7 @@ public class InternetDialog extends SystemUIDialog implements
         mSeeAllLayout.setOnClickListener(null);
         mWiFiToggle.setOnCheckedChangeListener(null);
         mDoneButton.setOnClickListener(null);
+        mShareWifiButton.setOnClickListener(null);
         mAirplaneModeButton.setOnClickListener(null);
         mInternetDialogController.onStop();
         mInternetDialogFactory.destroyDialog();
@@ -330,9 +325,13 @@ public class InternetDialog extends SystemUIDialog implements
      * Update the internet dialog when receiving the callback.
      *
      * @param shouldUpdateMobileNetwork {@code true} for update the mobile network layout,
+<<<<<<< HEAD
      * otherwise {@code false}.
      * @param shouldUpdateHotspot {@code true} for update the hotspot layout,
      * otherwise {@code false}.
+=======
+     *                                  otherwise {@code false}.
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
      */
     void updateDialog(boolean shouldUpdateMobileNetwork, boolean shouldUpdateHotspot) {
         if (DEBUG) {
@@ -357,7 +356,6 @@ public class InternetDialog extends SystemUIDialog implements
             return;
         }
 
-        showProgressBar();
         final boolean isDeviceLocked = mInternetDialogController.isDeviceLocked();
         final boolean isWifiEnabled = mInternetDialogController.isWifiEnabled();
         final boolean isWifiScanEnabled = mInternetDialogController.isWifiScanEnabled();
@@ -400,6 +398,11 @@ public class InternetDialog extends SystemUIDialog implements
                     mInternetDialogController.setWifiEnabled(isChecked);
                 });
         mDoneButton.setOnClickListener(v -> dismiss());
+        mShareWifiButton.setOnClickListener(v -> {
+            if (mInternetDialogController.mayLaunchShareWifiSettings(mConnectedWifiEntry)) {
+                mUiEventLogger.log(InternetDialogEvent.SHARE_WIFI_QS_BUTTON_CLICKED);
+            }
+        });
         mAirplaneModeButton.setOnClickListener(v -> {
             mInternetDialogController.setAirplaneModeDisabled();
         });
@@ -589,6 +592,7 @@ public class InternetDialog extends SystemUIDialog implements
     private void updateConnectedWifi(boolean isWifiEnabled, boolean isDeviceLocked) {
         if (!isWifiEnabled || mConnectedWifiEntry == null || isDeviceLocked) {
             mConnectedWifListLayout.setVisibility(View.GONE);
+            mShareWifiButton.setVisibility(View.GONE);
             return;
         }
         mConnectedWifListLayout.setVisibility(View.VISIBLE);
@@ -598,6 +602,12 @@ public class InternetDialog extends SystemUIDialog implements
                 mInternetDialogController.getInternetWifiDrawable(mConnectedWifiEntry));
         mWifiSettingsIcon.setColorFilter(
                 mContext.getColor(R.color.connected_network_primary_color));
+        if (mInternetDialogController.getConfiguratorQrCodeGeneratorIntentOrNull(
+                mConnectedWifiEntry) != null) {
+            mShareWifiButton.setVisibility(View.VISIBLE);
+        } else {
+            mShareWifiButton.setVisibility(View.GONE);
+        }
 
         if (mSecondaryMobileNetworkLayout != null) {
             mSecondaryMobileNetworkLayout.setVisibility(View.GONE);
@@ -687,8 +697,7 @@ public class InternetDialog extends SystemUIDialog implements
 
     @Nullable
     CharSequence getSubtitleText() {
-        return mInternetDialogController.getSubtitleText(
-                mIsProgressBarVisible && !mIsSearchingHidden);
+        return mInternetDialogController.getSubtitleText(mIsProgressBarVisible);
     }
 
     private Drawable getSignalStrengthDrawable(int subId) {
@@ -703,6 +712,7 @@ public class InternetDialog extends SystemUIDialog implements
         return mInternetDialogController.getMobileNetworkSummary(subId);
     }
 
+<<<<<<< HEAD
     private CharSequence getHotspotTitle() {
         final WifiManager wifiManager = mInternetDialogController.getWifiManager();
         if (wifiManager != null) {
@@ -746,6 +756,8 @@ public class InternetDialog extends SystemUIDialog implements
         }
     }
 
+=======
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
     private void setProgressBarVisible(boolean visible) {
         if (mIsProgressBarVisible == visible) {
             return;
@@ -775,7 +787,8 @@ public class InternetDialog extends SystemUIDialog implements
         mAlertDialog = new Builder(mContext)
                 .setTitle(R.string.mobile_data_disable_title)
                 .setMessage(mContext.getString(R.string.mobile_data_disable_message, carrierName))
-                .setNegativeButton(android.R.string.cancel, (d, w) -> {})
+                .setNegativeButton(android.R.string.cancel, (d, w) -> {
+                })
                 .setPositiveButton(
                         com.android.internal.R.string.alert_windows_notification_turn_off_action,
                         (d, w) -> {
@@ -801,7 +814,8 @@ public class InternetDialog extends SystemUIDialog implements
                 .setTitle(mContext.getString(R.string.auto_data_switch_disable_title, carrierName))
                 .setMessage(R.string.auto_data_switch_disable_message)
                 .setNegativeButton(R.string.auto_data_switch_dialog_negative_button,
-                        (d, w) -> {})
+                        (d, w) -> {
+                        })
                 .setPositiveButton(R.string.auto_data_switch_dialog_positive_button,
                         (d, w) -> {
                             mInternetDialogController
@@ -896,9 +910,14 @@ public class InternetDialog extends SystemUIDialog implements
     }
 
     @Override
+<<<<<<< HEAD
     public void onHotspotChanged() {
         mHandler.post(() -> updateDialog(false /* shouldUpdateMobileNetwork */,
                 true /* shouldUpdateHotspot */));
+=======
+    public void onWifiScan(boolean isScan) {
+        setProgressBarVisible(isScan);
+>>>>>>> 378466bed3dc5d28851ae521d6bc3c78a8136f26
     }
 
     @Override
@@ -913,7 +932,10 @@ public class InternetDialog extends SystemUIDialog implements
 
     public enum InternetDialogEvent implements UiEventLogger.UiEventEnum {
         @UiEvent(doc = "The Internet dialog became visible on the screen.")
-        INTERNET_DIALOG_SHOW(843);
+        INTERNET_DIALOG_SHOW(843),
+
+        @UiEvent(doc = "The share wifi button is clicked.")
+        SHARE_WIFI_QS_BUTTON_CLICKED(1462);
 
         private final int mId;
 
