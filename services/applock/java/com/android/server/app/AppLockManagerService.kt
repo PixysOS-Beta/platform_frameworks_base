@@ -118,11 +118,11 @@ class AppLockManagerService(
         LocalServices.getService(NotificationManagerInternal::class.java)
     }
 
-    private val keyguardManager: KeyguardManager by lazy {
+    private val keyguardManager: KeyguardManager? by lazy {
         context.getSystemService(KeyguardManager::class.java)
     }
 
-    private val alarmManager: AlarmManager by lazy {
+    private val alarmManager: AlarmManager? by lazy {
         context.getSystemService(AlarmManager::class.java)
     }
 
@@ -201,7 +201,7 @@ class AppLockManagerService(
                 }
                 alarmsMutex.withLock {
                     scheduledAlarms.remove(packageName)?.let {
-                        alarmManager.cancel(it)
+                        alarmManager?.cancel(it)
                     }
                 }
                 mutex.withLock {
@@ -255,7 +255,7 @@ class AppLockManagerService(
                             logD {
                                 "Cancelling timeout alarm for $pkg"
                             }
-                            alarmManager.cancel(it)
+                            alarmManager?.cancel(it)
                         }
                     }
                 }
@@ -300,7 +300,7 @@ class AppLockManagerService(
                 },
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
-            alarmManager.setExactAndAllowWhileIdle(
+            alarmManager?.setExactAndAllowWhileIdle(
                 AlarmManager.ELAPSED_REALTIME_WAKEUP,
                 SystemClock.elapsedRealtime() + timeout,
                 pendingIntent
@@ -823,7 +823,7 @@ class AppLockManagerService(
 
     private fun onUserStarting(userId: Int) {
         Slog.i(TAG, "onUserStarting: userId = $userId")
-        isDeviceSecure = keyguardManager.isDeviceSecure(userId)
+        isDeviceSecure = keyguardManager?.isDeviceSecure(userId) ?: false
         logD {
             "isDeviceSecure = $isDeviceSecure"
         }
@@ -935,7 +935,7 @@ class AppLockManagerService(
             if (!checkUserAndDeviceStatus(userId)) return false
             val isLocked = clearAndExecute {
                 // If device is locked then there is no point in proceeding.
-                !ignoreLockState && keyguardManager.isDeviceLocked()
+                !ignoreLockState && keyguardManager?.isDeviceLocked() == true
             }
             if (isLocked) {
                 logD {
@@ -973,7 +973,7 @@ class AppLockManagerService(
                 }
                 return
             }
-            isDeviceSecure = keyguardManager.isDeviceSecure(userId)
+            isDeviceSecure = keyguardManager?.isDeviceSecure(userId) ?: false
             logD {
                 "isDeviceSecure = $isDeviceSecure"
             }
@@ -1031,7 +1031,7 @@ class AppLockManagerService(
                     alarmsMutex.withLock {
                         if (scheduledAlarms.isEmpty()) return@withLock
                         scheduledAlarms.values.forEach {
-                            alarmManager.cancel(it)
+                            alarmManager?.cancel(it)
                         }
                         scheduledAlarms.clear()
                     }
