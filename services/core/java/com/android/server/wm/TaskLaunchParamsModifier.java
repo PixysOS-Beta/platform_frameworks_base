@@ -139,9 +139,11 @@ class TaskLaunchParamsModifier implements LaunchParamsModifier {
         // an app opens in VD want to start a new activity with FLAG_ACTIVITY_NEW_TASK. That's why we need to do some
         // extra check here
         if (!DeviceIntegrationUtils.DISABLE_DEVICE_INTEGRATION) {
-            suggestedDisplayArea
-                    = mSupervisor.mService.getRemoteTaskManager().queryPreferredDisplayArea(
-                    task, suggestedDisplayArea, activity.intent, source, activity, options);
+            if (activity != null) {
+                suggestedDisplayArea
+                        = mSupervisor.mService.getRemoteTaskManager().queryPreferredDisplayArea(
+                        task, suggestedDisplayArea, activity.intent, source, activity, options);
+            }
         }
 
         outParams.mPreferredTaskDisplayArea = suggestedDisplayArea;
