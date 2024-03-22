@@ -40,7 +40,7 @@ public class GoogleServices extends VendorServices {
     private final Context mContext;
 
     @Inject
-    public StatixServices(
+    public GoogleServices(
             Context context,
             ActivityStarter activityStarter,
             AlarmManager alarmManager,
