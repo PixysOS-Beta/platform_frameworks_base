@@ -336,7 +336,7 @@ public class InternetDialogDelegate implements
         }
         mMobileNetworkLayout.setOnClickListener(null);
         mMobileNetworkLayout.setOnLongClickListener(null);
-        mHotspotLayout.setOnClickListener(null);
+        mHotspotLayout.setOnLongClickListener(null);
         mHotspotToggle.setOnCheckedChangeListener(null);
         mConnectedWifListLayout.setOnClickListener(null);
         if (mSecondaryMobileNetworkLayout != null) {
@@ -429,7 +429,10 @@ public class InternetDialogDelegate implements
                         dialog.getContext(), mDefaultDataSubId, isChecked, false);
             }
         });
-        mHotspotLayout.setOnClickListener(mInternetDialogController::launchHotspotSetting);
+        mHotspotLayout.setOnLongClickListener(v -> {
+                mInternetDialogController.launchHotspotSetting(v);
+                return true;
+        });
         mHotspotToggle.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> mInternetDialogController.setHotspotEnabled(isChecked));
         mConnectedWifListLayout.setOnClickListener(this::onClickConnectedWifi);
