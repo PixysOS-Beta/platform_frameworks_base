@@ -24,7 +24,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.viewpager.widget.ViewPager;
-import com.android.systemui.bcsmartspace.R;
+import com.android.systemui.res.R;
 import com.android.systemui.plugins.BcSmartspaceDataPlugin;
 import com.android.systemui.plugins.FalsingManager;
 import com.google.android.systemui.smartspace.CardPagerAdapter;
@@ -390,11 +390,6 @@ public class BcSmartspaceView extends FrameLayout implements BcSmartspaceDataPlu
         return this.mViewPager.getCurrentItem();
     }
 
-    public void setSelectedPage(int i) {
-        this.mViewPager.setCurrentItem(i, false);
-        this.mPageIndicator.setPageOffset(i, 0.0f);
-    }
-
     public void setPrimaryTextColor(int i) {
         this.mAdapter.setPrimaryTextColor(i);
         this.mPageIndicator.setPrimaryColor(i);
@@ -442,7 +437,7 @@ public class BcSmartspaceView extends FrameLayout implements BcSmartspaceDataPlu
     }
 
     public void setUiSurface(String uiSurface) {
-        this.mAdapter.mUiSurface = uiSurface;
+        this.mAdapter.setUiSurface(uiSurface);
     }
 
     public void setKeyguardBypassEnabled(boolean isEnabled) {
