@@ -50,7 +50,6 @@ public class CardPagerAdapter extends PagerAdapter {
     public final SparseArray<BcSmartspaceCard> mRecycledLegacyCards = new SparseArray<>();
     public BcNextAlarmData mNextAlarmData = new BcNextAlarmData();
     public boolean mIsDreaming = false;
-    public String mUiSurface = null;
     public float mDozeAmount = 0.0f;
     public float mLastDozeAmount = 0.0f;
     public int mDozeColor = -1;
@@ -350,7 +349,6 @@ public class CardPagerAdapter extends PagerAdapter {
                 return;
             }
             baseTemplateCard.mIsDreaming = this.mIsDreaming;
-            baseTemplateCard.mUiSurface = this.mUiSurface;
             if (this.mDataProvider == null) {
                 eventNotifier = null;
             } else {
