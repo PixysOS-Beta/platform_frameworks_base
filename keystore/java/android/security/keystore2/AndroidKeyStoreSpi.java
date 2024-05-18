@@ -91,7 +91,7 @@ import java.util.NoSuchElementException;
 
 import javax.crypto.SecretKey;
 
-import com.android.internal.util.pixys.PixelPropsUtils;
+import com.android.internal.util.pixys.AttestationUtils;
 
 /**
  * A java.security.KeyStore interface for the Android KeyStore. An instance of
@@ -199,7 +199,7 @@ public class AndroidKeyStoreSpi extends KeyStoreSpi {
 
     @Override
     public Certificate[] engineGetCertificateChain(String alias) {
-        PixelPropsUtils.onEngineGetCertificateChain();
+        AttestationUtils.onEngineGetCertificateChain();
 
         KeyEntryResponse response = getKeyMetadata(alias);
 
@@ -250,7 +250,7 @@ public class AndroidKeyStoreSpi extends KeyStoreSpi {
                 if (x509Certificate.getExtensionValue(EAT_OID) != null ||
                     x509Certificate.getExtensionValue(ASN1_OID) != null ||
                     x509Certificate.getExtensionValue(KNOX_OID) != null) {
-                    PixelPropsUtils.onEngineGetCertificateChain();
+                    AttestationUtils.onEngineGetCertificateChain();
                 }
             }
         }
