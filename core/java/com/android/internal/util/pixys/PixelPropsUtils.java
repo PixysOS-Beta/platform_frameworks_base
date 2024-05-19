@@ -1,11 +1,11 @@
 /*
  * Copyright (C) 2022 The Pixel Experience Project
  *               2021-2022 crDroid Android Project
- * Copyright (C) 2022 Paranoid Android
- * Copyright (C) 2022 StatiXOS
- * Copyright (C) 2023 the RisingOS Android Project
- *           (C) 2023 ArrowOS
- *           (C) 2023 The LibreMobileOS Foundation
+ *               2022 Paranoid Android
+ *               2022 StatiXOS
+ *               2023 the RisingOS Android Project
+ *               2023 ArrowOS
+ *               2024 PixysOS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,10 @@
 
 package com.android.internal.util.pixys;
 
-import android.app.ActivityTaskManager;
 import android.app.ActivityManager;
-import android.app.Application;
-import android.app.TaskStackListener;
 import android.content.Context;
-import android.content.ComponentName;
 import android.content.res.Resources;
-import android.os.Binder;
 import android.os.Build;
-import android.os.Process;
 import android.os.SystemProperties;
 import android.util.Log;
 
@@ -40,12 +34,12 @@ import com.android.internal.R;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PixelPropsUtils {
 
