@@ -46,7 +46,6 @@ public class AttestationUtils {
 
     private static final String PACKAGE_FINSKY = "com.android.vending";
     private static final String PACKAGE_GMS = "com.google.android.gms";
-    private static final String PACKAGE_GPHOTOS = "com.google.android.apps.photos";
     private static final String PROCESS_GMS_UNSTABLE = PACKAGE_GMS + ".unstable";
 
     private static final String spoofGApps = "persist.sys.somethingos.gapps";
@@ -85,15 +84,13 @@ public class AttestationUtils {
         sIsPixelDevice = Build.MANUFACTURER.equals("Google") && Build.MODEL.contains("Pixel");
         sIsGms = packageName.equals(PACKAGE_GMS) && processName.equals(PROCESS_GMS_UNSTABLE);
         sIsFinsky = packageName.equals(PACKAGE_FINSKY);
-        sIsPhotos = packageName.equals(PACKAGE_GPHOTOS);
-
 
         if (sIsGms) {
             setCertifiedPropsForGms();
             dlog("Setting stock fingerprint for: " + packageName);
             setPropValue("FINGERPRINT", sStockFp);
-        } 
-
+        }
+    }
 
     private static void setPropValue(String key, String value) {
         try {
