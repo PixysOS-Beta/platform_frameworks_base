@@ -46,8 +46,6 @@ public class AttestationUtils {
     private static final String PACKAGE_GMS = "com.google.android.gms";
     private static final String PROCESS_GMS_UNSTABLE = PACKAGE_GMS + ".unstable";
 
-    private static final String spoofGApps = "persist.sys.somethingos.gapps";
-
     private static final String PROP_SECURITY_PATCH = "persist.sys.pihooks.security_patch";
     private static final String PROP_FIRST_API_LEVEL = "persist.sys.pihooks.first_api_level";
 
@@ -58,7 +56,7 @@ public class AttestationUtils {
     private static volatile String sStockFp;
 
     private static volatile String sProcessName;
-    private static volatile boolean sIsPixelDevice, sIsGms, sIsFinsky;
+    private static volatile boolean sIsGms, sIsFinsky;
 
     public static void setProps(Context context) {
         final String packageName = context.getPackageName();
@@ -79,8 +77,7 @@ public class AttestationUtils {
         sStockFp = res.getString(R.string.config_stockFingerprint);
 
         sProcessName = processName;
-        sIsPixelDevice = Build.MANUFACTURER.equals("Google") && Build.MODEL.contains("Pixel");
-        sIsGms = packageName.equals(PACKAGE_GMS) && processName.equals(PROCESS_GMS_UNSTABLE);
+        sIsGms = processName.equals(PROCESS_GMS_UNSTABLE);
         sIsFinsky = packageName.equals(PACKAGE_FINSKY);
 
         if (sIsGms) {
@@ -139,11 +136,11 @@ public class AttestationUtils {
     }
 
     private static void setCertifiedProps() {
-        String allKeys = SystemProperties.get("persist.sys.somethingos.gms.list");
+        String allKeys = SystemProperties.get("persist.sys.pihooks.gms.list");
         if (allKeys != null && !allKeys.isEmpty()) {
             String[] keys = allKeys.split("\\+");
             for (String key : keys) {
-                String value = SystemProperties.get("persist.sys.somethingos.gms." + key);
+                String value = SystemProperties.get("persist.sys.pihooks.gms." + key);
                 if (key.equals("SECURITY_PATCH")) {
                     setSystemProperty(PROP_SECURITY_PATCH, value);
                 } else if (key.equals("FIRST_API_LEVEL")) {
