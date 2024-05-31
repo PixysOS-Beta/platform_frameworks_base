@@ -111,4 +111,9 @@
     <!-- App lock -->
     <java-symbol type="string" name="unlock_application" />
     <java-symbol type="array" name="config_appLockAllowedSystemApps" />
+
+    <!-- Package Restart -->
+    <java-symbol type="string" name="package_restart_title" />
+    <java-symbol type="string" name="package_restart_message" />
+
 </resources>
