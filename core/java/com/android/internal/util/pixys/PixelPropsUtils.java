@@ -146,8 +146,7 @@ public class PixelPropsUtils {
 		"com.google.android.apps.tips",
 		"com.google.android.apps.dreamliner",
 		"com.google.android.apps.dreamlinerupdater",
-		"com.google.android.gms.update",
-                "com.google.android.gms.unstable"
+		"com.google.android.gms.update"
         ));
 
     private static volatile boolean sIsSetupWizard, sIsGoogle, sIsSamsung;

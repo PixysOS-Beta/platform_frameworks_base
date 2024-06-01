@@ -40,7 +40,7 @@ import java.util.Arrays;
 public class AttestationUtils {
 
     private static final String TAG = "AttestationUtils";
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private static final String PACKAGE_FINSKY = "com.android.vending";
     private static final String PACKAGE_GMS = "com.google.android.gms";
@@ -77,7 +77,7 @@ public class AttestationUtils {
         sStockFp = res.getString(R.string.config_stockFingerprint);
 
         sProcessName = processName;
-        sIsGms = processName.equals(PROCESS_GMS_UNSTABLE);
+        sIsGms = packageName.equals(PACKAGE_GMS) && processName.equals(PROCESS_GMS_UNSTABLE);
         sIsFinsky = packageName.equals(PACKAGE_FINSKY);
 
         if (sIsGms) {
