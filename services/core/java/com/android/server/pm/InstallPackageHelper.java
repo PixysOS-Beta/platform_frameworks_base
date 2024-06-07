@@ -262,6 +262,8 @@ final class InstallPackageHelper {
                                 com.android.internal.R.array.config_vendorPlatformSignatures)),
             createSignatures(mContext.getResources().getStringArray(
                                 com.android.internal.R.array.config_googlePlatformSignatures))
+            createSignatures(mContext.getResources().getStringArray(
+                com.android.internal.R.array.config_microsoftPlatformSignatures))
         };
     }
 
