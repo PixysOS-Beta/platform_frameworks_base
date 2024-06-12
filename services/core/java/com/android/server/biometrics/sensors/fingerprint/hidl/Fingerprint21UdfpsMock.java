@@ -259,11 +259,7 @@ public class Fingerprint21UdfpsMock extends Fingerprint21 implements TrustManage
 
         final Handler handler = new Handler(Looper.getMainLooper());
         final TestableBiometricScheduler scheduler =
-<<<<<<< HEAD
-                new TestableBiometricScheduler(gestureAvailabilityDispatcher);
-=======
-                new TestableBiometricScheduler(context, TAG, handler, gestureAvailabilityDispatcher);
->>>>>>> e8061a7a559a (BiometricScheduler: Cancel operation if not idle)
+                new TestableBiometricScheduler(context, gestureAvailabilityDispatcher);
         final MockHalResultController controller =
                 new MockHalResultController(sensorProps.sensorId, context, handler, scheduler);
         return new Fingerprint21UdfpsMock(context, biometricStateCallback,
