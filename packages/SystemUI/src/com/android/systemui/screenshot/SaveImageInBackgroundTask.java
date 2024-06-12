@@ -35,6 +35,9 @@ import android.os.Process;
 import android.os.UserHandle;
 import android.provider.DeviceConfig;
 import android.util.Log;
+import android.graphics.drawable.Icon;
+import android.content.res.Resources;
+import com.android.systemui.res.R;
 
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.config.sysui.SystemUiDeviceConfigFlags;

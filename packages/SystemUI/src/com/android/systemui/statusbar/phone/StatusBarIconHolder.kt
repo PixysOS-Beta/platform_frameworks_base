@@ -130,6 +130,14 @@ open class StatusBarIconHolder private constructor() {
             return holder
         }
 
+
+        @JvmStatic
+        fun fromNetworkTraffic(): StatusBarIconHolder {
+            val holder = StatusBarIconHolder()
+            holder.type = TYPE_NETWORK_TRAFFIC
+            return holder
+        }
+
         /**
          * ONLY for use with the new connectivity pipeline, where we only need a subscriptionID to
          * determine icon ordering and building the correct view model
@@ -186,11 +194,5 @@ open class StatusBarIconHolder private constructor() {
             return ("StatusBarIconHolder(type=BINDABLE)")
         }
 
-       @JvmStatic
-        fun fromNetworkTraffic(): StatusBarIconHolder {
-            val holder = StatusBarIconHolder()
-            holder.type = TYPE_NETWORK_TRAFFIC
-            return holder
-        }
     }
 }
