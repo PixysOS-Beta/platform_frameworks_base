@@ -193,7 +193,7 @@ object MobileIconBinder {
 
                     // Set the roaming indicator
                     launch {
-                        viewModel.isRoamingVisible.distinctUntilChanged().collect { isRoaming ->
+                        viewModel.roaming.distinctUntilChanged().collect { isRoaming ->
                             roamingView.isVisible = isRoaming
                             roamingSpace.isVisible = isRoaming
                         }
