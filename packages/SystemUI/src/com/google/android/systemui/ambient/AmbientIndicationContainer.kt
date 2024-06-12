@@ -164,9 +164,6 @@ class AmbientIndicationContainer(private val context: Context, attrs: AttributeS
     }
 
     private fun updatePill() {
-	if (!this::textView.isInitialized || !this::iconView.isInitialized) { 
-	return
-            }
         val oldIndicationTextMode = indicationTextMode
         var updatePill = true
         indicationTextMode = 1
