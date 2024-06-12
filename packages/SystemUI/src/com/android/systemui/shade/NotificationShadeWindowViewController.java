@@ -150,7 +150,9 @@ public class NotificationShadeWindowViewController implements Dumpable {
             };
     private final SystemClock mClock;
 
-    @Mock private lateinit var qqsGestureListener: QQSGestureListener
+    private GestureDetector mQQSGestureHandler;
+    private final QQSGestureListener mQQSGestureListener;
+
     @ExperimentalCoroutinesApi
     @Inject
     public NotificationShadeWindowViewController(

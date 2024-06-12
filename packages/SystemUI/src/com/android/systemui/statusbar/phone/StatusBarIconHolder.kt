@@ -25,7 +25,7 @@ import com.android.systemui.statusbar.pipeline.icons.shared.model.ModernStatusBa
 
 /** Wraps [com.android.internal.statusbar.StatusBarIcon] so we can still have a uniform list */
 open class StatusBarIconHolder private constructor() {
-    @IntDef(TYPE_ICON, TYPE_MOBILE_NEW, TYPE_WIFI_NEW, TYPE_BINDABLE, , TYPE_NETWORK_TRAFFIC)
+    @IntDef(TYPE_ICON, TYPE_MOBILE_NEW, TYPE_WIFI_NEW, TYPE_BINDABLE, TYPE_NETWORK_TRAFFIC)
     @Retention(AnnotationRetention.SOURCE)
     internal annotation class IconType
 

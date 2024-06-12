@@ -12599,16 +12599,18 @@ public final class ViewRootImpl implements ViewParent,
         mWindowlessBackKeyCallback = callback;
     }
 
-   private boolean isSwipeToScreenshotGestureActive() {
+   void recordViewPercentage(float percentage) {
+        if (!Trace.isEnabled()) return;
+        // Record the largest view of percentage to the display size.
+        mLargestChildPercentage = Math.max(percentage, mLargestChildPercentage);
+    }
+
+    private boolean isSwipeToScreenshotGestureActive() {
         try {
             return ActivityManager.getService().isSwipeToScreenshotGestureActive();
         } catch (RemoteException e) {
             return false;
-
-    void recordViewPercentage(float percentage) {
-        if (!Trace.isEnabled()) return;
-        // Record the largest view of percentage to the display size.
-        mLargestChildPercentage = Math.max(percentage, mLargestChildPercentage);
+        }
     }
 
     /**
