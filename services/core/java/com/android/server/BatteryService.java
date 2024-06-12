@@ -541,15 +541,12 @@ public final class BatteryService extends SystemService {
 
         shutdownIfNoPowerLocked();
         shutdownIfOverTempLocked();
+        mOemFastCharger = isOemFastCharger();
 
-<<<<<<< HEAD
         if (force || mHealthInfo.chargingPolicy != mLastChargingPolicy) {
             mLastChargingPolicy = mHealthInfo.chargingPolicy;
             mHandler.post(this::notifyChargingPolicyChanged);
         }
-=======
-        mOemFastCharger = isOemFastCharger();
->>>>>>> e81afbcd07ab (BatteryService: Add support for OEM fast charger detection)
 
         if (force
                 || (mHealthInfo.batteryStatus != mLastBatteryStatus
