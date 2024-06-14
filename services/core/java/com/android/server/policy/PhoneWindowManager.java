@@ -1151,7 +1151,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (!mPowerKeyHandled) {
             if (!interactive) {
                 if (!mTorchGesture) {
-                    wakeUpFromPowerKey(event);
+                    wakeUpFromWakeKey(event);
                 }
             }
         } else {
@@ -1273,7 +1273,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 }
             }
         } else if (mTorchGesture && beganFromNonInteractive) {
-            wakeUpFromPowerKey(eventTime);
+            wakeUpFromWakeKey(eventTime, KEYCODE_POWER, /* isDown= */ false);
         }
     }
 

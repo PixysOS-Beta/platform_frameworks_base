@@ -50,7 +50,7 @@ import android.util.Slog
 
 import com.android.internal.R
 import com.android.internal.annotations.GuardedBy
-import com.android.internal.util.stag.StagUtils
+import com.android.internal.util.pixys.PixysUtils
 import com.android.server.LocalServices
 import com.android.server.SystemService
 import com.android.server.app.AppLockManagerServiceInternal
@@ -495,7 +495,7 @@ class AppLockManagerService(
                 userId
             )
             if (!aInfo.isSystemApp()) return
-            if (StagUtils.launchablePackages(context).contains(pkg)) return
+            if (PixysUtils.launchablePackages(context).contains(pkg)) return
             if (!whiteListedSystemApps.contains(pkg))
                 throw IllegalArgumentException("System package $pkg is not whitelisted")
         } catch(e: PackageManager.NameNotFoundException) {
