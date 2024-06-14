@@ -47,9 +47,6 @@
     <string name="qs_data_switch_changed_1">Switched data card to SIM 1.</string>
     <string name="qs_data_switch_changed_2">Switched data card to SIM 2.</string>
 
-    <!-- Content description indicating that tapping the element will allow deleting the screenshot [CHAR LIMIT=NONE] -->
-    <string name="screenshot_delete_description">Delete screenshot</string>
-
     <!-- SoundSearch Tile -->
     <string name="quick_settings_sound_search">Sound search</string>
     <string name="quick_settings_sound_search_no_app">Install a sound search app first</string>
