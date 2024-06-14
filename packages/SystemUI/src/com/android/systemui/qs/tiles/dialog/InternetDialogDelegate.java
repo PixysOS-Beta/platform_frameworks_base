@@ -615,7 +615,7 @@ public class InternetDialogDelegate implements
 
         boolean showBackground = isDeviceLocked && mConnectedWifiEntry != null;
         ViewGroup.LayoutParams lp = mTurnWifiOnLayout.getLayoutParams();
-        lp.height = context.getResources().getDimensionPixelSize(
+        lp.height = mContext.getResources().getDimensionPixelSize(
                 showBackground ? R.dimen.internet_dialog_wifi_network_height
                 : R.dimen.internet_dialog_wifi_toggle_height);
         mTurnWifiOnLayout.setLayoutParams(lp);
@@ -763,26 +763,25 @@ public class InternetDialogDelegate implements
                 return softApConfig.getSsid();
             }
         }
-        return context.getString(R.string.quick_settings_hotspot_label);
+        return mContext.getString(R.string.quick_settings_hotspot_label);
     }
 
     String getHotspotSummary() {
-         Context context = dialog.getContext();
         if (mInternetDialogController.isDataSaverEnabled()) {
-            return  context.getString(
+            return mContext.getString(
                     R.string.quick_settings_hotspot_secondary_label_data_saver_enabled);
         } else if (mInternetDialogController.isHotspotTransient()) {
-            return  context.getString(R.string.quick_settings_hotspot_secondary_label_transient);
+            return mContext.getString(R.string.quick_settings_hotspot_secondary_label_transient);
         } else if (mInternetDialogController.isHotspotEnabled()) {
             int numDevices = mInternetDialogController.getHotspotNumDevices();
             if (numDevices > 0) {
-                return  context.getResources().getQuantityString(
+                return mContext.getResources().getQuantityString(
                         R.plurals.quick_settings_internet_hotspot_summary_num_devices,
                         numDevices, numDevices);
             }
-            return context.getString(R.string.switch_bar_on);
+            return mContext.getString(R.string.switch_bar_on);
         }
-        return context.getString(R.string.switch_bar_off);
+        return mContext.getString(R.string.switch_bar_off);
     }
 
     private void setProgressBarVisible(boolean visible) {
