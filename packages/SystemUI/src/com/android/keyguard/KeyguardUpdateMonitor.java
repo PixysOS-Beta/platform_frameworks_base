@@ -2415,7 +2415,7 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, Dumpab
 
         setStrongAuthTracker(mStrongAuthTracker);
 
-        mPocketManager = (PocketManager) context.getSystemService(Context.POCKET_SERVICE);
+        mPocketManager = (PocketManager) mContext.getSystemService(Context.POCKET_SERVICE);
         if (mPocketManager != null) {
             mPocketManager.addCallback(mPocketCallback);
         }
