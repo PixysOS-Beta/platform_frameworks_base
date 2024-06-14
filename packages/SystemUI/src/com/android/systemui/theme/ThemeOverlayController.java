@@ -881,10 +881,8 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
             if (!skipNeutral || enableNeutral) fOverlay[c++] = mNeutralOverlay;
             fOverlay[c++] = mDynamicOverlay;
             mThemeManager.applyCurrentUserOverlays(categoryToPackage, fOverlay,
-                    currentUser, managedProfiles);
-        } else {
-            mThemeManager.applyCurrentUserOverlays(categoryToPackage, null, currentUser,
-                    managedProfiles);
+                   currentUser, managedProfiles, onCompleteCallback);
+            return;
         }
 
         mThemeManager.applyCurrentUserOverlays(categoryToPackage, fOverlays, currentUser,
