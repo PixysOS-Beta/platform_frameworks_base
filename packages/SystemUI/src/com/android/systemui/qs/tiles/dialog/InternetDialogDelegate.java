@@ -487,7 +487,7 @@ public class InternetDialogDelegate implements
                 mMobileSummaryText.setVisibility(View.GONE);
             }
             mBackgroundExecutor.execute(() -> {
-                Drawable drawable = getSignalStrengthDrawable(mDefaultDataSubId).mutate();
+                Drawable drawable = getSignalStrengthDrawable(mDefaultDataSubId);
                 mHandler.post(() -> {
                     mSignalIcon.setImageDrawable(drawable);
                 });
