@@ -126,6 +126,4 @@
          Use with extreme caution. -->
     <string-array name="config_appLockAllowedSystemApps" translatable="false" />
 
-    <!-- If not zero, limits the internal screen recorder's framerate to the set value. -->
-    <integer name="config_screenRecorderMaxFramerate">0</integer>
 </resources>
