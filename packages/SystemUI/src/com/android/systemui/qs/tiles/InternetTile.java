@@ -100,7 +100,7 @@ public class InternetTile extends SecureQSTile<QSTile.BooleanState> {
             QSLogger qsLogger,
             NetworkController networkController,
             AccessPointController accessPointController,
-            InternetDialogFactory internetDialogFactory,
+            InternetDialogManager internetDialogManager,
             KeyguardStateController keyguardStateController
     ) {
         super(host, uiEventLogger, backgroundLooper, mainHandler, falsingManager, metricsLogger,
