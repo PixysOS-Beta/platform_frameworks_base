@@ -12613,6 +12613,8 @@ public final class ViewRootImpl implements ViewParent,
 
         }
 
+    }
+
     /**
      * Get the value of mIsFrameRatePowerSavingsBalanced
      * Can be used to checked if toolkit dVRR feature is enabled. The default value is true.
