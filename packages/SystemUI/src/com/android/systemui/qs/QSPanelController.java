@@ -43,6 +43,7 @@ import com.android.systemui.statusbar.policy.BrightnessMirrorController;
 import com.android.systemui.statusbar.policy.SplitShadeStateController;
 import com.android.systemui.tuner.TunerService;
 
+import android.widget.ImageView;
 import javax.inject.Inject;
 import javax.inject.Named;
 
