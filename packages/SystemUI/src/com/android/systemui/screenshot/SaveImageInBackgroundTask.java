@@ -60,6 +60,7 @@ class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
 
     private static final String SCREENSHOT_ID_TEMPLATE = "Screenshot_%s";
     private static final String SCREENSHOT_SHARE_SUBJECT_TEMPLATE = "Screenshot (%s)";
+    public static final String EXTRA_SCREENSHOT_USER_HANDLE = "screenshot-userhandle";
 
     private final Context mContext;
     private FeatureFlags mFlags;
@@ -166,7 +167,7 @@ class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
             mImageData.deleteAction = createDeleteAction(mContext, uri,
                     smartActionsEnabled);
             mImageData.lensAction = createLensAction(mContext, uri,
-                    smartActionsEnabled);
+                    smartActionsEnabled, mParams.owner);
             mImageData.quickShareAction = createQuickShareAction(
                     mQuickShareData.quickShareAction, mScreenshotId, uri, mImageTime, image,
                     mParams.owner);
@@ -246,7 +247,7 @@ class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
 
     @VisibleForTesting
     Notification.Action createLensAction(Context context, Uri uri,
-            boolean smartActionsEnabled) {
+            boolean smartActionsEnabled, UserHandle user) {
         // Make sure pending intents for the system user are still unique across users
         // by setting the (otherwise unused) request code to the current user id.
         int requestCode = mContext.getUserId();
@@ -258,6 +259,9 @@ class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
                         .putExtra(ScreenshotController.EXTRA_ID, mScreenshotId)
                         .putExtra(ScreenshotController.EXTRA_SMART_ACTIONS_ENABLED,
                                 smartActionsEnabled)
+                        .putExtra(ScreenshotController.EXTRA_SMART_ACTIONS_ENABLED,
+                                smartActionsEnabled)
+                        .putExtra(EXTRA_SCREENSHOT_USER_HANDLE, user)
                         .addFlags(Intent.FLAG_RECEIVER_FOREGROUND),
                 PendingIntent.FLAG_CANCEL_CURRENT
                         | PendingIntent.FLAG_ONE_SHOT
