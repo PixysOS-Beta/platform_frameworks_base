@@ -100,16 +100,13 @@ public class PixelPropsUtils {
                 "com.google.android.apps.subscriptions.red",
                 "com.google.android.apps.photos",
 	        "com.google.android.googlequicksearchbox",
-                "com.google.android.gms.ui",
-                "com.google.android.gms.learning",
-                "com.google.android.gms.persistent",
-                "com.google.android.apps.nexuslauncher"
+                "com.google.android.apps.nexuslauncher",
+		"com.google.android.tts"
         ));
 
    private static final ArrayList<String> packagesToChangePixel5a = 
         new ArrayList<String> (
             Arrays.asList(
-		"com.google.android.tts",
 		"com.breel.wallpapers20"
        ));
 
@@ -313,7 +310,7 @@ public class PixelPropsUtils {
 
         propsToChangeGeneric.forEach((k, v) -> setPropValue(k, v));
 
-        sIsGoogle = packageName.toLowerCase().contains("com.google");
+        sIsGoogle = packageName.toLowerCase().contains("com.google") || processName.toLowerCase().contains("google");
         sIsSamsung = packageName.toLowerCase().contains("samsung") || processName.toLowerCase().contains("samsung");
         sIsGms = packageName.equals("com.google.android.gms") && processName.equals("com.google.android.gms.unstable");
         sIsFinsky = packageName.equals("com.android.vending");
@@ -334,11 +331,17 @@ public class PixelPropsUtils {
             if (packagesToChangeRecentPixel.contains(packageName)
                 || packagesToChangeRecentPixel.contains(processName)) {
                 propsToChange = propsToChangeRecentPixel;
-            } else if (packagesToChangePixel5a.contains(packageName)) {
+            } else if (packagesToChangePixel5a.contains(packageName)
+		|| packagesToChangePixel5a.contains(processName)) {
                 propsToChange = propsToChangePixel5a;
-            } else {
-                propsToChange = propsToChangePixel6;
+            }
 
+            if (sIsGoogle && (processName.toLowerCase().contains("gapps")
+                || processName.toLowerCase().contains("gservice")
+		|| processName.toLowerCase().contains("learning") 
+                || processName.toLowerCase().contains("persistent") 
+                || processName.toLowerCase().contains("search"))) {
+                propsToChange = propsToChangeRecentPixel;
             }
 
             if (packageName.equals("com.google.android.apps.photos")) {
