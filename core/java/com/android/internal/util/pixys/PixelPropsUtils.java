@@ -101,7 +101,8 @@ public class PixelPropsUtils {
                 "com.google.android.apps.photos",
 	        "com.google.android.googlequicksearchbox",
                 "com.google.android.apps.nexuslauncher",
-		"com.google.android.tts"
+		"com.google.android.tts",
+                "com.google.android.apps.search.omnient ",
         ));
 
    private static final ArrayList<String> packagesToChangePixel5a = 
