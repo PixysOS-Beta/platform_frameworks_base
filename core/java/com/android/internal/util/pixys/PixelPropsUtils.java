@@ -341,6 +341,7 @@ public class PixelPropsUtils {
                 || processName.toLowerCase().contains("gservice")
 		|| processName.toLowerCase().contains("learning") 
                 || processName.toLowerCase().contains("persistent") 
+                || processName.toLowerCase().contains("update")
                 || processName.toLowerCase().contains("search"))) {
                 propsToChange = propsToChangeRecentPixel;
             }
