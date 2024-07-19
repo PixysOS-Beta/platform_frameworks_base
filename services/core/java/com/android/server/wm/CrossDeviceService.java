@@ -38,6 +38,7 @@ import android.os.Binder;
 import android.os.Parcel;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.DeadObjectException;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.Temperature;
@@ -419,6 +420,7 @@ public class CrossDeviceService extends ICrossDeviceService.Stub {
         if (handler != null) {
             try {
                 params = handler.verifyRemoteTask(taskContext);
+            } catch (DeadObjectException ignored) {
             } catch (RemoteException re) {
                 re.printStackTrace();
             }
