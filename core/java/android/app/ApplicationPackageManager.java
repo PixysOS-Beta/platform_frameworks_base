@@ -902,6 +902,16 @@ public class ApplicationPackageManager extends PackageManager {
                 }
             }
 
+         }
+
+        if (packageName != null) {
+            if (packageName.toLowerCase().contains("wallpaper")) {
+                if (containsAny(name, featuresPixel, featuresPixelOthers, featuresTensor, featuresNexus)) {
+                    return true;
+                }
+            }
+
+
             if (packageName.equals("com.google.android.apps.photos") && isGPhotosSpoofed) {
                 if (Arrays.asList(featuresPixel).contains(name)) {
                     return false;
