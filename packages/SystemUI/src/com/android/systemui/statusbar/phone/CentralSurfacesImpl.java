@@ -727,7 +727,6 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
             Provider<FingerprintManager> fingerprintManager,
             ActivityStarter activityStarter,
             SceneContainerFlags sceneContainerFlags,
-            BurnInProtectionController burnInProtectionController
             BurnInProtectionController burnInProtectionController,
             SysUiState sysUiState
     ) {
