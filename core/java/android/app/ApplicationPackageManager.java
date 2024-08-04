@@ -853,18 +853,11 @@ public class ApplicationPackageManager extends PackageManager {
     private static final String[] featuresPixelOthers = {
             "com.google.android.feature.ASI",
             "com.google.android.feature.ANDROID_ONE_EXPERIENCE",
-            "com.google.android.feature.GOOGLE_FI_BUNDLED",
-            "com.google.android.feature.LILY_EXPERIENCE",
-            "com.google.android.feature.TURBO_PRELOAD",
-            "com.google.android.feature.WELLBEING",
             "com.google.lens.feature.IMAGE_INTEGRATION",
             "com.google.lens.feature.CAMERA_INTEGRATION",
             "com.google.photos.trust_debug_certs",
-            "com.google.android.feature.AER_OPTIMIZED",
-            "com.google.android.feature.NEXT_GENERATION_ASSISTANT",
             "android.software.game_service",
-            "com.google.android.feature.EXCHANGE_6_2",
-            "com.google.android.apps.dialer.call_recording_audio",
+            "com.google.android.feature.GMS_GAME_SERVICE",
             "com.google.android.apps.dialer.SUPPORTED"
     };
 
