@@ -103,7 +103,8 @@ public class PixelPropsUtils {
                 "com.google.android.gms.persistent",
                 "com.google.android.apps.nexuslauncher",
                 "com.google.android.tts",
-                "com.google.android.inputmethod.latin"
+                "com.google.android.inputmethod.latin",
+                "com.google.android.aicore"
         ));
 
    private static final ArrayList<String> packagesToChangePixel5a = 
