@@ -91,6 +91,7 @@ class FooterActionsTestUtils(
             footerActionsInteractor,
             falsingManager,
             globalActionsDialogLite,
+            mockActivityStarter,
             showPowerButton,
             mockActivityStarter,
         )

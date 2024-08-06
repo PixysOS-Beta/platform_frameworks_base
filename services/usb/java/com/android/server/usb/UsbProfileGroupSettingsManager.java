@@ -946,8 +946,9 @@ public class UsbProfileGroupSettingsManager {
     }
 
     /**
-     * @return true if any application in foreground have set restrict_usb_overlay_activities as
-     * true in manifest file. The application needs to have MANAGE_USB permission.
+     * @return true if the user has not finished the setup process or if there are any
+     * foreground applications with MANAGE_USB permission and restrict_usb_overlay_activities
+     * enabled in the manifest file.
      */
     private boolean shouldRestrictOverlayActivities() {
         if (Settings.Secure.getIntForUser(
@@ -961,6 +962,16 @@ public class UsbProfileGroupSettingsManager {
         }
 
         if (!Flags.allowRestrictionOfOverlayActivities()) return false;
+
+        if (Settings.Secure.getIntForUser(
+                mContext.getContentResolver(),
+                USER_SETUP_COMPLETE,
+                /* defaultValue= */ 1,
+                UserHandle.CURRENT.getIdentifier())
+                == 0) {
+            Slog.d(TAG, "restricting usb overlay activities as setup is not complete");
+            return true;
+        }
 
         List<ActivityManager.RunningAppProcessInfo> appProcessInfos = mActivityManager
                 .getRunningAppProcesses();

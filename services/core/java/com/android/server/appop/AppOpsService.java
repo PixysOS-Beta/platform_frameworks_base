@@ -1584,6 +1584,9 @@ public class AppOpsService extends IAppOpsService.Stub {
                     if (resOps == null) {
                         resOps = new ArrayList<>();
                     }
+                    if (opRestrictsRead(curOp.op) && !shouldReturnRestrictedAppOps) {
+                        continue;
+                    }
                     resOps.add(getOpEntryForResult(curOp, persistentDeviceId));
                 }
             }

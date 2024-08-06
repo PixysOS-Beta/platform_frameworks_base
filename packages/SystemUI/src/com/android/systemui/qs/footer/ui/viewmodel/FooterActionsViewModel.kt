@@ -110,6 +110,7 @@ class FooterActionsViewModel(
         private val falsingManager: FalsingManager,
         private val footerActionsInteractor: FooterActionsInteractor,
         private val globalActionsDialogLiteProvider: Provider<GlobalActionsDialogLite>,
+        private val activityStarter: ActivityStarter,
         @Named(PM_LITE_ENABLED) private val showPowerButton: Boolean,
         private val activityStarter: ActivityStarter,
     ) {
@@ -136,6 +137,7 @@ class FooterActionsViewModel(
                 footerActionsInteractor,
                 falsingManager,
                 globalActionsDialogLite,
+                activityStarter,
                 showPowerButton,
                 activityStarter,
             )
@@ -148,6 +150,7 @@ fun FooterActionsViewModel(
     footerActionsInteractor: FooterActionsInteractor,
     falsingManager: FalsingManager,
     globalActionsDialogLite: GlobalActionsDialogLite,
+    activityStarter: ActivityStarter,
     showPowerButton: Boolean,
     activityStarter: ActivityStarter,
 ): FooterActionsViewModel {
