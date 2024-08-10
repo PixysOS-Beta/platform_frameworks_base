@@ -61,7 +61,6 @@ import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
 import com.android.server.biometrics.sensors.AuthSessionCoordinator;
 import com.android.server.biometrics.sensors.AuthenticationClient;
-import com.android.server.biometrics.sensors.AuthenticationStateListeners;
 import com.android.server.biometrics.sensors.BaseClientMonitor;
 import com.android.server.biometrics.sensors.BiometricScheduler;
 import com.android.server.biometrics.sensors.BiometricStateCallback;
@@ -106,8 +105,6 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
     private final Context mContext;
     @NonNull
     private final BiometricStateCallback mBiometricStateCallback;
-    @NonNull
-    private final AuthenticationStateListeners mAuthenticationStateListeners;
     @NonNull
     private final String mHalInstanceName;
     @NonNull
@@ -164,13 +161,12 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
 
     public FaceProvider(@NonNull Context context,
             @NonNull BiometricStateCallback biometricStateCallback,
-            @NonNull AuthenticationStateListeners authenticationStateListeners,
             @NonNull SensorProps[] props,
             @NonNull String halInstanceName,
             @NonNull LockoutResetDispatcher lockoutResetDispatcher,
             @NonNull BiometricContext biometricContext,
             boolean resetLockoutRequiresChallenge) {
-        this(context, biometricStateCallback, authenticationStateListeners, props, halInstanceName,
+        this(context, biometricStateCallback, props, halInstanceName,
                 lockoutResetDispatcher, biometricContext, null /* daemon */,
                 BiometricHandlerProvider.getInstance(), resetLockoutRequiresChallenge,
                 false /* testHalEnabled */);
@@ -178,7 +174,6 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
 
     @VisibleForTesting FaceProvider(@NonNull Context context,
             @NonNull BiometricStateCallback biometricStateCallback,
-            @NonNull AuthenticationStateListeners authenticationStateListeners,
             @NonNull SensorProps[] props,
             @NonNull String halInstanceName,
             @NonNull LockoutResetDispatcher lockoutResetDispatcher,
@@ -189,7 +184,6 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
             boolean testHalEnabled) {
         mContext = context;
         mBiometricStateCallback = biometricStateCallback;
-        mAuthenticationStateListeners = authenticationStateListeners;
         mHalInstanceName = halInstanceName;
         mFaceSensors = new SensorList<>(ActivityManager.getService());
         if (Flags.deHidl()) {
@@ -627,8 +621,7 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
                             mAuthenticationStatsCollector),
                     mBiometricContext, isStrongBiometric,
                     mUsageStats, lockoutTracker,
-                    allowBackgroundAuthentication, Utils.getCurrentStrength(sensorId),
-                    mAuthenticationStateListeners);
+                    allowBackgroundAuthentication, Utils.getCurrentStrength(sensorId));
             scheduleForSensor(sensorId, client, new ClientMonitorCallback() {
                 @Override
                 public void onClientStarted(

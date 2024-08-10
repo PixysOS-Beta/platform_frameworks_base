@@ -94,10 +94,6 @@ constructor(
                         override fun onAuthenticationStopped() {
                             updateFingerprintAuthenticateReason(AuthenticationReason.NotRunning)
                         }
-
-                        override fun onAuthenticationSucceeded(requestReason: Int, userId: Int) {}
-
-                        override fun onAuthenticationFailed(requestReason: Int, userId: Int) {}
                     }
 
                 updateFingerprintAuthenticateReason(AuthenticationReason.NotRunning)

@@ -16,7 +16,6 @@
 
 package com.android.server.biometrics.sensors.face.aidl;
 
-import static android.adaptiveauth.Flags.FLAG_REPORT_BIOMETRIC_AUTH_ATTEMPTS;
 import static android.hardware.biometrics.BiometricConstants.BIOMETRIC_ERROR_CANCELED;
 import static android.hardware.biometrics.BiometricFaceConstants.FACE_ERROR_LOCKOUT;
 import static android.hardware.biometrics.BiometricFaceConstants.FACE_ERROR_LOCKOUT_PERMANENT;
@@ -65,7 +64,6 @@ import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
 import com.android.server.biometrics.log.OperationContextExt;
 import com.android.server.biometrics.sensors.AuthSessionCoordinator;
-import com.android.server.biometrics.sensors.AuthenticationStateListeners;
 import com.android.server.biometrics.sensors.ClientMonitorCallback;
 import com.android.server.biometrics.sensors.ClientMonitorCallbackConverter;
 import com.android.server.biometrics.sensors.LockoutTracker;
@@ -88,8 +86,6 @@ import java.util.function.Consumer;
 @Presubmit
 @SmallTest
 public class FaceAuthenticationClientTest {
-
-    @Rule public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
 
     private static final int USER_ID = 12;
     private static final long OP_ID = 32;
@@ -117,8 +113,6 @@ public class FaceAuthenticationClientTest {
     private UsageStats mUsageStats;
     @Mock
     private ClientMonitorCallback mCallback;
-    @Mock
-    private AuthenticationStateListeners mAuthenticationStateListeners;
     @Mock
     private AidlResponseHandler mAidlResponseHandler;
     @Mock
@@ -313,29 +307,6 @@ public class FaceAuthenticationClientTest {
         verify(mHal, never()).authenticate(anyInt());
     }
 
-    @Test
-    public void testAuthenticationStateListeners_onAuthenticationSucceeded()
-            throws RemoteException {
-        mSetFlagsRule.enableFlags(FLAG_REPORT_BIOMETRIC_AUTH_ATTEMPTS);
-        final FaceAuthenticationClient client = createClient();
-        client.start(mCallback);
-        client.onAuthenticated(new Face("friendly", 1 /* faceId */, 2 /* deviceId */),
-                true /* authenticated */, new ArrayList<>());
-
-        verify(mAuthenticationStateListeners).onAuthenticationSucceeded(anyInt(), anyInt());
-    }
-
-    @Test
-    public void testAuthenticationStateListeners_onAuthenticationFailed() throws RemoteException {
-        mSetFlagsRule.enableFlags(FLAG_REPORT_BIOMETRIC_AUTH_ATTEMPTS);
-        final FaceAuthenticationClient client = createClient();
-        client.start(mCallback);
-        client.onAuthenticated(new Face("friendly", 1 /* faceId */, 2 /* deviceId */),
-                false /* authenticated */, new ArrayList<>());
-
-        verify(mAuthenticationStateListeners).onAuthenticationFailed(anyInt(), anyInt());
-    }
-
     private FaceAuthenticationClient createClient() throws RemoteException {
         return createClient(2 /* version */, mClientMonitorCallbackConverter,
                 false /* allowBackgroundAuthentication */,
@@ -383,8 +354,7 @@ public class FaceAuthenticationClientTest {
                 false /* requireConfirmation */,
                 mBiometricLogger, mBiometricContext, true /* isStrongBiometric */,
                 mUsageStats, lockoutTracker, allowBackgroundAuthentication,
-                null /* sensorPrivacyManager */, 0 /* biometricStrength */,
-                mAuthenticationStateListeners) {
+                null /* sensorPrivacyManager */, 0 /* biometricStrength */) {
             @Override
             protected ActivityTaskManager getActivityTaskManager() {
                 return mActivityTaskManager;
