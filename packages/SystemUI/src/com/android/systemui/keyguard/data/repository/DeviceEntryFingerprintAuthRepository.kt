@@ -22,7 +22,6 @@ import android.hardware.biometrics.BiometricSourceType
 import com.android.keyguard.KeyguardUpdateMonitor
 import com.android.keyguard.KeyguardUpdateMonitorCallback
 import com.android.systemui.biometrics.AuthController
-import com.android.systemui.biometrics.shared.model.AuthenticationReason
 import com.android.systemui.common.coroutine.ChannelExt.trySendWithFailureLogging
 import com.android.systemui.common.coroutine.ConflatedCallbackFlow.conflatedCallbackFlow
 import com.android.systemui.dagger.SysUISingleton
@@ -175,8 +174,6 @@ constructor(
                     mainDispatcher
                 ) // keyguardUpdateMonitor requires registration on main thread.
 
-    // TODO(b/322555228) Remove after consolidating device entry auth messages with BP auth messages
-    //  in BiometricStatusRepository
     override val authenticationStatus: Flow<FingerprintAuthenticationStatus>
         get() = conflatedCallbackFlow {
             val callback =
@@ -239,8 +236,7 @@ constructor(
                         sendUpdateIfFingerprint(
                             biometricSourceType,
                             AcquiredFingerprintAuthenticationStatus(
-                                AuthenticationReason.DeviceEntryAuthentication,
-                                acquireInfo
+                                acquireInfo,
                             ),
                         )
                     }

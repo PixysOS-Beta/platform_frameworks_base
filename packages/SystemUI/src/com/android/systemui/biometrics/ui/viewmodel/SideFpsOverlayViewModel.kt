@@ -41,14 +41,12 @@ import com.android.systemui.keyguard.domain.interactor.DeviceEntrySideFpsOverlay
 import com.android.systemui.keyguard.ui.viewmodel.SideFpsProgressBarViewModel
 import com.android.systemui.res.R
 import javax.inject.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 /** Models UI of the side fingerprint sensor indicator view. */
-@OptIn(ExperimentalCoroutinesApi::class)
 class SideFpsOverlayViewModel
 @Inject
 constructor(
@@ -178,8 +176,8 @@ constructor(
     val lottieCallbacks: Flow<List<LottieCallback>> =
         combine(
             biometricStatusInteractor.sfpsAuthenticationReason,
-            deviceEntrySideFpsOverlayInteractor.showIndicatorForDeviceEntry,
-            sideFpsProgressBarViewModel.isVisible
+            deviceEntrySideFpsOverlayInteractor.showIndicatorForDeviceEntry.distinctUntilChanged(),
+            sideFpsProgressBarViewModel.isVisible,
         ) { reason: AuthenticationReason, showIndicatorForDeviceEntry: Boolean, progressBarIsVisible
             ->
             val callbacks = mutableListOf<LottieCallback>()

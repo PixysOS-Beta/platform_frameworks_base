@@ -20,7 +20,6 @@ import android.app.ActivityTaskManager
 import com.android.systemui.biometrics.data.repository.BiometricStatusRepository
 import com.android.systemui.biometrics.shared.model.AuthenticationReason
 import com.android.systemui.biometrics.shared.model.AuthenticationReason.SettingsOperations
-import com.android.systemui.keyguard.shared.model.FingerprintAuthenticationStatus
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -32,9 +31,6 @@ interface BiometricStatusInteractor {
      * filtered for when the overlay should be shown, otherwise [NotRunning].
      */
     val sfpsAuthenticationReason: Flow<AuthenticationReason>
-
-    /** The current status of an acquired fingerprint. */
-    val fingerprintAcquiredStatus: Flow<FingerprintAuthenticationStatus>
 }
 
 class BiometricStatusInteractorImpl
@@ -53,9 +49,6 @@ constructor(
                 AuthenticationReason.NotRunning
             }
         }
-
-    override val fingerprintAcquiredStatus: Flow<FingerprintAuthenticationStatus> =
-        biometricStatusRepository.fingerprintAcquiredStatus
 
     companion object {
         private const val TAG = "BiometricStatusInteractor"

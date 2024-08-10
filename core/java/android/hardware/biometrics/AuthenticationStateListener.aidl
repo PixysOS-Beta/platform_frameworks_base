@@ -15,8 +15,6 @@
  */
 package android.hardware.biometrics;
 
-import android.hardware.biometrics.BiometricSourceType;
-
 /**
  * Low-level callback interface between <Biometric>Manager and <Auth>Service. Allows core system
  * services (e.g. SystemUI) to register a listener for updates about the current state of biometric
@@ -51,15 +49,4 @@ oneway interface AuthenticationStateListener {
      * @param userId The user Id for the requested authentication
      */
     void onAuthenticationFailed(int requestReason, int userId);
-
-    /**
-     * Defines behavior in response to biometric being acquired.
-     * @param biometricSourceType identifies [BiometricSourceType] biometric was acquired for
-     * @param requestReason reason from [BiometricRequestConstants.RequestReason] for authentication
-     * @param acquiredInfo [BiometricFingerprintConstants.FingerprintAcquired] int corresponding to
-     *                     a known acquired message.
-     */
-    void onAuthenticationAcquired(
-        in BiometricSourceType biometricSourceType, int requestReason, int acquiredInfo
-    );
 }

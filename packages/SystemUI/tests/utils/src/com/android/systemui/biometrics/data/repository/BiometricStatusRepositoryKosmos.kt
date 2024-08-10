@@ -20,4 +20,4 @@ package com.android.systemui.biometrics.data.repository
 import com.android.systemui.kosmos.Kosmos
 import com.android.systemui.kosmos.Kosmos.Fixture
 
-var Kosmos.biometricStatusRepository by Fixture { FakeBiometricStatusRepository() }
+val Kosmos.biometricStatusRepository by Fixture { FakeBiometricStatusRepository() }
