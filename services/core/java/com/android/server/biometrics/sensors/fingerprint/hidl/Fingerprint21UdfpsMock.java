@@ -28,7 +28,6 @@ import android.hardware.fingerprint.FingerprintManager.AuthenticationCallback;
 import android.hardware.fingerprint.FingerprintManager.AuthenticationResult;
 import android.hardware.fingerprint.FingerprintSensorProperties;
 import android.hardware.fingerprint.FingerprintSensorPropertiesInternal;
-import android.hardware.fingerprint.IFingerprintServiceReceiver;
 import android.hardware.fingerprint.IUdfpsOverlayController;
 import android.os.Handler;
 import android.os.IBinder;
@@ -368,8 +367,7 @@ public class Fingerprint21UdfpsMock extends Fingerprint21 implements TrustManage
             final IBinder token = client.getToken();
             final long operationId = authClient.getOperationId();
             final int cookie = client.getCookie();
-            final ClientMonitorCallbackConverter listener = new ClientMonitorCallbackConverter(
-                    new IFingerprintServiceReceiver.Default());
+            final ClientMonitorCallbackConverter listener = client.getListener();
             final boolean restricted = authClient.isRestricted();
             final int statsClient = client.getLogger().getStatsClient();
             final boolean isKeyguard = authClient.isKeyguard();

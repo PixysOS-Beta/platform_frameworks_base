@@ -309,7 +309,9 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
                         pc.major);
             }
 
-            getListener().onUdfpsPointerDown(getSensorId());
+            if (getListener() != null) {
+                getListener().onUdfpsPointerDown(getSensorId());
+            }
         } catch (RemoteException e) {
             Slog.e(TAG, "Unable to send pointer down", e);
         }
@@ -327,7 +329,9 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
                 session.getSession().onPointerUp(pc.pointerId);
             }
 
-            getListener().onUdfpsPointerUp(getSensorId());
+            if (getListener() != null) {
+                getListener().onUdfpsPointerUp(getSensorId());
+            }
         } catch (RemoteException e) {
             Slog.e(TAG, "Unable to send pointer up", e);
         }

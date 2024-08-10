@@ -337,7 +337,7 @@ public class FaceAuthenticationClient
         onAcquiredInternal(acquireInfo, vendorCode, false /* shouldSend */);
 
         final boolean shouldSend = shouldSendAcquiredMessage(acquireInfo, vendorCode);
-        if (shouldSend) {
+        if (shouldSend && getListener() != null) {
             try {
                 getListener().onAuthenticationFrame(frame);
             } catch (RemoteException e) {

@@ -177,7 +177,11 @@ public class FingerprintDetectClient extends AcquisitionClient<AidlSession>
         vibrateSuccess();
 
         try {
-            getListener().onDetected(getSensorId(), getTargetUserId(), mIsStrongBiometric);
+            if (getListener() != null) {
+                getListener().onDetected(getSensorId(), getTargetUserId(), mIsStrongBiometric);
+            } else {
+                Slog.e(TAG, "Listener is null!");
+            }
             mCallback.onClientFinished(this, true /* success */);
         } catch (RemoteException e) {
             Slog.e(TAG, "Remote exception when sending onDetected", e);

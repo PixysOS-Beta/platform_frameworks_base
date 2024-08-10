@@ -70,7 +70,7 @@ public class BaseClientMonitorTest {
         mClientMonitor.binderDied();
 
         assertThat(mClientMonitor.mCanceled).isTrue();
-        assertThat(mClientMonitor.getListener()).isNotNull();
+        assertThat(mClientMonitor.getListener()).isNull();
     }
 
     @Test
