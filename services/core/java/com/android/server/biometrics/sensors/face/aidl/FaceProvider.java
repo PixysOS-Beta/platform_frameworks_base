@@ -39,6 +39,7 @@ import android.hardware.face.FaceSensorPropertiesInternal;
 import android.hardware.face.IFaceServiceReceiver;
 import android.os.Binder;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
@@ -52,7 +53,6 @@ import android.view.Surface;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.server.biometrics.AuthenticationStatsBroadcastReceiver;
 import com.android.server.biometrics.AuthenticationStatsCollector;
-import com.android.server.biometrics.BiometricHandlerProvider;
 import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.Utils;
 import com.android.server.biometrics.log.BiometricContext;
@@ -121,8 +121,6 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
     private final BiometricContext mBiometricContext;
     @NonNull
     private final AuthSessionCoordinator mAuthSessionCoordinator;
-    @NonNull
-    private final BiometricHandlerProvider mBiometricHandlerProvider;
     @Nullable
     private AuthenticationStatsCollector mAuthenticationStatsCollector;
     @Nullable
@@ -165,7 +163,7 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
             boolean resetLockoutRequiresChallenge) {
         this(context, biometricStateCallback, props, halInstanceName,
                 lockoutResetDispatcher, biometricContext, null /* daemon */,
-                BiometricHandlerProvider.getInstance(), resetLockoutRequiresChallenge,
+                resetLockoutRequiresChallenge,
                 false /* testHalEnabled */);
     }
 
@@ -176,7 +174,7 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
             @NonNull LockoutResetDispatcher lockoutResetDispatcher,
             @NonNull BiometricContext biometricContext,
             @Nullable IFace daemon,
-            @NonNull BiometricHandlerProvider biometricHandlerProvider,
+            @NonNull Handler handler,
             boolean resetLockoutRequiresChallenge,
             boolean testHalEnabled) {
         mContext = context;
@@ -184,7 +182,7 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
         mHalInstanceName = halInstanceName;
         mFaceSensors = new SensorList<>(ActivityManager.getService());
         if (Flags.deHidl()) {
-            mHandler = biometricHandlerProvider.getFaceHandler();
+            mHandler = handler;
         } else {
             mHandler = new Handler(Looper.getMainLooper());
         }
@@ -196,10 +194,16 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
         mAuthSessionCoordinator = mBiometricContext.getAuthSessionCoordinator();
         mDaemon = daemon;
         mTestHalEnabled = testHalEnabled;
-        mBiometricHandlerProvider = biometricHandlerProvider;
 
         initAuthenticationBroadcastReceiver();
         initSensors(resetLockoutRequiresChallenge, props);
+    }
+
+    @NonNull
+    private static Handler getHandler() {
+        HandlerThread handlerThread = new HandlerThread(TAG);
+        handlerThread.start();
+        return new Handler(handlerThread.getLooper());
     }
 
     private void initAuthenticationBroadcastReceiver() {
@@ -612,29 +616,15 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
                 @Override
                 public void onClientStarted(
                          BaseClientMonitor clientMonitor) {
-                    if (Flags.deHidl()) {
-                        mBiometricHandlerProvider.getBiometricCallbackHandler().post(() ->
-                                mAuthSessionCoordinator.authStartedFor(userId, sensorId,
-                                        requestId));
-                    } else {
-                        mAuthSessionCoordinator.authStartedFor(userId, sensorId, requestId);
-                    }
+                    mAuthSessionCoordinator.authStartedFor(userId, sensorId, requestId);
                 }
 
                 @Override
                 public void onClientFinished(
                         BaseClientMonitor clientMonitor,
                         boolean success) {
-                    if (Flags.deHidl()) {
-                        mBiometricHandlerProvider.getBiometricCallbackHandler().post(() ->
-                                mAuthSessionCoordinator.authEndedFor(userId,
-                                        Utils.getCurrentStrength(sensorId), sensorId, requestId,
-                                        client.wasAuthSuccessful()));
-                    } else {
-                        mAuthSessionCoordinator.authEndedFor(userId,
-                                Utils.getCurrentStrength(sensorId),
-                                sensorId, requestId, client.wasAuthSuccessful());
-                    }
+                    mAuthSessionCoordinator.authEndedFor(userId, Utils.getCurrentStrength(sensorId),
+                            sensorId, requestId, client.wasAuthSuccessful());
                 }
             });
         });
