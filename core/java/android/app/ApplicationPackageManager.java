@@ -925,7 +925,7 @@ public class ApplicationPackageManager extends PackageManager {
             }
 
             if (Arrays.asList(featuresTensor).contains(name) && !isTensorDevice) {
-                return false;
+                return true;
             }
 
             if (containsAny(name, featuresPixel, featuresPixelOthers)) {

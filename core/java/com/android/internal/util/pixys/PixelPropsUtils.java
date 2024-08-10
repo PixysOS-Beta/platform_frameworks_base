@@ -104,7 +104,11 @@ public class PixelPropsUtils {
                 "com.google.android.apps.bard",
 	        "com.google.android.apps.pixel.agent",
 		"com.google.android.markup",
-                "com.google.android.apps.weather"
+                "com.google.android.apps.weather",
+	   "com.google.android.gms",
+            "com.google.android.gms.ui",
+            "com.google.android.gms.learning",
+            "com.google.android.gms.persistent"
         ));
 
    private static final ArrayList<String> packagesToChangePixel6a = 
@@ -119,11 +123,7 @@ public class PixelPropsUtils {
                "com.disney.disneyplus",
                "com.netflix.mediaclient",
                "in.startv.hotstar",
-               "jp.id_credit_sp2.android",
-            "com.google.android.gms",
-            "com.google.android.gms.ui",
-            "com.google.android.gms.learning",
-            "com.google.android.gms.persistent"
+               "jp.id_credit_sp2.android"
       ));
 
     private static final String PROP_SECURITY_PATCH = "persist.sys.pihooks.security_patch";
