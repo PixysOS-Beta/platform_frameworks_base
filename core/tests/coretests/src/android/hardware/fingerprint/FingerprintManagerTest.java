@@ -162,13 +162,11 @@ public class FingerprintManagerTest {
 
         mCaptor.getValue().onAllAuthenticatorsRegistered(mProps);
         mFingerprintManager.enroll(null, new CancellationSignal(), USER_ID,
-                mEnrollCallback, FingerprintManager.ENROLL_ENROLL,
-                (new FingerprintEnrollOptions.Builder()).build());
+                mEnrollCallback, FingerprintManager.ENROLL_ENROLL);
 
         verify(mEnrollCallback).onEnrollmentError(eq(FINGERPRINT_ERROR_UNABLE_TO_PROCESS),
                 anyString());
-        verify(mService, never()).enroll(any(), any(), anyInt(), any(), anyString(), anyInt(),
-                any());
+        verify(mService, never()).enroll(any(), any(), anyInt(), any(), anyString(), anyInt());
     }
 
     @Test

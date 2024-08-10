@@ -30,7 +30,6 @@ import android.hardware.fingerprint.IUdfpsOverlayController;
 import android.hardware.fingerprint.ISidefpsController;
 import android.hardware.fingerprint.Fingerprint;
 import android.hardware.fingerprint.FingerprintAuthenticateOptions;
-import android.hardware.fingerprint.FingerprintEnrollOptions;
 import android.hardware.fingerprint.FingerprintSensorPropertiesInternal;
 import android.hardware.fingerprint.FingerprintSensorConfigurations;
 import java.util.List;
@@ -99,7 +98,7 @@ interface IFingerprintService {
     // Start fingerprint enrollment
     @EnforcePermission("MANAGE_FINGERPRINT")
     long enroll(IBinder token, in byte [] hardwareAuthToken, int userId, IFingerprintServiceReceiver receiver,
-            String opPackageName, int enrollReason, in FingerprintEnrollOptions options);
+            String opPackageName, int enrollReason);
 
     // Cancel enrollment in progress
     @EnforcePermission("MANAGE_FINGERPRINT")

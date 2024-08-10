@@ -36,7 +36,6 @@ import android.hardware.biometrics.face.IFace;
 import android.hardware.biometrics.face.SensorProps;
 import android.hardware.face.Face;
 import android.hardware.face.FaceAuthenticateOptions;
-import android.hardware.face.FaceEnrollOptions;
 import android.hardware.face.FaceSensorPropertiesInternal;
 import android.hardware.face.IFaceServiceReceiver;
 import android.os.Binder;
@@ -534,7 +533,7 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
     public long scheduleEnroll(int sensorId, @NonNull IBinder token,
             @NonNull byte[] hardwareAuthToken, int userId, @NonNull IFaceServiceReceiver receiver,
             @NonNull String opPackageName, @NonNull int[] disabledFeatures,
-            @Nullable Surface previewSurface, boolean debugConsent, FaceEnrollOptions options) {
+            @Nullable Surface previewSurface, boolean debugConsent) {
         final long id = mRequestCounter.incrementAndGet();
         mHandler.post(() -> {
             mFaceSensors.get(sensorId).scheduleFaceUpdateActiveUserClient(userId);
@@ -548,7 +547,7 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
                     createLogger(BiometricsProtoEnums.ACTION_ENROLL,
                             BiometricsProtoEnums.CLIENT_UNKNOWN,
                             mAuthenticationStatsCollector),
-                    mBiometricContext, maxTemplatesPerUser, debugConsent, options);
+                    mBiometricContext, maxTemplatesPerUser, debugConsent);
             if (Flags.deHidl()) {
                 scheduleForSensor(sensorId, client, mBiometricStateCallback);
             } else {
@@ -917,12 +916,5 @@ public class FaceProvider implements IBinder.DeathRecipient, ServiceProvider {
 
     public boolean getTestHalEnabled() {
         return mTestHalEnabled;
-    }
-
-    /**
-     * Sends a face re enroll notification.
-     */
-    public void sendFaceReEnrollNotification() {
-        mAuthenticationStatsCollector.sendFaceReEnrollNotification();
     }
 }

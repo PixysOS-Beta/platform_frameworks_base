@@ -93,11 +93,9 @@ public class FaceEnrollClient extends EnrollClient<AidlSession> {
             @NonNull BiometricUtils<Face> utils, @NonNull int[] disabledFeatures, int timeoutSec,
             @Nullable Surface previewSurface, int sensorId,
             @NonNull BiometricLogger logger, @NonNull BiometricContext biometricContext,
-            int maxTemplatesPerUser, boolean debugConsent,
-            android.hardware.face.FaceEnrollOptions options) {
+            int maxTemplatesPerUser, boolean debugConsent) {
         super(context, lazyDaemon, token, listener, userId, hardwareAuthToken, opPackageName, utils,
-                timeoutSec, sensorId, false /* shouldVibrate */, logger, biometricContext,
-                BiometricFaceConstants.reasonToMetric(options.getEnrollReason()));
+                timeoutSec, sensorId, false /* shouldVibrate */, logger, biometricContext);
         setRequestId(requestId);
         mEnrollIgnoreList = getContext().getResources()
                 .getIntArray(R.array.config_face_acquire_enroll_ignorelist);
@@ -107,9 +105,6 @@ public class FaceEnrollClient extends EnrollClient<AidlSession> {
         mDebugConsent = debugConsent;
         mDisabledFeatures = disabledFeatures;
         mPreviewSurface = previewSurface;
-        Slog.w(TAG, "EnrollOptions "
-                + android.hardware.face.FaceEnrollOptions.enrollReasonToString(
-                        options.getEnrollReason()));
     }
 
     @Override

@@ -26,7 +26,6 @@ import android.hardware.face.IFaceAuthenticatorsRegisteredCallback;
 import android.hardware.face.IFaceServiceReceiver;
 import android.hardware.face.Face;
 import android.hardware.face.FaceAuthenticateOptions;
-import android.hardware.face.FaceEnrollOptions;
 import android.hardware.face.FaceSensorPropertiesInternal;
 import android.hardware.face.FaceSensorConfigurations;
 import android.view.Surface;
@@ -96,7 +95,7 @@ interface IFaceService {
     @EnforcePermission("MANAGE_BIOMETRIC")
     long enroll(int userId, IBinder token, in byte [] hardwareAuthToken, IFaceServiceReceiver receiver,
             String opPackageName, in int [] disabledFeatures,
-            in Surface previewSurface, boolean debugConsent, in FaceEnrollOptions options);
+            in Surface previewSurface, boolean debugConsent);
 
     // Start remote face enrollment
     @EnforcePermission("MANAGE_BIOMETRIC")

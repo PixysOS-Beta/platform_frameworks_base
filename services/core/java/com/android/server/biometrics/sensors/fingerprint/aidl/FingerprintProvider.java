@@ -40,7 +40,6 @@ import android.hardware.biometrics.fingerprint.PointerContext;
 import android.hardware.biometrics.fingerprint.SensorProps;
 import android.hardware.fingerprint.Fingerprint;
 import android.hardware.fingerprint.FingerprintAuthenticateOptions;
-import android.hardware.fingerprint.FingerprintEnrollOptions;
 import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.fingerprint.FingerprintSensorPropertiesInternal;
 import android.hardware.fingerprint.IFingerprintServiceReceiver;
@@ -530,8 +529,7 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
     public long scheduleEnroll(int sensorId, @NonNull IBinder token,
             @NonNull byte[] hardwareAuthToken, int userId,
             @NonNull IFingerprintServiceReceiver receiver, @NonNull String opPackageName,
-            @FingerprintManager.EnrollReason int enrollReason,
-            @NonNull FingerprintEnrollOptions options) {
+            @FingerprintManager.EnrollReason int enrollReason) {
         final long id = mRequestCounter.incrementAndGet();
         mHandler.post(() -> {
             final int maxTemplatesPerUser = mFingerprintSensors.get(sensorId).getSensorProperties()
@@ -545,7 +543,7 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
                     mBiometricContext,
                     mFingerprintSensors.get(sensorId).getSensorProperties(),
                     mUdfpsOverlayController, mSidefpsController,
-                    mAuthenticationStateListeners, maxTemplatesPerUser, enrollReason, options);
+                    mAuthenticationStateListeners, maxTemplatesPerUser, enrollReason);
             if (Flags.deHidl()) {
                 scheduleForSensor(sensorId, client, mBiometricStateCallback);
             } else {
@@ -1036,12 +1034,5 @@ public class FingerprintProvider implements IBinder.DeathRecipient, ServiceProvi
         } catch (RemoteException e) {
             Slog.e(getTag(), "failed hal operation ", e);
         }
-    }
-
-    /**
-     * Sends a fingerprint enroll notification.
-     */
-    public void sendFingerprintReEnrollNotification() {
-        mAuthenticationStatsCollector.sendFingerprintReEnrollNotification();
     }
 }

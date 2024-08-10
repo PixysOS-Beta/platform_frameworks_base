@@ -100,13 +100,6 @@ public class BiometricManager {
             Authenticators.DEVICE_CREDENTIAL | Authenticators.BIOMETRIC_STRONG;
 
     /**
-     * Enroll reason extra that can be used by settings to understand where this request came
-     * from.
-     * @hide
-     */
-    public static final String EXTRA_ENROLL_REASON = "enroll_reason";
-
-    /**
      * @hide
      */
     @IntDef({BIOMETRIC_SUCCESS,

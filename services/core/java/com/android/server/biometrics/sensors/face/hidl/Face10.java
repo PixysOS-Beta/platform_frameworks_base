@@ -32,7 +32,6 @@ import android.hardware.biometrics.face.V1_0.IBiometricsFace;
 import android.hardware.biometrics.face.V1_0.IBiometricsFaceClientCallback;
 import android.hardware.face.Face;
 import android.hardware.face.FaceAuthenticateOptions;
-import android.hardware.face.FaceEnrollOptions;
 import android.hardware.face.FaceSensorPropertiesInternal;
 import android.hardware.face.IFaceServiceReceiver;
 import android.os.Binder;
@@ -713,17 +712,16 @@ public class Face10 implements IHwBinder.DeathRecipient, ServiceProvider {
     public long scheduleEnroll(int sensorId, @NonNull IBinder token,
             @NonNull byte[] hardwareAuthToken, int userId, @NonNull IFaceServiceReceiver receiver,
             @NonNull String opPackageName, @NonNull int[] disabledFeatures,
-            @Nullable Surface previewSurface, boolean debugConsent,
-            @NonNull FaceEnrollOptions options) {
+            @Nullable Surface previewSurface, boolean debugConsent) {
         final long id = mRequestCounter.incrementAndGet();
         mHandler.post(() -> {
             scheduleUpdateActiveUserWithoutHandler(userId);
             if (Flags.deHidl()) {
                 scheduleEnrollAidl(token, hardwareAuthToken, userId, receiver,
-                        opPackageName, disabledFeatures, previewSurface, id, options);
+                        opPackageName, disabledFeatures, previewSurface, id);
             } else {
                 scheduleEnrollHidl(token, hardwareAuthToken, userId, receiver,
-                        opPackageName, disabledFeatures, previewSurface, id, options);
+                        opPackageName, disabledFeatures, previewSurface, id);
             }
         });
         return id;
@@ -732,8 +730,7 @@ public class Face10 implements IHwBinder.DeathRecipient, ServiceProvider {
     private void scheduleEnrollAidl(@NonNull IBinder token,
             @NonNull byte[] hardwareAuthToken, int userId, @NonNull IFaceServiceReceiver receiver,
             @NonNull String opPackageName, @NonNull int[] disabledFeatures,
-            @Nullable Surface previewSurface, long id,
-            @NonNull FaceEnrollOptions options) {
+            @Nullable Surface previewSurface, long id) {
         final com.android.server.biometrics.sensors.face.aidl.FaceEnrollClient client =
                 new com.android.server.biometrics.sensors.face.aidl.FaceEnrollClient(
                         mContext, this::getSession, token,
@@ -746,7 +743,7 @@ public class Face10 implements IHwBinder.DeathRecipient, ServiceProvider {
                                 mAuthenticationStatsCollector), mBiometricContext,
                         mContext.getResources().getInteger(
                                 com.android.internal.R.integer.config_faceMaxTemplatesPerUser),
-                        false, options);
+                        false);
 
         mScheduler.scheduleClientMonitor(client, new ClientMonitorCallback() {
             @Override
@@ -774,14 +771,14 @@ public class Face10 implements IHwBinder.DeathRecipient, ServiceProvider {
     private void scheduleEnrollHidl(@NonNull IBinder token,
             @NonNull byte[] hardwareAuthToken, int userId, @NonNull IFaceServiceReceiver receiver,
             @NonNull String opPackageName, @NonNull int[] disabledFeatures,
-            @Nullable Surface previewSurface, long id, FaceEnrollOptions options) {
+            @Nullable Surface previewSurface, long id) {
             final FaceEnrollClient client = new FaceEnrollClient(mContext, mLazyDaemon, token,
                     new ClientMonitorCallbackConverter(receiver), userId, hardwareAuthToken,
                     opPackageName, id, FaceUtils.getLegacyInstance(mSensorId), disabledFeatures,
                     ENROLL_TIMEOUT_SEC, previewSurface, mSensorId,
                     createLogger(BiometricsProtoEnums.ACTION_ENROLL,
                             BiometricsProtoEnums.CLIENT_UNKNOWN, mAuthenticationStatsCollector),
-                    mBiometricContext, options);
+                    mBiometricContext);
             mScheduler.scheduleClientMonitor(client, new ClientMonitorCallback() {
                 @Override
                 public void onClientStarted(@NonNull BaseClientMonitor clientMonitor) {

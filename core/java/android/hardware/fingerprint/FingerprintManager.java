@@ -744,8 +744,7 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
      */
     @RequiresPermission(MANAGE_FINGERPRINT)
     public void enroll(byte [] hardwareAuthToken, CancellationSignal cancel, int userId,
-            EnrollmentCallback callback, @EnrollReason int enrollReason,
-            FingerprintEnrollOptions options) {
+            EnrollmentCallback callback, @EnrollReason int enrollReason) {
         if (userId == UserHandle.USER_CURRENT) {
             userId = getCurrentUserId();
         }
@@ -769,7 +768,7 @@ public class FingerprintManager implements BiometricAuthenticator, BiometricFing
             try {
                 mEnrollmentCallback = callback;
                 final long enrollId = mService.enroll(mToken, hardwareAuthToken, userId,
-                        mServiceReceiver, mContext.getOpPackageName(), enrollReason, options);
+                        mServiceReceiver, mContext.getOpPackageName(), enrollReason);
                 if (cancel != null) {
                     cancel.setOnCancelListener(new OnEnrollCancelListener(enrollId));
                 }

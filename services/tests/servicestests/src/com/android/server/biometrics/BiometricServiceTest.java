@@ -187,9 +187,6 @@ public class BiometricServiceTest {
     @Mock
     private IGateKeeperService mGateKeeperService;
 
-    @Mock
-    private BiometricNotificationLogger mNotificationLogger;
-
     BiometricContextProvider mBiometricContextProvider;
 
     @Before
@@ -245,7 +242,6 @@ public class BiometricServiceTest {
         when(mInjector.getBiometricContext(any())).thenReturn(mBiometricContextProvider);
         when(mInjector.getKeystoreAuthorizationService()).thenReturn(mKeystoreAuthService);
         when(mInjector.getGateKeeperService()).thenReturn(mGateKeeperService);
-        when(mInjector.getNotificationLogger()).thenReturn(mNotificationLogger);
         when(mGateKeeperService.getSecureUserId(anyInt())).thenReturn(42L);
 
         if (com.android.server.biometrics.Flags.deHidl()) {

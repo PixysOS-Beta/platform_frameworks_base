@@ -26,7 +26,6 @@ import android.hardware.biometrics.face.EnrollmentFrame;
 import android.hardware.face.Face;
 import android.hardware.face.FaceAuthenticationFrame;
 import android.hardware.face.FaceEnrollFrame;
-import android.hardware.face.FaceEnrollOptions;
 import android.hardware.face.IFaceServiceReceiver;
 import android.os.Binder;
 import android.os.RemoteException;
@@ -156,8 +155,7 @@ public class BiometricTestSessionImpl extends ITestSession.Stub {
 
         mProvider.scheduleEnroll(mSensorId, new Binder(), new byte[69], userId, mReceiver,
                 mContext.getOpPackageName(), new int[0] /* disabledFeatures */,
-                null /* previewSurface */, false /* debugConsent */,
-                (new FaceEnrollOptions.Builder()).build());
+                null /* previewSurface */, false /* debugConsent */);
     }
 
     @android.annotation.EnforcePermission(android.Manifest.permission.TEST_BIOMETRIC)

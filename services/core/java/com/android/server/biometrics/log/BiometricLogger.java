@@ -252,8 +252,7 @@ public class BiometricLogger {
     }
 
     /** Log enrollment outcome. */
-    public void logOnEnrolled(int targetUserId, long latency, boolean enrollSuccessful,
-            int source) {
+    public void logOnEnrolled(int targetUserId, long latency, boolean enrollSuccessful) {
         if (!mShouldLogMetrics) {
             return;
         }
@@ -274,7 +273,7 @@ public class BiometricLogger {
         }
 
         mSink.enroll(mStatsModality, mStatsAction, mStatsClient,
-                targetUserId, latency, enrollSuccessful, mALSProbe.getMostRecentLux(), source);
+                targetUserId, latency, enrollSuccessful, mALSProbe.getMostRecentLux());
     }
 
     /** Report unexpected enrollment reported by the HAL. */

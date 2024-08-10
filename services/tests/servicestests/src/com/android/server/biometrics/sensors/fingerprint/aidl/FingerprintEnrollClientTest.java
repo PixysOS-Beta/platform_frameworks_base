@@ -21,7 +21,6 @@ import static com.android.systemui.shared.Flags.FLAG_SIDEFPS_CONTROLLER_REFACTOR
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyFloat;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.inOrder;
@@ -31,12 +30,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import android.hardware.biometrics.BiometricsProtoEnums;
 import android.hardware.biometrics.common.OperationContext;
 import android.hardware.biometrics.fingerprint.ISession;
 import android.hardware.biometrics.fingerprint.PointerContext;
 import android.hardware.fingerprint.Fingerprint;
-import android.hardware.fingerprint.FingerprintEnrollOptions;
 import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.fingerprint.FingerprintSensorPropertiesInternal;
 import android.hardware.fingerprint.ISidefpsController;
@@ -80,8 +77,6 @@ import java.util.function.Consumer;
 @Presubmit
 @SmallTest
 public class FingerprintEnrollClientTest {
-
-    private static final int ENROLL_SOURCE = FingerprintEnrollOptions.ENROLL_REASON_SUW;
 
     @Rule public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
     @Rule
@@ -358,16 +353,6 @@ public class FingerprintEnrollClientTest {
                 c -> c.onEnrollResult(new Fingerprint("", 1, 1), 0));
     }
 
-    @Test
-    public void testEnrollWithReasonLogsMetric() throws RemoteException {
-        final FingerprintEnrollClient client = createClient(4);
-        client.start(mCallback);
-        client.onEnrollResult(new Fingerprint("fingerprint", 1 /* faceId */, 20 /* deviceId */), 0);
-
-        verify(mBiometricLogger).logOnEnrolled(anyInt(), anyLong(), anyBoolean(),
-                eq(BiometricsProtoEnums.ENROLLMENT_SOURCE_SUW));
-    }
-
     private void showHideOverlay_sidefpsControllerRemovalRefactor(
             Consumer<FingerprintEnrollClient> block) throws RemoteException {
         mSetFlagsRule.enableFlags(FLAG_SIDEFPS_CONTROLLER_REFACTOR);
@@ -397,8 +382,6 @@ public class FingerprintEnrollClientTest {
         HAT, "owner", mBiometricUtils, 8 /* sensorId */,
         mBiometricLogger, mBiometricContext, mSensorProps, mUdfpsOverlayController,
         mSideFpsController, mAuthenticationStateListeners, 6 /* maxTemplatesPerUser */,
-        FingerprintManager.ENROLL_ENROLL, (new FingerprintEnrollOptions.Builder())
-                .setEnrollReason(ENROLL_SOURCE).build()
-        );
+        FingerprintManager.ENROLL_ENROLL);
     }
 }

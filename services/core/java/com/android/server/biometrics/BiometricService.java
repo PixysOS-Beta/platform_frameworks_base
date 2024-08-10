@@ -32,7 +32,6 @@ import android.app.UserSwitchObserver;
 import android.app.admin.DevicePolicyManager;
 import android.app.trust.ITrustManager;
 import android.content.ContentResolver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
@@ -143,8 +142,6 @@ public class BiometricService extends SystemService {
     private final Handler mHandler;
 
     private final BiometricCameraManager mBiometricCameraManager;
-
-    private final BiometricNotificationLogger mBiometricNotificationLogger;
 
     /**
      * Tracks authenticatorId invalidation. For more details, see
@@ -1103,10 +1100,6 @@ public class BiometricService extends SystemService {
             return new BiometricCameraManagerImpl(context.getSystemService(CameraManager.class),
                     context.getSystemService(SensorPrivacyManager.class));
         }
-
-        public BiometricNotificationLogger getNotificationLogger() {
-            return new BiometricNotificationLogger();
-        }
     }
 
     /**
@@ -1140,7 +1133,6 @@ public class BiometricService extends SystemService {
         mBiometricCameraManager = injector.getBiometricCameraManager(context);
         mKeystoreAuthorization = injector.getKeystoreAuthorizationService();
         mGateKeeper = injector.getGateKeeperService();
-        mBiometricNotificationLogger = injector.getNotificationLogger();
 
         try {
             injector.getActivityManagerService().registerUserSwitchObserver(
@@ -1165,20 +1157,6 @@ public class BiometricService extends SystemService {
         mInjector.publishBinderService(this, mImpl);
         mBiometricStrengthController = mInjector.getBiometricStrengthController(this);
         mBiometricStrengthController.startListening();
-
-        mHandler.post(new Runnable(){
-            @Override
-            public void run() {
-                try {
-                    mBiometricNotificationLogger.registerAsSystemService(getContext(),
-                            new ComponentName(getContext(), BiometricNotificationLogger.class),
-                            UserHandle.USER_ALL);
-                } catch (RemoteException e) {
-                    // Intra-process call, should never happen.
-                }
-            }
-
-        });
     }
 
     private boolean isStrongBiometric(int id) {
@@ -1530,5 +1508,4 @@ public class BiometricService extends SystemService {
         pw.println("CurrentSession: " + mAuthSession);
         pw.println();
     }
-
 }

@@ -34,7 +34,6 @@ import android.hardware.biometrics.face.V1_0.IBiometricsFace;
 import android.hardware.biometrics.face.V1_0.OptionalUint64;
 import android.hardware.biometrics.face.V1_0.Status;
 import android.hardware.face.Face;
-import android.hardware.face.FaceEnrollOptions;
 import android.hardware.face.HidlFaceSensorConfig;
 import android.os.Handler;
 import android.os.RemoteException;
@@ -202,7 +201,7 @@ public class HidlToAidlSensorAdapterTest {
                 USER_ID, HAT, TAG, 1 /* requestId */, mBiometricUtils,
                 new int[]{} /* disabledFeatures */, ENROLL_TIMEOUT_SEC, null /* previewSurface */,
                 SENSOR_ID, mLogger, mBiometricContext, 1 /* maxTemplatesPerUser */,
-                false /* debugConsent */, (new FaceEnrollOptions.Builder()).build()));
+                false /* debugConsent */));
         mLooper.dispatchAll();
 
         verify(mAidlResponseHandlerCallback).onEnrollSuccess();
