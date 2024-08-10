@@ -21,10 +21,7 @@ import static android.hardware.biometrics.BiometricAuthenticator.TYPE_FINGERPRIN
 import static android.hardware.biometrics.BiometricAuthenticator.TYPE_NONE;
 import static android.hardware.biometrics.BiometricFingerprintConstants.FINGERPRINT_ACQUIRED_VENDOR;
 import static android.hardware.biometrics.BiometricFingerprintConstants.FINGERPRINT_ACQUIRED_VENDOR_BASE;
-import static android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_CONVENIENCE;
 
-import static com.android.server.biometrics.BiometricSensor.STATE_CANCELING;
-import static com.android.server.biometrics.BiometricSensor.STATE_UNKNOWN;
 import static com.android.server.biometrics.BiometricServiceStateProto.STATE_AUTHENTICATED_PENDING_SYSUI;
 import static com.android.server.biometrics.BiometricServiceStateProto.STATE_AUTH_CALLED;
 import static com.android.server.biometrics.BiometricServiceStateProto.STATE_AUTH_IDLE;
@@ -150,10 +147,6 @@ public final class AuthSession implements IBinder.DeathRecipient {
     // Timestamp when hardware authentication occurred
     private long mAuthenticatedTimeMs;
 
-    @NonNull
-    private final OperationContextExt mOperationContext;
-
-
     AuthSession(@NonNull Context context,
             @NonNull BiometricContext biometricContext,
             @NonNull IStatusBarService statusBarService,
@@ -219,7 +212,6 @@ public final class AuthSession implements IBinder.DeathRecipient {
         mFingerprintSensorProperties = fingerprintSensorProperties;
         mCancelled = false;
         mBiometricFrameworkStatsLogger = logger;
-        mOperationContext = new OperationContextExt(true /* isBP */);
 
         try {
             mClientReceiver.asBinder().linkToDeath(this, 0 /* flags */);
@@ -275,8 +267,7 @@ public final class AuthSession implements IBinder.DeathRecipient {
             }
             sensor.goToStateWaitingForCookie(requireConfirmation, mToken, mOperationId,
                     mUserId, mSensorReceiver, mOpPackageName, mRequestId, cookie,
-                    mPromptInfo.isAllowBackgroundAuthentication(),
-                    mPromptInfo.isForLegacyFingerprintManager());
+                    mPromptInfo.isAllowBackgroundAuthentication());
         }
     }
 
@@ -448,13 +439,6 @@ public final class AuthSession implements IBinder.DeathRecipient {
             return false;
         }
 
-        final boolean errorLockout = error == BiometricConstants.BIOMETRIC_ERROR_LOCKOUT
-                || error == BiometricConstants.BIOMETRIC_ERROR_LOCKOUT_PERMANENT;
-        if (errorLockout) {
-            cancelAllSensors(sensor -> Utils.isAtLeastStrength(sensorIdToStrength(sensorId),
-                    sensor.getCurrentStrength()));
-        }
-
         mErrorEscrow = error;
         mVendorCodeEscrow = vendorCode;
 
@@ -493,6 +477,8 @@ public final class AuthSession implements IBinder.DeathRecipient {
 
             case STATE_AUTH_STARTED:
             case STATE_AUTH_STARTED_UI_SHOWING: {
+                final boolean errorLockout = error == BiometricConstants.BIOMETRIC_ERROR_LOCKOUT
+                        || error == BiometricConstants.BIOMETRIC_ERROR_LOCKOUT_PERMANENT;
                 if (isAllowDeviceCredential() && errorLockout) {
                     // SystemUI handles transition from biometric to device credential.
                     mState = STATE_SHOWING_DEVICE_CREDENTIAL;
@@ -576,7 +562,7 @@ public final class AuthSession implements IBinder.DeathRecipient {
     }
 
     void onDialogAnimatedIn(boolean startFingerprintNow) {
-        if (mState != STATE_AUTH_STARTED && mState != STATE_ERROR_PENDING_SYSUI) {
+        if (mState != STATE_AUTH_STARTED) {
             Slog.e(TAG, "onDialogAnimatedIn, unexpected state: " + mState);
             return;
         }
@@ -587,8 +573,6 @@ public final class AuthSession implements IBinder.DeathRecipient {
         } else {
             Slog.d(TAG, "delaying fingerprint sensor start");
         }
-
-        mBiometricContext.updateContext(mOperationContext, isCrypto());
     }
 
     // call once anytime after onDialogAnimatedIn() to indicate it's appropriate to start the
@@ -691,9 +675,7 @@ public final class AuthSession implements IBinder.DeathRecipient {
     }
 
     private boolean pauseSensorIfSupported(int sensorId) {
-        boolean isSensorCancelling = sensorIdToState(sensorId) == STATE_CANCELING;
-        // If the sensor is locked out, canceling sensors operation is handled in onErrorReceived()
-        if (sensorIdToModality(sensorId) == TYPE_FACE && !isSensorCancelling) {
+        if (sensorIdToModality(sensorId) == TYPE_FACE) {
             cancelAllSensors(sensor -> sensor.id == sensorId);
             return true;
         }
@@ -748,18 +730,18 @@ public final class AuthSession implements IBinder.DeathRecipient {
                 Slog.v(TAG, "Confirmed! Modality: " + statsModality()
                         + ", User: " + mUserId
                         + ", IsCrypto: " + isCrypto()
-                        + ", Client: " + getStatsClient()
+                        + ", Client: " + BiometricsProtoEnums.CLIENT_BIOMETRIC_PROMPT
                         + ", RequireConfirmation: " + mPreAuthInfo.confirmationRequested
                         + ", State: " + FrameworkStatsLog.BIOMETRIC_AUTHENTICATED__STATE__CONFIRMED
-                        + ", Latency: " + latency
-                        + ", SessionId: " + mOperationContext.getId());
+                        + ", Latency: " + latency);
             }
 
             mBiometricFrameworkStatsLogger.authenticate(
-                    mOperationContext,
+                    mBiometricContext.updateContext(new OperationContextExt(true /* isBP */),
+                            isCrypto()),
                     statsModality(),
                     BiometricsProtoEnums.ACTION_UNKNOWN,
-                    getStatsClient(),
+                    BiometricsProtoEnums.CLIENT_BIOMETRIC_PROMPT,
                     mDebugEnabled,
                     latency,
                     FrameworkStatsLog.BIOMETRIC_AUTHENTICATED__STATE__CONFIRMED,
@@ -785,19 +767,19 @@ public final class AuthSession implements IBinder.DeathRecipient {
                         + ", User: " + mUserId
                         + ", IsCrypto: " + isCrypto()
                         + ", Action: " + BiometricsProtoEnums.ACTION_AUTHENTICATE
-                        + ", Client: " + getStatsClient()
+                        + ", Client: " + BiometricsProtoEnums.CLIENT_BIOMETRIC_PROMPT
                         + ", Reason: " + reason
                         + ", Error: " + error
-                        + ", Latency: " + latency
-                        + ", SessionId: " + mOperationContext.getId());
+                        + ", Latency: " + latency);
             }
             // Auth canceled
             if (error != 0) {
                 mBiometricFrameworkStatsLogger.error(
-                        mOperationContext,
+                        mBiometricContext.updateContext(new OperationContextExt(true /* isBP */),
+                                isCrypto()),
                         statsModality(),
                         BiometricsProtoEnums.ACTION_AUTHENTICATE,
-                        getStatsClient(),
+                        BiometricsProtoEnums.CLIENT_BIOMETRIC_PROMPT,
                         mDebugEnabled,
                         latency,
                         error,
@@ -966,27 +948,6 @@ public final class AuthSession implements IBinder.DeathRecipient {
         return TYPE_NONE;
     }
 
-    private @BiometricSensor.SensorState int sensorIdToState(int sensorId) {
-        for (BiometricSensor sensor : mPreAuthInfo.eligibleSensors) {
-            if (sensorId == sensor.id) {
-                return sensor.getSensorState();
-            }
-        }
-        Slog.e(TAG, "Unknown sensor: " + sensorId);
-        return STATE_UNKNOWN;
-    }
-
-    @BiometricManager.Authenticators.Types
-    private int sensorIdToStrength(int sensorId) {
-        for (BiometricSensor sensor : mPreAuthInfo.eligibleSensors) {
-            if (sensorId == sensor.id) {
-                return sensor.getCurrentStrength();
-            }
-        }
-        Slog.e(TAG, "Unknown sensor: " + sensorId);
-        return BIOMETRIC_CONVENIENCE;
-    }
-
     private String getAcquiredMessageForSensor(int sensorId, int acquiredInfo, int vendorCode) {
         final @Modality int modality = sensorIdToModality(sensorId);
         switch (modality) {
@@ -997,12 +958,6 @@ public final class AuthSession implements IBinder.DeathRecipient {
             default:
                 return null;
         }
-    }
-
-    private int getStatsClient() {
-        return mPromptInfo.isForLegacyFingerprintManager()
-                ? BiometricsProtoEnums.CLIENT_FINGERPRINT_MANAGER
-                : BiometricsProtoEnums.CLIENT_BIOMETRIC_PROMPT;
     }
 
     @Override

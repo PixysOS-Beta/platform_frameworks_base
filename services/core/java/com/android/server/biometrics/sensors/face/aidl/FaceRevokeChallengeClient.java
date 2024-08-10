@@ -38,7 +38,7 @@ public class FaceRevokeChallengeClient extends RevokeChallengeClient<AidlSession
 
     private final long mChallenge;
 
-    public FaceRevokeChallengeClient(@NonNull Context context,
+    FaceRevokeChallengeClient(@NonNull Context context,
             @NonNull Supplier<AidlSession> lazyDaemon, @NonNull IBinder token,
             int userId, @NonNull String owner, int sensorId,
             @NonNull BiometricLogger logger, @NonNull BiometricContext biometricContext,

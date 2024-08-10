@@ -16,10 +16,8 @@
 
 package com.android.server.biometrics.sensors.face.aidl;
 
-import static android.hardware.biometrics.BiometricConstants.BIOMETRIC_ERROR_CANCELED;
 import static android.hardware.biometrics.BiometricFaceConstants.FACE_ERROR_LOCKOUT;
 import static android.hardware.biometrics.BiometricFaceConstants.FACE_ERROR_LOCKOUT_PERMANENT;
-
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -36,8 +34,6 @@ import static org.mockito.Mockito.when;
 import android.app.ActivityManager;
 import android.app.ActivityTaskManager;
 import android.content.ComponentName;
-import android.hardware.biometrics.BiometricConstants;
-import android.hardware.biometrics.BiometricManager;
 import android.hardware.biometrics.common.AuthenticateReason;
 import android.hardware.biometrics.common.ICancellationSignal;
 import android.hardware.biometrics.common.OperationContext;
@@ -49,24 +45,17 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.platform.test.annotations.Presubmit;
-import android.platform.test.annotations.RequiresFlagsDisabled;
-import android.platform.test.annotations.RequiresFlagsEnabled;
-import android.platform.test.flag.junit.CheckFlagsRule;
-import android.platform.test.flag.junit.DeviceFlagsValueProvider;
-import android.platform.test.flag.junit.SetFlagsRule;
 import android.testing.TestableContext;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
 import com.android.server.biometrics.log.OperationContextExt;
 import com.android.server.biometrics.sensors.AuthSessionCoordinator;
 import com.android.server.biometrics.sensors.ClientMonitorCallback;
 import com.android.server.biometrics.sensors.ClientMonitorCallbackConverter;
-import com.android.server.biometrics.sensors.LockoutTracker;
 import com.android.server.biometrics.sensors.face.UsageStats;
 
 import org.junit.Before;
@@ -95,9 +84,6 @@ public class FaceAuthenticationClientTest {
     @Rule
     public final TestableContext mContext = new TestableContext(
             InstrumentationRegistry.getInstrumentation().getTargetContext(), null);
-    @Rule
-    public final CheckFlagsRule mCheckFlagsRule =
-            DeviceFlagsValueProvider.createCheckFlagsRule();
 
     @Mock
     private ISession mHal;
@@ -114,30 +100,23 @@ public class FaceAuthenticationClientTest {
     @Mock
     private ClientMonitorCallback mCallback;
     @Mock
-    private AidlResponseHandler mAidlResponseHandler;
+    private Sensor.HalSessionCallback mHalSessionCallback;
     @Mock
     private ActivityTaskManager mActivityTaskManager;
     @Mock
     private ICancellationSignal mCancellationSignal;
     @Mock
     private AuthSessionCoordinator mAuthSessionCoordinator;
-    @Mock
-    private BiometricManager mBiometricManager;
-    @Mock
-    private LockoutTracker mLockoutTracker;
     @Captor
     private ArgumentCaptor<OperationContextExt> mOperationContextCaptor;
     @Captor
     private ArgumentCaptor<Consumer<OperationContext>> mContextInjector;
-    @Captor
-    private ArgumentCaptor<Consumer<OperationContext>> mStartHalConsumerCaptor;
 
     @Rule
     public final MockitoRule mockito = MockitoJUnit.rule();
 
     @Before
     public void setup() {
-        mContext.addMockSystemService(BiometricManager.class, mBiometricManager);
         when(mBiometricContext.updateContext(any(), anyBoolean())).thenAnswer(
                 i -> i.getArgument(0));
         when(mBiometricContext.getAuthSessionCoordinator()).thenReturn(mAuthSessionCoordinator);
@@ -153,7 +132,6 @@ public class FaceAuthenticationClientTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void authWithContext_v2() throws RemoteException {
         final FaceAuthenticationClient client = createClient(2);
         client.start(mCallback);
@@ -194,7 +172,6 @@ public class FaceAuthenticationClientTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void notifyHalWhenContextChanges() throws RemoteException {
         final FaceAuthenticationClient client = createClient();
         client.start(mCallback);
@@ -217,36 +194,6 @@ public class FaceAuthenticationClientTest {
     }
 
     @Test
-    @RequiresFlagsEnabled(Flags.FLAG_DE_HIDL)
-    public void subscribeContextAndStartHal() throws RemoteException {
-        final FaceAuthenticationClient client = createClient();
-        client.start(mCallback);
-
-        verify(mBiometricContext).subscribe(mOperationContextCaptor.capture(),
-                mStartHalConsumerCaptor.capture(), mContextInjector.capture(), any());
-
-        mStartHalConsumerCaptor.getValue().accept(
-                mOperationContextCaptor.getValue().toAidlContext());
-        final ArgumentCaptor<OperationContext> captor =
-                ArgumentCaptor.forClass(OperationContext.class);
-
-        verify(mHal).authenticateWithContext(eq(OP_ID), captor.capture());
-
-        OperationContext opContext = captor.getValue();
-
-        assertThat(opContext).isSameInstanceAs(
-                mOperationContextCaptor.getValue().toAidlContext());
-
-        mContextInjector.getValue().accept(opContext);
-
-        verify(mHal).onContextChanged(same(opContext));
-
-        client.stopHalOperation();
-
-        verify(mBiometricContext).unsubscribe(same(mOperationContextCaptor.getValue()));
-    }
-
-    @Test
     public void cancelsAuthWhenNotInForeground() throws Exception {
         final ActivityManager.RunningTaskInfo topTask = new ActivityManager.RunningTaskInfo();
         topTask.topActivity = new ComponentName("other", "thing");
@@ -258,88 +205,17 @@ public class FaceAuthenticationClientTest {
         client.onAuthenticated(new Face("friendly", 1 /* faceId */, 2 /* deviceId */),
                 true /* authenticated */, new ArrayList<>());
 
-        verify(mCancellationSignal, never()).cancel();
-        verify(mClientMonitorCallbackConverter)
-                .onError(anyInt(), anyInt(), eq(BIOMETRIC_ERROR_CANCELED), anyInt());
-    }
-
-    @Test
-    public void testOnAuthenticatedFalseWhenListenerIsNull() throws RemoteException {
-        final FaceAuthenticationClient client = createClientWithNullListener();
-        client.start(mCallback);
-        client.onAuthenticated(new Face("friendly", 1 /* faceId */, 2 /* deviceId */),
-                false /* authenticated */, new ArrayList<>());
-
-        verify(mCallback).onClientFinished(client, true);
-    }
-
-    @Test
-    public void testOnAuthenticatedTrueWhenListenerIsNull() throws RemoteException {
-        final FaceAuthenticationClient client = createClientWithNullListener();
-        client.start(mCallback);
-        client.onAuthenticated(new Face("friendly", 1 /* faceId */, 2 /* deviceId */),
-                true /* authenticated */, new ArrayList<>());
-
-        verify(mCallback).onClientFinished(client, true);
-    }
-
-    @Test
-    public void authWithNoLockout() throws RemoteException {
-        when(mLockoutTracker.getLockoutModeForUser(anyInt())).thenReturn(
-                LockoutTracker.LOCKOUT_NONE);
-
-        final FaceAuthenticationClient client = createClientWithLockoutTracker(mLockoutTracker);
-        client.start(mCallback);
-
-        verify(mHal).authenticate(OP_ID);
-    }
-
-    @Test
-    public void authWithLockout() throws RemoteException {
-        when(mLockoutTracker.getLockoutModeForUser(anyInt())).thenReturn(
-                LockoutTracker.LOCKOUT_PERMANENT);
-
-        final FaceAuthenticationClient client = createClientWithLockoutTracker(mLockoutTracker);
-        client.start(mCallback);
-
-        verify(mClientMonitorCallbackConverter).onError(anyInt(), anyInt(),
-                eq(BiometricConstants.BIOMETRIC_ERROR_LOCKOUT_PERMANENT), anyInt());
-        verify(mHal, never()).authenticate(anyInt());
+        verify(mCancellationSignal).cancel();
     }
 
     private FaceAuthenticationClient createClient() throws RemoteException {
-        return createClient(2 /* version */, mClientMonitorCallbackConverter,
-                false /* allowBackgroundAuthentication */,
-                null /* lockoutTracker */);
-    }
-
-    private FaceAuthenticationClient createClientWithNullListener() throws RemoteException {
-        return createClient(2 /* version */, null /* listener */,
-                true /* allowBackgroundAuthentication */,
-                null /* lockoutTracker */);
+        return createClient(2 /* version */);
     }
 
     private FaceAuthenticationClient createClient(int version) throws RemoteException {
-        return createClient(version, mClientMonitorCallbackConverter,
-                false /* allowBackgroundAuthentication */,
-                null /* lockoutTracker */);
-    }
-
-    private FaceAuthenticationClient createClientWithLockoutTracker(LockoutTracker lockoutTracker)
-            throws RemoteException {
-        return createClient(0 /* version */,
-                mClientMonitorCallbackConverter,
-                true /* allowBackgroundAuthentication */,
-                lockoutTracker);
-    }
-
-    private FaceAuthenticationClient createClient(int version,
-            ClientMonitorCallbackConverter listener,
-            boolean allowBackgroundAuthentication,
-            LockoutTracker lockoutTracker) throws RemoteException {
         when(mHal.getInterfaceVersion()).thenReturn(version);
 
-        final AidlSession aidl = new AidlSession(version, mHal, USER_ID, mAidlResponseHandler);
+        final AidlSession aidl = new AidlSession(version, mHal, USER_ID, mHalSessionCallback);
         final FaceAuthenticateOptions options = new FaceAuthenticateOptions.Builder()
                 .setOpPackageName("test-owner")
                 .setUserId(USER_ID)
@@ -349,11 +225,11 @@ public class FaceAuthenticationClientTest {
                         FaceAuthenticateOptions.AUTHENTICATE_REASON_ASSISTANT_VISIBLE)
                 .build();
         return new FaceAuthenticationClient(mContext, () -> aidl, mToken,
-                2 /* requestId */, listener, OP_ID,
+                2 /* requestId */, mClientMonitorCallbackConverter, OP_ID,
                 false /* restricted */, options, 4 /* cookie */,
                 false /* requireConfirmation */,
                 mBiometricLogger, mBiometricContext, true /* isStrongBiometric */,
-                mUsageStats, lockoutTracker, allowBackgroundAuthentication,
+                mUsageStats, null /* mLockoutCache */, false /* allowBackgroundAuthentication */,
                 null /* sensorPrivacyManager */, 0 /* biometricStrength */) {
             @Override
             protected ActivityTaskManager getActivityTaskManager() {

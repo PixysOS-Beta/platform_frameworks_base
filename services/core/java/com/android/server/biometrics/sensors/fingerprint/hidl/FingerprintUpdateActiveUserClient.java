@@ -18,7 +18,7 @@ package com.android.server.biometrics.sensors.fingerprint.hidl;
 
 import android.annotation.NonNull;
 import android.content.Context;
-import android.hardware.biometrics.fingerprint.ISession;
+import android.hardware.biometrics.fingerprint.V2_1.IBiometricsFingerprint;
 import android.os.Build;
 import android.os.Environment;
 import android.os.RemoteException;
@@ -29,8 +29,7 @@ import com.android.server.biometrics.BiometricsProto;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
 import com.android.server.biometrics.sensors.ClientMonitorCallback;
-import com.android.server.biometrics.sensors.StartUserClient;
-import com.android.server.biometrics.sensors.fingerprint.aidl.AidlSession;
+import com.android.server.biometrics.sensors.HalClientMonitor;
 
 import java.io.File;
 import java.util.Map;
@@ -39,8 +38,7 @@ import java.util.function.Supplier;
 /**
  * Sets the HAL's current active user, and updates the framework's authenticatorId cache.
  */
-public class FingerprintUpdateActiveUserClient extends StartUserClient<ISession,
-        AidlSession> {
+public class FingerprintUpdateActiveUserClient extends HalClientMonitor<IBiometricsFingerprint> {
 
     private static final String TAG = "FingerprintUpdateActiveUserClient";
     private static final String FP_DATA_DIR = "fpdata";
@@ -52,15 +50,14 @@ public class FingerprintUpdateActiveUserClient extends StartUserClient<ISession,
     private File mDirectory;
 
     FingerprintUpdateActiveUserClient(@NonNull Context context,
-            @NonNull Supplier<ISession> lazyDaemon, int userId,
+            @NonNull Supplier<IBiometricsFingerprint> lazyDaemon, int userId,
             @NonNull String owner, int sensorId,
             @NonNull BiometricLogger logger, @NonNull BiometricContext biometricContext,
-            @NonNull Supplier<Integer> currentUserId,
+            Supplier<Integer> currentUserId,
             boolean hasEnrolledBiometrics, @NonNull Map<Integer, Long> authenticatorIds,
-            boolean forceUpdateAuthenticatorId,
-            @NonNull UserStartedCallback<AidlSession> userStartedCallback) {
-        super(context, lazyDaemon, null /* token */, userId, sensorId, logger, biometricContext,
-                userStartedCallback);
+            boolean forceUpdateAuthenticatorId) {
+        super(context, lazyDaemon, null /* token */, null /* listener */, userId, owner,
+                0 /* cookie */, sensorId, logger, biometricContext);
         mCurrentUserId = currentUserId;
         mForceUpdateAuthenticatorId = forceUpdateAuthenticatorId;
         mHasEnrolledBiometrics = hasEnrolledBiometrics;
@@ -73,7 +70,6 @@ public class FingerprintUpdateActiveUserClient extends StartUserClient<ISession,
 
         if (mCurrentUserId.get() == getTargetUserId() && !mForceUpdateAuthenticatorId) {
             Slog.d(TAG, "Already user: " + mCurrentUserId + ", returning");
-            mUserStartedCallback.onUserStarted(getTargetUserId(), null, 0);
             callback.onClientFinished(this, true /* success */);
             return;
         }
@@ -120,11 +116,9 @@ public class FingerprintUpdateActiveUserClient extends StartUserClient<ISession,
         try {
             final int targetId = getTargetUserId();
             Slog.d(TAG, "Setting active user: " + targetId);
-            HidlToAidlSessionAdapter sessionAdapter = (HidlToAidlSessionAdapter) getFreshDaemon();
-            sessionAdapter.setActiveGroup(targetId, mDirectory.getAbsolutePath());
+            getFreshDaemon().setActiveGroup(targetId, mDirectory.getAbsolutePath());
             mAuthenticatorIds.put(targetId, mHasEnrolledBiometrics
-                    ? sessionAdapter.getAuthenticatorIdForUpdateClient() : 0L);
-            mUserStartedCallback.onUserStarted(targetId, null, 0);
+                    ? getFreshDaemon().getAuthenticatorId() : 0L);
             mCallback.onClientFinished(this, true /* success */);
         } catch (RemoteException e) {
             Slog.e(TAG, "Failed to setActiveGroup: " + e);

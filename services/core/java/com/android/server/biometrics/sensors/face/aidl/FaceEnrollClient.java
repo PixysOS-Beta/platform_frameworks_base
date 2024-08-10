@@ -22,7 +22,6 @@ import android.content.Context;
 import android.hardware.biometrics.BiometricFaceConstants;
 import android.hardware.biometrics.common.ICancellationSignal;
 import android.hardware.biometrics.face.EnrollmentType;
-import android.hardware.biometrics.face.FaceEnrollOptions;
 import android.hardware.biometrics.face.Feature;
 import android.hardware.biometrics.face.IFace;
 import android.hardware.common.NativeHandle;
@@ -36,7 +35,6 @@ import android.util.Slog;
 import android.view.Surface;
 
 import com.android.internal.R;
-import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.HardwareAuthTokenUtils;
 import com.android.server.biometrics.Utils;
 import com.android.server.biometrics.log.BiometricContext;
@@ -87,7 +85,7 @@ public class FaceEnrollClient extends EnrollClient<AidlSession> {
                 }
             };
 
-    public FaceEnrollClient(@NonNull Context context, @NonNull Supplier<AidlSession> lazyDaemon,
+    FaceEnrollClient(@NonNull Context context, @NonNull Supplier<AidlSession> lazyDaemon,
             @NonNull IBinder token, @NonNull ClientMonitorCallbackConverter listener, int userId,
             @NonNull byte[] hardwareAuthToken, @NonNull String opPackageName, long requestId,
             @NonNull BiometricUtils<Face> utils, @NonNull int[] disabledFeatures, int timeoutSec,
@@ -111,8 +109,7 @@ public class FaceEnrollClient extends EnrollClient<AidlSession> {
     public void start(@NonNull ClientMonitorCallback callback) {
         super.start(callback);
 
-        BiometricNotificationUtils.cancelFaceEnrollNotification(getContext());
-        BiometricNotificationUtils.cancelFaceReEnrollNotification(getContext());
+        BiometricNotificationUtils.cancelReEnrollNotification(getContext());
     }
 
     @NonNull
@@ -188,11 +185,7 @@ public class FaceEnrollClient extends EnrollClient<AidlSession> {
                 features[i] = featureList.get(i);
             }
 
-            if (Flags.deHidl()) {
-                startEnroll(features);
-            } else {
-                mCancellationSignal = doEnroll(features);
-            }
+            mCancellationSignal = doEnroll(features);
         } catch (RemoteException | IllegalArgumentException e) {
             Slog.e(TAG, "Exception when requesting enroll", e);
             onError(BiometricFaceConstants.FACE_ERROR_UNABLE_TO_PROCESS, 0 /* vendorCode */);
@@ -207,21 +200,9 @@ public class FaceEnrollClient extends EnrollClient<AidlSession> {
 
         if (session.hasContextMethods()) {
             final OperationContextExt opContext = getOperationContext();
-            ICancellationSignal cancel;
-            if (session.supportsFaceEnrollOptions()) {
-                FaceEnrollOptions options = new FaceEnrollOptions();
-                options.hardwareAuthToken = hat;
-                options.enrollmentType = EnrollmentType.DEFAULT;
-                options.features = features;
-                options.nativeHandlePreview = null;
-                options.context = opContext.toAidlContext();
-                options.surfacePreview = mPreviewSurface;
-                cancel = session.getSession().enrollWithOptions(options);
-            } else {
-                cancel = session.getSession().enrollWithContext(
-                        hat, EnrollmentType.DEFAULT, features, mHwPreviewHandle,
-                        opContext.toAidlContext());
-            }
+            final ICancellationSignal cancel = session.getSession().enrollWithContext(
+                    hat, EnrollmentType.DEFAULT, features, mHwPreviewHandle,
+                    opContext.toAidlContext());
             getBiometricContext().subscribe(opContext, ctx -> {
                 try {
                     session.getSession().onContextChanged(ctx);
@@ -235,48 +216,6 @@ public class FaceEnrollClient extends EnrollClient<AidlSession> {
                     mHwPreviewHandle);
         }
     }
-
-    private void startEnroll(byte[] features) throws RemoteException {
-        final AidlSession session = getFreshDaemon();
-        final HardwareAuthToken hat =
-                HardwareAuthTokenUtils.toHardwareAuthToken(mHardwareAuthToken);
-
-        if (session.hasContextMethods()) {
-            final OperationContextExt opContext = getOperationContext();
-            getBiometricContext().subscribe(opContext, ctx -> {
-                try {
-                    if (session.supportsFaceEnrollOptions()) {
-                        FaceEnrollOptions options = new FaceEnrollOptions();
-                        options.hardwareAuthToken = hat;
-                        options.enrollmentType = EnrollmentType.DEFAULT;
-                        options.features = features;
-                        options.nativeHandlePreview = null;
-                        options.context = ctx;
-                        options.surfacePreview = mPreviewSurface;
-                        mCancellationSignal = session.getSession().enrollWithOptions(options);
-                    } else {
-                        mCancellationSignal = session.getSession().enrollWithContext(
-                                hat, EnrollmentType.DEFAULT, features, mHwPreviewHandle, ctx);
-                    }
-                } catch (RemoteException e) {
-                    Slog.e(TAG, "Exception when requesting enroll", e);
-                    onError(BiometricFaceConstants.FACE_ERROR_UNABLE_TO_PROCESS,
-                            0 /* vendorCode */);
-                    mCallback.onClientFinished(this, false /* success */);
-                }
-            }, ctx -> {
-                try {
-                    session.getSession().onContextChanged(ctx);
-                } catch (RemoteException e) {
-                    Slog.e(TAG, "Unable to notify context changed", e);
-                }
-            }, null /* options */);
-        } else {
-            mCancellationSignal = session.getSession().enroll(hat, EnrollmentType.DEFAULT, features,
-                    mHwPreviewHandle);
-        }
-    }
-
 
     @Override
     protected void stopHalOperation() {

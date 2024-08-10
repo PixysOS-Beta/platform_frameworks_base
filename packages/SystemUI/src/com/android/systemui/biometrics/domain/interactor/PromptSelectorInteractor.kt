@@ -21,18 +21,15 @@ import com.android.internal.widget.LockPatternUtils
 import com.android.systemui.biometrics.Utils
 import com.android.systemui.biometrics.Utils.getCredentialType
 import com.android.systemui.biometrics.Utils.isDeviceCredentialAllowed
-import com.android.systemui.biometrics.data.repository.FingerprintPropertyRepository
 import com.android.systemui.biometrics.data.repository.PromptRepository
+import com.android.systemui.biometrics.domain.model.BiometricModalities
 import com.android.systemui.biometrics.domain.model.BiometricOperationInfo
 import com.android.systemui.biometrics.domain.model.BiometricPromptRequest
-import com.android.systemui.biometrics.shared.model.BiometricModalities
-import com.android.systemui.biometrics.shared.model.BiometricUserInfo
-import com.android.systemui.biometrics.shared.model.FingerprintSensorType
+import com.android.systemui.biometrics.domain.model.BiometricUserInfo
 import com.android.systemui.biometrics.shared.model.PromptKind
 import com.android.systemui.dagger.SysUISingleton
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -62,34 +59,16 @@ interface PromptSelectorInteractor {
      */
     val credentialKind: Flow<PromptKind>
 
-    /**
-     * If the API caller or the user's personal preferences require explicit confirmation after
-     * successful authentication.
-     */
-    val isConfirmationRequired: Flow<Boolean>
-
-    /** Fingerprint sensor type */
-    val sensorType: Flow<FingerprintSensorType>
-
-    /**
-     * If biometric prompt without icon needs to show for displaying content prior to credential
-     * view.
-     */
-    val showBpWithoutIconForCredential: StateFlow<Boolean>
-
-    /**
-     * Update whether biometric prompt without icon needs to show for displaying content prior to
-     * credential view, which should be set before [PromptRepository.setPrompt].
-     */
-    fun setShouldShowBpWithoutIconForCredential(promptInfo: PromptInfo)
+    /** If the API caller requested explicit confirmation after successful authentication. */
+    val isConfirmationRequested: Flow<Boolean>
 
     /** Use biometrics for authentication. */
     fun useBiometricsForAuthentication(
         promptInfo: PromptInfo,
+        requireConfirmation: Boolean,
         userId: Int,
         challenge: Long,
         modalities: BiometricModalities,
-        opPackageName: String,
     )
 
     /** Use credential-based authentication instead of biometrics. */
@@ -98,7 +77,6 @@ interface PromptSelectorInteractor {
         @Utils.CredentialType kind: Int,
         userId: Int,
         challenge: Long,
-        opPackageName: String,
     )
 
     /** Unset the current authentication request. */
@@ -109,7 +87,6 @@ interface PromptSelectorInteractor {
 class PromptSelectorInteractorImpl
 @Inject
 constructor(
-    fingerprintPropertyRepository: FingerprintPropertyRepository,
     private val promptRepository: PromptRepository,
     lockPatternUtils: LockPatternUtils,
 ) : PromptSelectorInteractor {
@@ -119,12 +96,9 @@ constructor(
             promptRepository.promptInfo,
             promptRepository.challenge,
             promptRepository.userId,
-            promptRepository.kind,
-            promptRepository.opPackageName,
-        ) { promptInfo, challenge, userId, kind, opPackageName ->
-            if (
-                promptInfo == null || userId == null || challenge == null || opPackageName == null
-            ) {
+            promptRepository.kind
+        ) { promptInfo, challenge, userId, kind ->
+            if (promptInfo == null || userId == null || challenge == null) {
                 return@combine null
             }
 
@@ -135,14 +109,15 @@ constructor(
                         userInfo = BiometricUserInfo(userId = userId),
                         operationInfo = BiometricOperationInfo(gatekeeperChallenge = challenge),
                         modalities = kind.activeModalities,
-                        opPackageName = opPackageName,
                     )
                 else -> null
             }
         }
 
-    override val isConfirmationRequired: Flow<Boolean> =
-        promptRepository.isConfirmationRequired.distinctUntilChanged()
+    override val isConfirmationRequested: Flow<Boolean> =
+        promptRepository.promptInfo
+            .map { info -> info?.isConfirmationRequested ?: false }
+            .distinctUntilChanged()
 
     override val isCredentialAllowed: Flow<Boolean> =
         promptRepository.promptInfo
@@ -165,27 +140,19 @@ constructor(
             }
         }
 
-    override val sensorType: Flow<FingerprintSensorType> = fingerprintPropertyRepository.sensorType
-
-    override val showBpWithoutIconForCredential = promptRepository.showBpWithoutIconForCredential
-
-    override fun setShouldShowBpWithoutIconForCredential(promptInfo: PromptInfo) {
-        promptRepository.setShouldShowBpWithoutIconForCredential(promptInfo)
-    }
-
     override fun useBiometricsForAuthentication(
         promptInfo: PromptInfo,
+        requireConfirmation: Boolean,
         userId: Int,
         challenge: Long,
-        modalities: BiometricModalities,
-        opPackageName: String,
+        modalities: BiometricModalities
     ) {
         promptRepository.setPrompt(
             promptInfo = promptInfo,
             userId = userId,
             gatekeeperChallenge = challenge,
             kind = PromptKind.Biometric(modalities),
-            opPackageName = opPackageName,
+            requireConfirmation = requireConfirmation,
         )
     }
 
@@ -194,14 +161,12 @@ constructor(
         @Utils.CredentialType kind: Int,
         userId: Int,
         challenge: Long,
-        opPackageName: String,
     ) {
         promptRepository.setPrompt(
             promptInfo = promptInfo,
             userId = userId,
             gatekeeperChallenge = challenge,
             kind = kind.asBiometricPromptCredential(),
-            opPackageName = opPackageName,
         )
     }
 

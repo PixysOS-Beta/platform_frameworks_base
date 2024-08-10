@@ -16,8 +16,6 @@
 
 package com.android.server.biometrics.sensors.fingerprint.aidl;
 
-import static com.android.systemui.shared.Flags.sidefpsControllerRefactor;
-
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.content.Context;
@@ -26,12 +24,12 @@ import android.hardware.biometrics.BiometricFingerprintConstants;
 import android.hardware.biometrics.BiometricFingerprintConstants.FingerprintAcquired;
 import android.hardware.biometrics.BiometricStateListener;
 import android.hardware.biometrics.common.ICancellationSignal;
-import android.hardware.biometrics.common.OperationState;
 import android.hardware.biometrics.fingerprint.PointerContext;
 import android.hardware.fingerprint.Fingerprint;
 import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.fingerprint.FingerprintSensorPropertiesInternal;
 import android.hardware.fingerprint.ISidefpsController;
+import android.hardware.fingerprint.IUdfpsOverlay;
 import android.hardware.fingerprint.IUdfpsOverlayController;
 import android.hardware.keymaster.HardwareAuthToken;
 import android.os.IBinder;
@@ -39,14 +37,12 @@ import android.os.RemoteException;
 import android.util.Slog;
 import android.view.accessibility.AccessibilityManager;
 
-import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.HardwareAuthTokenUtils;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
 import com.android.server.biometrics.log.CallbackWithProbe;
 import com.android.server.biometrics.log.OperationContextExt;
 import com.android.server.biometrics.log.Probe;
-import com.android.server.biometrics.sensors.AuthenticationStateListeners;
 import com.android.server.biometrics.sensors.BiometricNotificationUtils;
 import com.android.server.biometrics.sensors.BiometricUtils;
 import com.android.server.biometrics.sensors.ClientMonitorCallback;
@@ -54,13 +50,14 @@ import com.android.server.biometrics.sensors.ClientMonitorCallbackConverter;
 import com.android.server.biometrics.sensors.ClientMonitorCompositeCallback;
 import com.android.server.biometrics.sensors.EnrollClient;
 import com.android.server.biometrics.sensors.SensorOverlays;
+import com.android.server.biometrics.sensors.fingerprint.FingerprintUtils;
 import com.android.server.biometrics.sensors.fingerprint.PowerPressHandler;
 import com.android.server.biometrics.sensors.fingerprint.Udfps;
 import com.android.server.biometrics.sensors.fingerprint.UdfpsHelper;
 
 import java.util.function.Supplier;
 
-public class FingerprintEnrollClient extends EnrollClient<AidlSession> implements Udfps,
+class FingerprintEnrollClient extends EnrollClient<AidlSession> implements Udfps,
         PowerPressHandler {
 
     private static final String TAG = "FingerprintEnrollClient";
@@ -70,48 +67,36 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
     @NonNull private final CallbackWithProbe<Probe> mALSProbeCallback;
 
     private final @FingerprintManager.EnrollReason int mEnrollReason;
-    @NonNull private final AuthenticationStateListeners mAuthenticationStateListeners;
     @Nullable private ICancellationSignal mCancellationSignal;
     private final int mMaxTemplatesPerUser;
     private boolean mIsPointerDown;
 
     private static boolean shouldVibrateFor(Context context,
             FingerprintSensorPropertiesInternal sensorProps) {
-        if (sensorProps != null) {
-            final AccessibilityManager am = context.getSystemService(AccessibilityManager.class);
-            final boolean isAccessbilityEnabled = am.isTouchExplorationEnabled();
-            return !sensorProps.isAnyUdfpsType() || isAccessbilityEnabled;
-        } else {
-            return true;
-        }
+        final AccessibilityManager am = context.getSystemService(AccessibilityManager.class);
+        final boolean isAccessbilityEnabled = am.isTouchExplorationEnabled();
+        return !sensorProps.isAnyUdfpsType() || isAccessbilityEnabled;
     }
 
-    public FingerprintEnrollClient(
-            @NonNull Context context, @NonNull Supplier<AidlSession> lazyDaemon,
-            @NonNull IBinder token, long requestId,
+    FingerprintEnrollClient(@NonNull Context context,
+            @NonNull Supplier<AidlSession> lazyDaemon, @NonNull IBinder token, long requestId,
             @NonNull ClientMonitorCallbackConverter listener, int userId,
             @NonNull byte[] hardwareAuthToken, @NonNull String owner,
             @NonNull BiometricUtils<Fingerprint> utils, int sensorId,
             @NonNull BiometricLogger logger, @NonNull BiometricContext biometricContext,
             @NonNull FingerprintSensorPropertiesInternal sensorProps,
             @Nullable IUdfpsOverlayController udfpsOverlayController,
-            // TODO(b/288175061): remove with Flags.FLAG_SIDEFPS_CONTROLLER_REFACTOR
             @Nullable ISidefpsController sidefpsController,
-            @NonNull AuthenticationStateListeners authenticationStateListeners,
+            @Nullable IUdfpsOverlay udfpsOverlay,
             int maxTemplatesPerUser, @FingerprintManager.EnrollReason int enrollReason) {
         // UDFPS haptics occur when an image is acquired (instead of when the result is known)
         super(context, lazyDaemon, token, listener, userId, hardwareAuthToken, owner, utils,
-                0 /* timeoutSec */, sensorId, shouldVibrateFor(context, sensorProps),
-                logger, biometricContext);
+                0 /* timeoutSec */, sensorId, shouldVibrateFor(context, sensorProps), logger,
+                biometricContext);
         setRequestId(requestId);
         mSensorProps = sensorProps;
-        if (sidefpsControllerRefactor()) {
-            mSensorOverlays = new SensorOverlays(udfpsOverlayController);
-        } else {
-            mSensorOverlays = new SensorOverlays(udfpsOverlayController, sidefpsController);
-        }
-        mAuthenticationStateListeners = authenticationStateListeners;
-
+        mSensorOverlays = new SensorOverlays(udfpsOverlayController,
+                sidefpsController, udfpsOverlay);
         mMaxTemplatesPerUser = maxTemplatesPerUser;
 
         mALSProbeCallback = getLogger().getAmbientLightProbe(true /* startWithClient */);
@@ -120,13 +105,6 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
         if (enrollReason == FingerprintManager.ENROLL_FIND_SENSOR) {
             getLogger().disableMetrics();
         }
-    }
-
-    @Override
-    public void start(@NonNull ClientMonitorCallback callback) {
-        super.start(callback);
-
-        BiometricNotificationUtils.cancelFingerprintEnrollNotification(getContext());
     }
 
     @NonNull
@@ -144,13 +122,8 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
                 controller -> controller.onEnrollmentProgress(getSensorId(), remaining));
 
         if (remaining == 0) {
-            resetIgnoreDisplayTouches();
             mSensorOverlays.hide(getSensorId());
-            if (sidefpsControllerRefactor()) {
-                mAuthenticationStateListeners.onAuthenticationStopped();
-            }
         }
-
     }
 
     @Override
@@ -159,7 +132,7 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
                 acquiredInfo == BiometricFingerprintConstants.FINGERPRINT_ACQUIRED_GOOD;
         // For UDFPS, notify SysUI that the illumination can be turned off.
         // See AcquiredInfo#GOOD and AcquiredInfo#RETRYING_CAPTURE
-        if (mSensorProps != null && mSensorProps.isAnyUdfpsType()) {
+        if (mSensorProps.isAnyUdfpsType()) {
             if (acquiredGood && mShouldVibrate) {
                 vibrateSuccess();
             }
@@ -179,36 +152,25 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
     @Override
     public void onError(int errorCode, int vendorCode) {
         super.onError(errorCode, vendorCode);
-        resetIgnoreDisplayTouches();
+
         mSensorOverlays.hide(getSensorId());
-        if (sidefpsControllerRefactor()) {
-            mAuthenticationStateListeners.onAuthenticationStopped();
-        }
     }
 
     @Override
     protected boolean hasReachedEnrollmentLimit() {
-        return mBiometricUtils.getBiometricsForUser(getContext(), getTargetUserId()).size()
+        return FingerprintUtils.getInstance(getSensorId())
+                .getBiometricsForUser(getContext(), getTargetUserId()).size()
                 >= mMaxTemplatesPerUser;
     }
 
     @Override
     protected void startHalOperation() {
-        resetIgnoreDisplayTouches();
-        mSensorOverlays.show(getSensorId(), getRequestReasonFromEnrollReason(mEnrollReason),
+        mSensorOverlays.show(getSensorId(), getOverlayReasonFromEnrollReason(mEnrollReason),
                 this);
-        if (sidefpsControllerRefactor()) {
-            mAuthenticationStateListeners.onAuthenticationStarted(
-                    getRequestReasonFromEnrollReason(mEnrollReason));
-        }
 
         BiometricNotificationUtils.cancelBadCalibrationNotification(getContext());
         try {
-            if (Flags.deHidl()) {
-                startEnroll();
-            } else {
-                mCancellationSignal = doEnroll();
-            }
+            mCancellationSignal = doEnroll();
         } catch (RemoteException e) {
             Slog.e(TAG, "Remote exception when requesting enroll", e);
             onError(BiometricFingerprintConstants.FINGERPRINT_ERROR_UNABLE_TO_PROCESS,
@@ -229,12 +191,6 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
             getBiometricContext().subscribe(opContext, ctx -> {
                 try {
                     session.getSession().onContextChanged(ctx);
-                    // TODO(b/317414324): Deprecate setIgnoreDisplayTouches
-                    if (ctx.operationState != null && ctx.operationState.getTag()
-                            == OperationState.fingerprintOperationState) {
-                        session.getSession().setIgnoreDisplayTouches(
-                                ctx.operationState.getFingerprintOperationState().isHardwareIgnoringTouches);
-                    }
                 } catch (RemoteException e) {
                     Slog.e(TAG, "Unable to notify context changed", e);
                 }
@@ -245,43 +201,9 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
         }
     }
 
-    private void startEnroll() throws RemoteException {
-        final AidlSession session = getFreshDaemon();
-        final HardwareAuthToken hat =
-                HardwareAuthTokenUtils.toHardwareAuthToken(mHardwareAuthToken);
-
-        if (session.hasContextMethods()) {
-            final OperationContextExt opContext = getOperationContext();
-            getBiometricContext().subscribe(opContext, ctx -> {
-                try {
-                    mCancellationSignal = session.getSession().enrollWithContext(
-                            hat, ctx);
-                } catch (RemoteException e) {
-                    Slog.e(TAG, "Remote exception when requesting enroll", e);
-                    onError(BiometricFingerprintConstants.FINGERPRINT_ERROR_UNABLE_TO_PROCESS,
-                            0 /* vendorCode */);
-                    mCallback.onClientFinished(this, false /* success */);
-                }
-            }, ctx -> {
-                try {
-                    session.getSession().onContextChanged(ctx);
-                } catch (RemoteException e) {
-                    Slog.e(TAG, "Unable to notify context changed", e);
-                }
-            }, null /* options */);
-        } else {
-            mCancellationSignal = session.getSession().enroll(hat);
-        }
-    }
-
     @Override
     protected void stopHalOperation() {
-        resetIgnoreDisplayTouches();
         mSensorOverlays.hide(getSensorId());
-        if (sidefpsControllerRefactor()) {
-            mAuthenticationStateListeners.onAuthenticationStopped();
-        }
-
         unsubscribeBiometricContext();
 
         if (mCancellationSignal != null) {
@@ -343,20 +265,11 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
     }
 
     @Override
-    public void onUdfpsUiEvent(@FingerprintManager.UdfpsUiEvent int event) {
+    public void onUiReady() {
         try {
-            switch (event) {
-                case FingerprintManager.UDFPS_UI_OVERLAY_SHOWN:
-                    getListener().onUdfpsOverlayShown();
-                    break;
-                case FingerprintManager.UDFPS_UI_READY:
-                    getFreshDaemon().getSession().onUiReady();
-                    break;
-                default:
-                    Slog.w(TAG, "No matching event for onUdfpsUiEvent");
-            }
+            getFreshDaemon().getSession().onUiReady();
         } catch (RemoteException e) {
-            Slog.e(TAG, "Unable to send onUdfpsUiEvent", e);
+            Slog.e(TAG, "Unable to send UI ready", e);
         }
     }
 

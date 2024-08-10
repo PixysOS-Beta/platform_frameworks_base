@@ -1,10 +1,6 @@
 package com.android.systemui.biometrics.domain.model
 
-import android.graphics.Bitmap
-import android.hardware.biometrics.PromptContentView
 import android.hardware.biometrics.PromptInfo
-import com.android.systemui.biometrics.shared.model.BiometricModalities
-import com.android.systemui.biometrics.shared.model.BiometricUserInfo
 
 /**
  * Preferences for BiometricPrompt, such as title & description, that are immutable while the prompt
@@ -17,10 +13,8 @@ sealed class BiometricPromptRequest(
     val title: String,
     val subtitle: String,
     val description: String,
-    val contentView: PromptContentView?,
     val userInfo: BiometricUserInfo,
     val operationInfo: BiometricOperationInfo,
-    val showEmergencyCallButton: Boolean,
 ) {
     /** Prompt using one or more biometrics. */
     class Biometric(
@@ -28,20 +22,14 @@ sealed class BiometricPromptRequest(
         userInfo: BiometricUserInfo,
         operationInfo: BiometricOperationInfo,
         val modalities: BiometricModalities,
-        val opPackageName: String,
     ) :
         BiometricPromptRequest(
             title = info.title?.toString() ?: "",
             subtitle = info.subtitle?.toString() ?: "",
             description = info.description?.toString() ?: "",
-            contentView = info.contentView,
             userInfo = userInfo,
-            operationInfo = operationInfo,
-            showEmergencyCallButton = info.isShowEmergencyCallButton
+            operationInfo = operationInfo
         ) {
-        val logoRes: Int = info.logoRes
-        val logoBitmap: Bitmap? = info.logoBitmap
-        val logoDescription: String? = info.logoDescription
         val negativeButtonText: String = info.negativeButtonText?.toString() ?: ""
     }
 
@@ -55,10 +43,8 @@ sealed class BiometricPromptRequest(
             title = (info.deviceCredentialTitle ?: info.title)?.toString() ?: "",
             subtitle = (info.deviceCredentialSubtitle ?: info.subtitle)?.toString() ?: "",
             description = (info.deviceCredentialDescription ?: info.description)?.toString() ?: "",
-            contentView = info.contentView,
             userInfo = userInfo,
             operationInfo = operationInfo,
-            showEmergencyCallButton = info.isShowEmergencyCallButton
         ) {
 
         /** PIN prompt. */

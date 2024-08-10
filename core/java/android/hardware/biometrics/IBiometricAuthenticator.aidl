@@ -48,8 +48,7 @@ interface IBiometricAuthenticator {
     // startPreparedClient().
     void prepareForAuthentication(boolean requireConfirmation, IBinder token, long operationId,
             int userId, IBiometricSensorReceiver sensorReceiver, String opPackageName,
-            long requestId, int cookie, boolean allowBackgroundAuthentication,
-            boolean isForLegacyFingerprintManager);
+            long requestId, int cookie, boolean allowBackgroundAuthentication);
 
     // Starts authentication with the previously prepared client.
     void startPreparedClient(int cookie);

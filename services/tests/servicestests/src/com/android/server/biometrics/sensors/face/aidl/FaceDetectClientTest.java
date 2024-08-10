@@ -37,16 +37,11 @@ import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.Vibrator;
 import android.platform.test.annotations.Presubmit;
-import android.platform.test.annotations.RequiresFlagsDisabled;
-import android.platform.test.annotations.RequiresFlagsEnabled;
-import android.platform.test.flag.junit.CheckFlagsRule;
-import android.platform.test.flag.junit.DeviceFlagsValueProvider;
 import android.testing.TestableContext;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
 import com.android.server.biometrics.log.OperationContextExt;
@@ -76,9 +71,6 @@ public class FaceDetectClientTest {
     @Rule
     public final TestableContext mContext = new TestableContext(
             InstrumentationRegistry.getInstrumentation().getTargetContext(), null);
-    @Rule
-    public final CheckFlagsRule mCheckFlagsRule =
-            DeviceFlagsValueProvider.createCheckFlagsRule();
 
     @Mock
     private ISession mHal;
@@ -95,11 +87,9 @@ public class FaceDetectClientTest {
     @Mock
     private ClientMonitorCallback mCallback;
     @Mock
-    private AidlResponseHandler mAidlResponseHandler;
+    private Sensor.HalSessionCallback mHalSessionCallback;
     @Captor
     private ArgumentCaptor<OperationContextExt> mOperationContextCaptor;
-    @Captor
-    private ArgumentCaptor<Consumer<OperationContext>> mStartHalCaptor;
     @Captor
     private ArgumentCaptor<Consumer<OperationContext>> mContextInjector;
 
@@ -124,7 +114,6 @@ public class FaceDetectClientTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void detectWithContext_v2() throws RemoteException {
         final FaceDetectClient client = createClient(2);
         client.start(mCallback);
@@ -143,7 +132,6 @@ public class FaceDetectClientTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void notifyHalWhenContextChanges() throws RemoteException {
         final FaceDetectClient client = createClient();
         client.start(mCallback);
@@ -166,35 +154,6 @@ public class FaceDetectClientTest {
     }
 
     @Test
-    @RequiresFlagsEnabled(Flags.FLAG_DE_HIDL)
-    public void subscribeContextAndStartHal() throws RemoteException {
-        final FaceDetectClient client = createClient();
-        client.start(mCallback);
-
-        verify(mBiometricContext).subscribe(mOperationContextCaptor.capture(),
-                mStartHalCaptor.capture(), mContextInjector.capture(), any());
-
-        mStartHalCaptor.getValue().accept(mOperationContextCaptor.getValue().toAidlContext());
-        final ArgumentCaptor<OperationContext> captor =
-                ArgumentCaptor.forClass(OperationContext.class);
-
-        verify(mHal).detectInteractionWithContext(captor.capture());
-
-        OperationContext opContext = captor.getValue();
-
-        assertThat(opContext).isSameInstanceAs(
-                mOperationContextCaptor.getValue().toAidlContext());
-
-        mContextInjector.getValue().accept(opContext);
-
-        verify(mHal).onContextChanged(same(opContext));
-
-        client.stopHalOperation();
-
-        verify(mBiometricContext).unsubscribe(same(mOperationContextCaptor.getValue()));
-    }
-
-    @Test
     public void doesNotPlayHapticOnInteractionDetected() throws Exception {
         final FaceDetectClient client = createClient();
         client.start(mCallback);
@@ -211,7 +170,7 @@ public class FaceDetectClientTest {
     private FaceDetectClient createClient(int version) throws RemoteException {
         when(mHal.getInterfaceVersion()).thenReturn(version);
 
-        final AidlSession aidl = new AidlSession(version, mHal, USER_ID, mAidlResponseHandler);
+        final AidlSession aidl = new AidlSession(version, mHal, USER_ID, mHalSessionCallback);
         return new FaceDetectClient(mContext, () -> aidl, mToken,
                 99 /* requestId */, mClientMonitorCallbackConverter,
                 new FaceAuthenticateOptions.Builder()

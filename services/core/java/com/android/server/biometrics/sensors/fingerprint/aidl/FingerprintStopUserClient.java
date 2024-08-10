@@ -19,7 +19,6 @@ package com.android.server.biometrics.sensors.fingerprint.aidl;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.content.Context;
-import android.hardware.biometrics.fingerprint.ISession;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Slog;
@@ -31,11 +30,11 @@ import com.android.server.biometrics.sensors.StopUserClient;
 
 import java.util.function.Supplier;
 
-public class FingerprintStopUserClient extends StopUserClient<ISession> {
+public class FingerprintStopUserClient extends StopUserClient<AidlSession> {
     private static final String TAG = "FingerprintStopUserClient";
 
     public FingerprintStopUserClient(@NonNull Context context,
-            @NonNull Supplier<ISession> lazyDaemon, @Nullable IBinder token, int userId,
+            @NonNull Supplier<AidlSession> lazyDaemon, @Nullable IBinder token, int userId,
             int sensorId,
             @NonNull BiometricLogger logger, @NonNull BiometricContext biometricContext,
             @NonNull UserStoppedCallback callback) {
@@ -51,7 +50,7 @@ public class FingerprintStopUserClient extends StopUserClient<ISession> {
     @Override
     protected void startHalOperation() {
         try {
-            getFreshDaemon().close();
+            getFreshDaemon().getSession().close();
         } catch (RemoteException e) {
             Slog.e(TAG, "Remote exception", e);
             getCallback().onClientFinished(this, false /* success */);

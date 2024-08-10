@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.hardware.biometrics.ComponentInfoInternal;
 import android.hardware.biometrics.SensorProperties;
 import android.hardware.face.FaceSensorProperties;
@@ -38,22 +37,16 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.UserManager;
 import android.platform.test.annotations.Presubmit;
-import android.platform.test.annotations.RequiresFlagsDisabled;
-import android.platform.test.flag.junit.CheckFlagsRule;
-import android.platform.test.flag.junit.DeviceFlagsValueProvider;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 
-import com.android.internal.R;
-import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.sensors.BiometricScheduler;
 import com.android.server.biometrics.sensors.BiometricStateCallback;
 import com.android.server.biometrics.sensors.LockoutResetDispatcher;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -72,18 +65,11 @@ public class Face10Test {
     private static final String TAG = "Face10Test";
     private static final int SENSOR_ID = 1;
     private static final int USER_ID = 20;
-    private static final float FRR_THRESHOLD = 0.2f;
-
-    @Rule
-    public final CheckFlagsRule mCheckFlagsRule =
-            DeviceFlagsValueProvider.createCheckFlagsRule();
 
     @Mock
     private Context mContext;
     @Mock
     private UserManager mUserManager;
-    @Mock
-    private Resources mResources;
     @Mock
     private BiometricScheduler mScheduler;
     @Mock
@@ -106,10 +92,6 @@ public class Face10Test {
 
         when(mContext.getSystemService(Context.USER_SERVICE)).thenReturn(mUserManager);
         when(mUserManager.getAliveUsers()).thenReturn(new ArrayList<>());
-
-        when(mContext.getResources()).thenReturn(mResources);
-        when(mResources.getFraction(R.fraction.config_biometricNotificationFrrThreshold, 1, 1))
-                .thenReturn(FRR_THRESHOLD);
 
         mLockoutResetDispatcher = new LockoutResetDispatcher(mContext);
 
@@ -151,7 +133,6 @@ public class Face10Test {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void scheduleGenerateChallenge_cachesResult() {
         final IFaceServiceReceiver[] mocks = IntStream.range(0, 3)
                 .mapToObj(i -> mock(IFaceServiceReceiver.class))
@@ -170,7 +151,6 @@ public class Face10Test {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void scheduleRevokeChallenge_waitsUntilEmpty() {
         final long challenge = 22;
         final IFaceServiceReceiver[] mocks = IntStream.range(0, 3)
@@ -190,7 +170,6 @@ public class Face10Test {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void scheduleRevokeChallenge_doesNotWaitForever() {
         mFace10.scheduleGenerateChallenge(
                 SENSOR_ID, USER_ID, mBinder, mock(IFaceServiceReceiver.class), TAG);

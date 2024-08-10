@@ -15,10 +15,9 @@
  */
 package com.android.systemui.biometrics
 
-import com.android.systemui.biometrics.domain.interactor.UdfpsOverlayInteractor
 import com.android.systemui.dump.DumpManager
 import com.android.systemui.plugins.statusbar.StatusBarStateController
-import com.android.systemui.shade.domain.interactor.ShadeInteractor
+import com.android.systemui.shade.ShadeExpansionStateManager
 import com.android.systemui.statusbar.phone.SystemUIDialogManager
 
 /**
@@ -27,21 +26,15 @@ import com.android.systemui.statusbar.phone.SystemUIDialogManager
 class UdfpsBpViewController(
     view: UdfpsBpView,
     statusBarStateController: StatusBarStateController,
-    shadeInteractor: ShadeInteractor,
+    shadeExpansionStateManager: ShadeExpansionStateManager,
     systemUIDialogManager: SystemUIDialogManager,
-    dumpManager: DumpManager,
-    udfpsOverlayInteractor: UdfpsOverlayInteractor,
+    dumpManager: DumpManager
 ) : UdfpsAnimationViewController<UdfpsBpView>(
     view,
     statusBarStateController,
-    shadeInteractor,
+    shadeExpansionStateManager,
     systemUIDialogManager,
-    dumpManager,
-    udfpsOverlayInteractor,
+    dumpManager
 ) {
     override val tag = "UdfpsBpViewController"
-
-    override fun shouldPauseAuth(): Boolean {
-        return false
-    }
 }

@@ -21,8 +21,6 @@ import static android.app.PendingIntent.FLAG_IMMUTABLE;
 import static com.android.systemui.biometrics.BiometricNotificationBroadcastReceiver.ACTION_SHOW_FACE_REENROLL_DIALOG;
 import static com.android.systemui.biometrics.BiometricNotificationBroadcastReceiver.ACTION_SHOW_FINGERPRINT_REENROLL_DIALOG;
 
-import android.annotation.NonNull;
-import android.annotation.Nullable;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -32,9 +30,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.biometrics.BiometricFaceConstants;
 import android.hardware.biometrics.BiometricSourceType;
-import android.hardware.biometrics.BiometricStateListener;
-import android.hardware.face.FaceManager;
-import android.hardware.fingerprint.FingerprintManager;
 import android.os.Handler;
 import android.os.UserHandle;
 import android.provider.Settings;
@@ -43,9 +38,10 @@ import android.util.Log;
 import com.android.keyguard.KeyguardUpdateMonitor;
 import com.android.keyguard.KeyguardUpdateMonitorCallback;
 import com.android.systemui.CoreStartable;
-import com.android.systemui.res.R;
+import com.android.systemui.R;
 import com.android.systemui.dagger.SysUISingleton;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
+
 
 import java.util.Optional;
 
@@ -73,8 +69,6 @@ public class BiometricNotificationService implements CoreStartable {
     private final NotificationManager mNotificationManager;
     private final BiometricNotificationBroadcastReceiver mBroadcastReceiver;
     private final FingerprintReEnrollNotification mFingerprintReEnrollNotification;
-    private final FingerprintManager mFingerprintManager;
-    private final FaceManager mFaceManager;
     private NotificationChannel mNotificationChannel;
     private boolean mFaceNotificationQueued;
     private boolean mFingerprintNotificationQueued;
@@ -125,29 +119,14 @@ public class BiometricNotificationService implements CoreStartable {
                 }
             };
 
-    private final BiometricStateListener mFaceStateListener = new BiometricStateListener() {
-        @Override
-        public void onEnrollmentsChanged(int userId, int sensorId, boolean hasEnrollments) {
-            mNotificationManager.cancelAsUser(TAG, FACE_NOTIFICATION_ID, UserHandle.CURRENT);
-        }
-    };
-
-    private final BiometricStateListener mFingerprintStateListener = new BiometricStateListener() {
-        @Override
-        public void onEnrollmentsChanged(int userId, int sensorId, boolean hasEnrollments) {
-            mNotificationManager.cancelAsUser(TAG, FINGERPRINT_NOTIFICATION_ID, UserHandle.CURRENT);
-        }
-    };
 
     @Inject
-    public BiometricNotificationService(@NonNull Context context,
-            @NonNull KeyguardUpdateMonitor keyguardUpdateMonitor,
-            @NonNull KeyguardStateController keyguardStateController,
-            @NonNull Handler handler, @NonNull NotificationManager notificationManager,
-            @NonNull BiometricNotificationBroadcastReceiver biometricNotificationBroadcastReceiver,
-            @NonNull Optional<FingerprintReEnrollNotification> fingerprintReEnrollNotification,
-            @Nullable FingerprintManager fingerprintManager,
-            @Nullable FaceManager faceManager) {
+    public BiometricNotificationService(Context context,
+            KeyguardUpdateMonitor keyguardUpdateMonitor,
+            KeyguardStateController keyguardStateController,
+            Handler handler, NotificationManager notificationManager,
+            BiometricNotificationBroadcastReceiver biometricNotificationBroadcastReceiver,
+            Optional<FingerprintReEnrollNotification> fingerprintReEnrollNotification) {
         mContext = context;
         mKeyguardUpdateMonitor = keyguardUpdateMonitor;
         mKeyguardStateController = keyguardStateController;
@@ -156,8 +135,6 @@ public class BiometricNotificationService implements CoreStartable {
         mBroadcastReceiver = biometricNotificationBroadcastReceiver;
         mFingerprintReEnrollNotification = fingerprintReEnrollNotification.orElse(
                 new FingerprintReEnrollNotificationImpl());
-        mFingerprintManager = fingerprintManager;
-        mFaceManager = faceManager;
     }
 
     @Override
@@ -171,19 +148,9 @@ public class BiometricNotificationService implements CoreStartable {
         intentFilter.addAction(ACTION_SHOW_FACE_REENROLL_DIALOG);
         mContext.registerReceiver(mBroadcastReceiver, intentFilter,
                 Context.RECEIVER_EXPORTED_UNAUDITED);
-        if (mFingerprintManager != null) {
-            mFingerprintManager.registerBiometricStateListener(mFingerprintStateListener);
-        }
-        if (mFaceManager != null) {
-            mFaceManager.registerBiometricStateListener(mFaceStateListener);
-        }
-        Settings.Secure.putIntForUser(mContext.getContentResolver(),
-                Settings.Secure.FACE_UNLOCK_RE_ENROLL, REENROLL_NOT_REQUIRED,
-                UserHandle.USER_CURRENT);
     }
 
     private void queueFaceReenrollNotification() {
-        Log.d(TAG, "Face re-enroll notification queued.");
         mFaceNotificationQueued = true;
         final String title = mContext.getString(R.string.face_re_enroll_notification_title);
         final String content = mContext.getString(
@@ -196,7 +163,6 @@ public class BiometricNotificationService implements CoreStartable {
     }
 
     private void queueFingerprintReenrollNotification() {
-        Log.d(TAG, "Fingerprint re-enroll notification queued.");
         mFingerprintNotificationQueued = true;
         final String title = mContext.getString(R.string.fingerprint_re_enroll_notification_title);
         final String content = mContext.getString(

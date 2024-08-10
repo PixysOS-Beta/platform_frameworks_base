@@ -17,22 +17,17 @@
 package com.android.systemui.biometrics.ui.binder
 
 import android.animation.Animator
-import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.biometrics.BiometricAuthenticator
 import android.hardware.biometrics.BiometricConstants
 import android.hardware.biometrics.BiometricPrompt
 import android.hardware.face.FaceManager
+import android.os.Bundle
 import android.text.method.ScrollingMovementMethod
 import android.util.Log
-import android.view.HapticFeedbackConstants
-import android.view.MotionEvent
 import android.view.View
-import android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
 import android.view.accessibility.AccessibilityManager
 import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -40,21 +35,26 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.airbnb.lottie.LottieAnimationView
-import com.airbnb.lottie.LottieCompositionFactory
-import com.android.systemui.Flags.constraintBp
+import com.android.systemui.R
+import com.android.systemui.biometrics.AuthBiometricFaceIconController
+import com.android.systemui.biometrics.AuthBiometricFingerprintAndFaceIconController
+import com.android.systemui.biometrics.AuthBiometricFingerprintIconController
+import com.android.systemui.biometrics.AuthBiometricView
+import com.android.systemui.biometrics.AuthBiometricView.Callback
+import com.android.systemui.biometrics.AuthBiometricViewAdapter
+import com.android.systemui.biometrics.AuthIconController
 import com.android.systemui.biometrics.AuthPanelController
-import com.android.systemui.biometrics.shared.model.BiometricModalities
-import com.android.systemui.biometrics.shared.model.BiometricModality
+import com.android.systemui.biometrics.Utils
+import com.android.systemui.biometrics.domain.model.BiometricModalities
+import com.android.systemui.biometrics.domain.model.BiometricModality
+import com.android.systemui.biometrics.domain.model.asBiometricModality
 import com.android.systemui.biometrics.shared.model.PromptKind
-import com.android.systemui.biometrics.shared.model.asBiometricModality
 import com.android.systemui.biometrics.ui.BiometricPromptLayout
 import com.android.systemui.biometrics.ui.viewmodel.FingerprintStartMode
 import com.android.systemui.biometrics.ui.viewmodel.PromptMessage
 import com.android.systemui.biometrics.ui.viewmodel.PromptSize
 import com.android.systemui.biometrics.ui.viewmodel.PromptViewModel
 import com.android.systemui.lifecycle.repeatWhenAttached
-import com.android.systemui.res.R
-import com.android.systemui.statusbar.VibratorHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
@@ -68,71 +68,47 @@ private const val TAG = "BiometricViewBinder"
 object BiometricViewBinder {
 
     /** Binds a [BiometricPromptLayout] to a [PromptViewModel]. */
-    @SuppressLint("ClickableViewAccessibility")
     @JvmStatic
     fun bind(
-        view: View,
+        view: BiometricPromptLayout,
         viewModel: PromptViewModel,
-        panelViewController: AuthPanelController?,
+        panelViewController: AuthPanelController,
         jankListener: BiometricJankListener,
         backgroundView: View,
-        legacyCallback: Spaghetti.Callback,
+        legacyCallback: Callback,
         applicationScope: CoroutineScope,
-        vibratorHelper: VibratorHelper,
-    ): Spaghetti {
-        /**
-         * View is only set visible in BiometricViewSizeBinder once PromptSize is determined that
-         * accounts for iconView size, to prevent prompt resizing being visible to the user.
-         *
-         * TODO(b/288175072): May be able to remove this once constraint layout is implemented
-         */
-        view.visibility = View.INVISIBLE
+    ): AuthBiometricViewAdapter {
         val accessibilityManager = view.context.getSystemService(AccessibilityManager::class.java)!!
+        fun notifyAccessibilityChanged() {
+            Utils.notifyAccessibilityContentChanged(accessibilityManager, view)
+        }
 
         val textColorError =
             view.resources.getColor(R.color.biometric_dialog_error, view.context.theme)
         val textColorHint =
             view.resources.getColor(R.color.biometric_dialog_gray, view.context.theme)
 
-        val logoView = view.requireViewById<ImageView>(R.id.logo)
-        val logoDescriptionView = view.requireViewById<TextView>(R.id.logo_description)
-        val titleView = view.requireViewById<TextView>(R.id.title)
-        val subtitleView = view.requireViewById<TextView>(R.id.subtitle)
-        val descriptionView = view.requireViewById<TextView>(R.id.description)
-        val customizedViewContainer =
-            view.requireViewById<LinearLayout>(R.id.customized_view_container)
+        val titleView = view.findViewById<TextView>(R.id.title)
+        val subtitleView = view.findViewById<TextView>(R.id.subtitle)
+        val descriptionView = view.findViewById<TextView>(R.id.description)
 
-        // set selected to enable marquee unless a screen reader is enabled
-        logoView.isSelected =
-            !accessibilityManager.isEnabled || !accessibilityManager.isTouchExplorationEnabled
-        logoDescriptionView.isSelected =
-            !accessibilityManager.isEnabled || !accessibilityManager.isTouchExplorationEnabled
-        titleView.isSelected =
-            !accessibilityManager.isEnabled || !accessibilityManager.isTouchExplorationEnabled
-        subtitleView.isSelected =
-            !accessibilityManager.isEnabled || !accessibilityManager.isTouchExplorationEnabled
+        // set selected for marquee
+        titleView.isSelected = true
+        subtitleView.isSelected = true
         descriptionView.movementMethod = ScrollingMovementMethod()
 
-        val iconOverlayView = view.requireViewById<LottieAnimationView>(R.id.biometric_icon_overlay)
-        val iconView = view.requireViewById<LottieAnimationView>(R.id.biometric_icon)
-
-        val iconSizeOverride =
-            if (constraintBp()) {
-                null
-            } else {
-                (view as BiometricPromptLayout).updatedFingerprintAffordanceSize
-            }
-
-        val indicatorMessageView = view.requireViewById<TextView>(R.id.indicator)
+        val iconViewOverlay = view.findViewById<LottieAnimationView>(R.id.biometric_icon_overlay)
+        val iconView = view.findViewById<LottieAnimationView>(R.id.biometric_icon)
+        val indicatorMessageView = view.findViewById<TextView>(R.id.indicator)
 
         // Negative-side (left) buttons
-        val negativeButton = view.requireViewById<Button>(R.id.button_negative)
-        val cancelButton = view.requireViewById<Button>(R.id.button_cancel)
-        val credentialFallbackButton = view.requireViewById<Button>(R.id.button_use_credential)
+        val negativeButton = view.findViewById<Button>(R.id.button_negative)
+        val cancelButton = view.findViewById<Button>(R.id.button_cancel)
+        val credentialFallbackButton = view.findViewById<Button>(R.id.button_use_credential)
 
         // Positive-side (right) buttons
-        val confirmationButton = view.requireViewById<Button>(R.id.button_confirm)
-        val retryButton = view.requireViewById<Button>(R.id.button_try_again)
+        val confirmationButton = view.findViewById<Button>(R.id.button_confirm)
+        val retryButton = view.findViewById<Button>(R.id.button_try_again)
 
         // TODO(b/251476085): temporary workaround for the unsafe callbacks & legacy controllers
         val adapter =
@@ -145,48 +121,51 @@ object BiometricViewBinder {
 
         // bind to prompt
         var boundSize = false
-
         view.repeatWhenAttached {
             // these do not change and need to be set before any size transitions
             val modalities = viewModel.modalities.first()
-
-            if (modalities.hasFingerprint) {
-                /**
-                 * Load the given [rawResources] immediately so they are cached for use in the
-                 * [context].
-                 */
-                val rawResources = viewModel.iconViewModel.getRawAssets(modalities.hasSfps)
-                for (res in rawResources) {
-                    LottieCompositionFactory.fromRawRes(view.context, res)
-                }
-            }
-
-            logoView.setImageDrawable(viewModel.logo.first())
-            logoDescriptionView.text = viewModel.logoDescription.first()
             titleView.text = viewModel.title.first()
-            subtitleView.text = viewModel.subtitle.first()
             descriptionView.text = viewModel.description.first()
-            BiometricCustomizedViewBinder.bind(
-                customizedViewContainer,
-                view.requireViewById(R.id.space_above_content),
-                viewModel
-            )
+            subtitleView.text = viewModel.subtitle.first()
 
             // set button listeners
-            negativeButton.setOnClickListener { legacyCallback.onButtonNegative() }
-            cancelButton.setOnClickListener { legacyCallback.onUserCanceled() }
+            negativeButton.setOnClickListener {
+                legacyCallback.onAction(Callback.ACTION_BUTTON_NEGATIVE)
+            }
+            cancelButton.setOnClickListener {
+                legacyCallback.onAction(Callback.ACTION_USER_CANCELED)
+            }
             credentialFallbackButton.setOnClickListener {
                 viewModel.onSwitchToCredential()
-                legacyCallback.onUseDeviceCredential()
+                legacyCallback.onAction(Callback.ACTION_USE_DEVICE_CREDENTIAL)
             }
             confirmationButton.setOnClickListener { viewModel.confirmAuthenticated() }
             retryButton.setOnClickListener {
                 viewModel.showAuthenticating(isRetry = true)
-                legacyCallback.onButtonTryAgain()
+                legacyCallback.onAction(Callback.ACTION_BUTTON_TRY_AGAIN)
             }
 
-            adapter.attach(this, modalities, legacyCallback)
+            // TODO(b/251476085): migrate legacy icon controllers and remove
+            var legacyState: Int = viewModel.legacyState.value
+            val iconController =
+                modalities.asIconController(
+                    view.context,
+                    iconView,
+                    iconViewOverlay,
+                )
+            adapter.attach(this, iconController, modalities, legacyCallback)
+            if (iconController is AuthBiometricFingerprintIconController) {
+                view.updateFingerprintAffordanceSize(iconController)
+            }
+            if (iconController is HackyCoexIconController) {
+                iconController.faceMode = !viewModel.isConfirmationRequested.first()
+            }
 
+            // the icon controller must be created before this happens for the legacy
+            // sizing code in BiometricPromptLayout to work correctly. Simplify this
+            // when those are also migrated. (otherwise the icon size may not be set to
+            // a pixel value before the view is measured and WRAP_CONTENT will be incorrectly
+            // used as part of the measure spec)
             if (!boundSize) {
                 boundSize = true
                 BiometricViewSizeBinder.bind(
@@ -194,21 +173,15 @@ object BiometricViewBinder {
                     viewModel = viewModel,
                     viewsToHideWhenSmall =
                         listOf(
-                            logoView,
-                            logoDescriptionView,
                             titleView,
                             subtitleView,
                             descriptionView,
-                            customizedViewContainer,
                         ),
                     viewsToFadeInOnSizeChange =
                         listOf(
-                            logoView,
-                            logoDescriptionView,
                             titleView,
                             subtitleView,
                             descriptionView,
-                            customizedViewContainer,
                             indicatorMessageView,
                             negativeButton,
                             cancelButton,
@@ -219,19 +192,6 @@ object BiometricViewBinder {
                     panelViewController = panelViewController,
                     jankListener = jankListener,
                 )
-            }
-
-            lifecycleScope.launch {
-                viewModel.showBpWithoutIconForCredential.collect {
-                    if (!it) {
-                        PromptIconViewBinder.bind(
-                            iconView,
-                            iconOverlayView,
-                            iconSizeOverride,
-                            viewModel,
-                        )
-                    }
-                }
             }
 
             // TODO(b/251476085): migrate legacy icon controllers and remove
@@ -247,7 +207,15 @@ object BiometricViewBinder {
                         oldMode == FingerprintStartMode.Pending &&
                             newMode == FingerprintStartMode.Delayed
                     ) {
-                        legacyCallback.onStartDelayedFingerprintSensor()
+                        legacyCallback.onAction(Callback.ACTION_START_DELAYED_FINGERPRINT_SENSOR)
+                    }
+
+                    if (newMode.isStarted) {
+                        // do wonky switch from implicit to explicit flow
+                        (iconController as? HackyCoexIconController)?.faceMode = false
+                        viewModel.showAuthenticating(
+                            modalities.asDefaultHelpMessage(view.context),
+                        )
                     }
                 }
             }
@@ -266,7 +234,7 @@ object BiometricViewBinder {
                         .collect { dismissOnClick ->
                             backgroundView.setOnClickListener {
                                 if (dismissOnClick) {
-                                    legacyCallback.onUserCanceled()
+                                    legacyCallback.onAction(Callback.ACTION_USER_CANCELED)
                                 } else {
                                     Log.w(TAG, "Ignoring background click")
                                 }
@@ -278,18 +246,6 @@ object BiometricViewBinder {
                 launch {
                     viewModel.isIndicatorMessageVisible.collect { show ->
                         indicatorMessageView.visibility = show.asVisibleOrHidden()
-                    }
-                }
-
-                // set padding
-                launch {
-                    viewModel.promptPadding.collect { promptPadding ->
-                        view.setPadding(
-                            promptPadding.left,
-                            promptPadding.top,
-                            promptPadding.right,
-                            promptPadding.bottom
-                        )
                     }
                 }
 
@@ -338,54 +294,52 @@ object BiometricViewBinder {
 
                 // reuse the icon as a confirm button
                 launch {
-                    viewModel.isIconConfirmButton
+                    viewModel.isConfirmButtonVisible
                         .map { isPending ->
                             when {
-                                isPending && modalities.hasFaceAndFingerprint ->
-                                    View.OnTouchListener { _: View, event: MotionEvent ->
-                                        viewModel.onOverlayTouch(event)
-                                    }
+                                isPending && iconController.actsAsConfirmButton ->
+                                    View.OnClickListener { viewModel.confirmAuthenticated() }
                                 else -> null
                             }
                         }
-                        .collect { onTouch ->
-                            iconOverlayView.setOnTouchListener(onTouch)
-                            iconView.setOnTouchListener(onTouch)
+                        .collect { onClick ->
+                            iconViewOverlay.setOnClickListener(onClick)
+                            iconView.setOnClickListener(onClick)
                         }
+                }
+
+                // TODO(b/251476085): remove w/ legacy icon controllers
+                // set icon affordance using legacy states
+                // like the old code, this causes animations to repeat on config changes :(
+                // but keep behavior for now as no one has complained...
+                launch {
+                    viewModel.legacyState.collect { newState ->
+                        iconController.updateState(legacyState, newState)
+                        legacyState = newState
+                    }
+                }
+
+                // not sure why this is here, but the legacy code did it probably needed?
+                launch {
+                    viewModel.isAuthenticating.collect { isAuthenticating ->
+                        if (isAuthenticating) {
+                            notifyAccessibilityChanged()
+                        }
+                    }
                 }
 
                 // dismiss prompt when authenticated and confirmed
                 launch {
                     viewModel.isAuthenticated.collect { authState ->
-                        // Disable background view for cancelling authentication once authenticated,
-                        // and remove from talkback
-                        if (authState.isAuthenticated) {
-                            // Prevents Talkback from speaking subtitle after already authenticated
-                            subtitleView.importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-                            backgroundView.setOnClickListener(null)
-                            backgroundView.importantForAccessibility =
-                                IMPORTANT_FOR_ACCESSIBILITY_NO
-
-                            // Allow icon to be used as confirmation button with a11y enabled
-                            if (accessibilityManager.isTouchExplorationEnabled) {
-                                iconOverlayView.setOnClickListener {
-                                    viewModel.confirmAuthenticated()
-                                }
-                                iconView.setOnClickListener { viewModel.confirmAuthenticated() }
-                            }
-                        }
                         if (authState.isAuthenticatedAndConfirmed) {
                             view.announceForAccessibility(
                                 view.resources.getString(R.string.biometric_dialog_authenticated)
                             )
+                            notifyAccessibilityChanged()
 
                             launch {
                                 delay(authState.delay)
-                                if (authState.isAuthenticatedAndExplicitlyConfirmed) {
-                                    legacyCallback.onAuthenticatedAndConfirmed()
-                                } else {
-                                    legacyCallback.onAuthenticated()
-                                }
+                                legacyCallback.onAction(Callback.ACTION_AUTHENTICATED)
                             }
                         }
                     }
@@ -395,6 +349,7 @@ object BiometricViewBinder {
                 launch {
                     viewModel.message.collect { promptMessage ->
                         val isError = promptMessage is PromptMessage.Error
+
                         indicatorMessageView.text = promptMessage.message
                         indicatorMessageView.setTextColor(
                             if (isError) textColorError else textColorHint
@@ -406,55 +361,7 @@ object BiometricViewBinder {
                             !accessibilityManager.isEnabled ||
                                 !accessibilityManager.isTouchExplorationEnabled
 
-                        /**
-                         * Note: Talkback 14.0 has new rate-limitation design to reduce frequency of
-                         * TYPE_WINDOW_CONTENT_CHANGED events to once every 30 seconds. (context:
-                         * b/281765653#comment18) Using {@link View#announceForAccessibility}
-                         * instead as workaround since sending events exceeding this frequency is
-                         * required.
-                         */
-                        indicatorMessageView?.text?.let {
-                            if (it.isNotBlank()) {
-                                view.announceForAccessibility(it)
-                            }
-                        }
-                    }
-                }
-
-                // Talkback directional guidance
-                backgroundView.setOnHoverListener { _, event ->
-                    launch {
-                        viewModel.onAnnounceAccessibilityHint(
-                            event,
-                            accessibilityManager.isTouchExplorationEnabled
-                        )
-                    }
-                    false
-                }
-                launch {
-                    viewModel.accessibilityHint.collect { message ->
-                        if (message.isNotBlank()) view.announceForAccessibility(message)
-                    }
-                }
-
-                // Play haptics
-                launch {
-                    viewModel.hapticsToPlay.collect { haptics ->
-                        if (haptics.hapticFeedbackConstant != HapticFeedbackConstants.NO_HAPTICS) {
-                            if (haptics.flag != null) {
-                                vibratorHelper.performHapticFeedback(
-                                    view,
-                                    haptics.hapticFeedbackConstant,
-                                    haptics.flag,
-                                )
-                            } else {
-                                vibratorHelper.performHapticFeedback(
-                                    view,
-                                    haptics.hapticFeedbackConstant,
-                                )
-                            }
-                            viewModel.clearHaptics()
-                        }
+                        notifyAccessibilityChanged()
                     }
                 }
             }
@@ -471,48 +378,23 @@ object BiometricViewBinder {
  * the view model (which will be retained) via the application scope.
  *
  * Do not reference the [view] for anything other than [asView].
+ *
+ * TODO(b/251476085): remove after replacing AuthContainerView
  */
-@Deprecated("TODO(b/251476085): remove after replacing AuthContainerView")
-class Spaghetti(
+private class Spaghetti(
     private val view: View,
     private val viewModel: PromptViewModel,
     private val applicationContext: Context,
     private val applicationScope: CoroutineScope,
-) {
-
-    @Deprecated("TODO(b/251476085): remove after replacing AuthContainerView")
-    interface Callback {
-        fun onAuthenticated()
-        fun onUserCanceled()
-        fun onButtonNegative()
-        fun onButtonTryAgain()
-        fun onError()
-        fun onUseDeviceCredential()
-        fun onStartDelayedFingerprintSensor()
-        fun onAuthenticatedAndConfirmed()
-    }
-
-    @Deprecated("TODO(b/251476085): remove after replacing AuthContainerView")
-    enum class BiometricState {
-        /** Authentication hardware idle. */
-        STATE_IDLE,
-        /** UI animating in, authentication hardware active. */
-        STATE_AUTHENTICATING_ANIMATING_IN,
-        /** UI animated in, authentication hardware active. */
-        STATE_AUTHENTICATING,
-        /** UI animated in, authentication hardware active. */
-        STATE_HELP,
-        /** Hard error, e.g. ERROR_TIMEOUT. Authentication hardware idle. */
-        STATE_ERROR,
-        /** Authenticated, waiting for user confirmation. Authentication hardware idle. */
-        STATE_PENDING_CONFIRMATION,
-        /** Authenticated, dialog animating away soon. */
-        STATE_AUTHENTICATED,
-    }
+) : AuthBiometricViewAdapter {
 
     private var lifecycleScope: CoroutineScope? = null
     private var modalities: BiometricModalities = BiometricModalities()
+    private var faceFailedAtLeastOnce = false
     private var legacyCallback: Callback? = null
+
+    override var legacyIconController: AuthIconController? = null
+        private set
 
     // hacky way to suppress lockout errors
     private val lockoutErrorStrings =
@@ -524,26 +406,30 @@ class Spaghetti(
 
     fun attach(
         lifecycleOwner: LifecycleOwner,
+        iconController: AuthIconController,
         activeModalities: BiometricModalities,
         callback: Callback,
     ) {
         modalities = activeModalities
+        legacyIconController = iconController
         legacyCallback = callback
 
         lifecycleOwner.lifecycle.addObserver(
             object : DefaultLifecycleObserver {
                 override fun onCreate(owner: LifecycleOwner) {
                     lifecycleScope = owner.lifecycleScope
+                    iconController.deactivated = false
                 }
 
                 override fun onDestroy(owner: LifecycleOwner) {
                     lifecycleScope = null
+                    iconController.deactivated = true
                 }
             }
         )
     }
 
-    fun onDialogAnimatedIn(fingerprintWasStarted: Boolean) {
+    override fun onDialogAnimatedIn(fingerprintWasStarted: Boolean) {
         if (fingerprintWasStarted) {
             viewModel.ensureFingerprintHasStarted(isDelayed = false)
             viewModel.showAuthenticating(modalities.asDefaultHelpMessage(applicationContext))
@@ -552,7 +438,7 @@ class Spaghetti(
         }
     }
 
-    fun onAuthenticationSucceeded(@BiometricAuthenticator.Modality modality: Int) {
+    override fun onAuthenticationSucceeded(@BiometricAuthenticator.Modality modality: Int) {
         applicationScope.launch {
             val authenticatedModality = modality.asBiometricModality()
             val msgId = getHelpForSuccessfulAuthentication(authenticatedModality)
@@ -572,11 +458,11 @@ class Spaghetti(
             modalities.hasFaceAndFingerprint &&
                 (viewModel.fingerprintStartMode.first() != FingerprintStartMode.Pending) &&
                 (authenticatedModality == BiometricModality.Face) ->
-                R.string.biometric_dialog_tap_confirm_with_face_alt_1
+                R.string.biometric_dialog_tap_confirm_with_face
             else -> null
         }
 
-    fun onAuthenticationFailed(
+    override fun onAuthenticationFailed(
         @BiometricAuthenticator.Modality modality: Int,
         failureReason: String,
     ) {
@@ -584,49 +470,51 @@ class Spaghetti(
         viewModel.ensureFingerprintHasStarted(isDelayed = true)
 
         applicationScope.launch {
+            val suppress =
+                modalities.hasFaceAndFingerprint &&
+                    (failedModality == BiometricModality.Face) &&
+                    faceFailedAtLeastOnce
+            if (failedModality == BiometricModality.Face) {
+                faceFailedAtLeastOnce = true
+            }
+
             viewModel.showTemporaryError(
                 failureReason,
                 messageAfterError = modalities.asDefaultHelpMessage(applicationContext),
                 authenticateAfterError = modalities.hasFingerprint,
-                suppressIf = { currentMessage, history ->
-                    modalities.hasFaceAndFingerprint &&
-                        failedModality == BiometricModality.Face &&
-                        (currentMessage.isError || history.faceFailed)
-                },
+                suppressIfErrorShowing = suppress,
                 failedModality = failedModality,
             )
         }
     }
 
-    fun onError(modality: Int, error: String) {
+    override fun onError(modality: Int, error: String) {
         val errorModality = modality.asBiometricModality()
         if (ignoreUnsuccessfulEventsFrom(errorModality, error)) {
             return
         }
 
         applicationScope.launch {
+            val suppress =
+                modalities.hasFaceAndFingerprint && (errorModality == BiometricModality.Face)
             viewModel.showTemporaryError(
                 error,
-                messageAfterError = modalities.asDefaultHelpMessage(applicationContext),
-                authenticateAfterError = modalities.hasFingerprint,
+                suppressIfErrorShowing = suppress,
             )
             delay(BiometricPrompt.HIDE_DIALOG_DELAY.toLong())
-            legacyCallback?.onError()
+            legacyCallback?.onAction(Callback.ACTION_ERROR)
         }
     }
 
-    fun onHelp(modality: Int, help: String) {
+    override fun onHelp(modality: Int, help: String) {
         if (ignoreUnsuccessfulEventsFrom(modality.asBiometricModality(), "")) {
             return
         }
 
         applicationScope.launch {
-            // help messages from the HAL should be displayed as temporary (i.e. soft) errors
-            viewModel.showTemporaryError(
+            viewModel.showTemporaryHelp(
                 help,
-                messageAfterError = modalities.asDefaultHelpMessage(applicationContext),
-                authenticateAfterError = modalities.hasFingerprint,
-                hapticFeedback = false,
+                messageAfterHelp = modalities.asDefaultHelpMessage(applicationContext),
             )
         }
     }
@@ -639,22 +527,36 @@ class Spaghetti(
             else -> false
         }
 
-    fun startTransitionToCredentialUI(isError: Boolean) {
+    override fun startTransitionToCredentialUI() {
         applicationScope.launch {
             viewModel.onSwitchToCredential()
-            legacyCallback?.onUseDeviceCredential()
+            legacyCallback?.onAction(Callback.ACTION_USE_DEVICE_CREDENTIAL)
         }
     }
 
-    fun cancelAnimation() {
+    override fun requestLayout() {
+        // nothing, for legacy view...
+    }
+
+    override fun restoreState(bundle: Bundle?) {
+        // nothing, for legacy view...
+    }
+
+    override fun onSaveState(bundle: Bundle?) {
+        // nothing, for legacy view...
+    }
+
+    override fun onOrientationChanged() {
+        // nothing, for legacy view...
+    }
+
+    override fun cancelAnimation() {
         view.animate()?.cancel()
     }
 
-    fun isCoex() = modalities.hasFaceAndFingerprint
+    override fun isCoex() = modalities.hasFaceAndFingerprint
 
-    fun isFaceOnly() = modalities.hasFaceOnly
-
-    fun asView() = view
+    override fun asView() = view
 }
 
 private fun BiometricModalities.asDefaultHelpMessage(context: Context): String =
@@ -663,9 +565,58 @@ private fun BiometricModalities.asDefaultHelpMessage(context: Context): String =
         else -> ""
     }
 
+private fun BiometricModalities.asIconController(
+    context: Context,
+    iconView: LottieAnimationView,
+    iconViewOverlay: LottieAnimationView,
+): AuthIconController =
+    when {
+        hasFaceAndFingerprint -> HackyCoexIconController(context, iconView, iconViewOverlay)
+        hasFingerprint -> AuthBiometricFingerprintIconController(context, iconView, iconViewOverlay)
+        hasFace -> AuthBiometricFaceIconController(context, iconView)
+        else -> throw IllegalStateException("unexpected view type :$this")
+    }
+
 private fun Boolean.asVisibleOrGone(): Int = if (this) View.VISIBLE else View.GONE
 
 private fun Boolean.asVisibleOrHidden(): Int = if (this) View.VISIBLE else View.INVISIBLE
 
 // TODO(b/251476085): proper type?
 typealias BiometricJankListener = Animator.AnimatorListener
+
+// TODO(b/251476085): delete - temporary until the legacy icon controllers are replaced
+private class HackyCoexIconController(
+    context: Context,
+    iconView: LottieAnimationView,
+    iconViewOverlay: LottieAnimationView,
+) : AuthBiometricFingerprintAndFaceIconController(context, iconView, iconViewOverlay) {
+
+    private var state: Int? = null
+    private val faceController = AuthBiometricFaceIconController(context, iconView)
+
+    var faceMode: Boolean = true
+        set(value) {
+            if (field != value) {
+                field = value
+
+                faceController.deactivated = !value
+                iconView.setImageIcon(null)
+                iconViewOverlay.setImageIcon(null)
+                state?.let { updateIcon(AuthBiometricView.STATE_IDLE, it) }
+            }
+        }
+
+    override fun updateIcon(lastState: Int, newState: Int) {
+        if (deactivated) {
+            return
+        }
+
+        if (faceMode) {
+            faceController.updateIcon(lastState, newState)
+        } else {
+            super.updateIcon(lastState, newState)
+        }
+
+        state = newState
+    }
+}

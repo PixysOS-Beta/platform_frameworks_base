@@ -33,9 +33,9 @@ sealed interface PromptMessage {
                 else -> ""
             }
 
-    /** If this is an [Error]. */
-    val isError: Boolean
-        get() = this is Error
+    /** If this is an [Error] or [Help] message. */
+    val isErrorOrHelp: Boolean
+        get() = this is Error || this is Help
 
     /** An error message. */
     data class Error(val errorMessage: String) : PromptMessage

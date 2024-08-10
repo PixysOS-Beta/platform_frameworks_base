@@ -114,11 +114,6 @@ class BiometricTestSessionImpl extends ITestSession.Stub {
         public void onUdfpsPointerUp(int sensorId) {
 
         }
-
-        @Override
-        public void onUdfpsOverlayShown() {
-
-        }
     };
 
     BiometricTestSessionImpl(@NonNull Context context, int sensorId,

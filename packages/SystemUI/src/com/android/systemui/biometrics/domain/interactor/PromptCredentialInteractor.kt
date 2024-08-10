@@ -17,21 +17,19 @@
 package com.android.systemui.biometrics.domain.interactor
 
 import android.hardware.biometrics.PromptInfo
-import com.android.internal.widget.LockPatternUtils
 import com.android.internal.widget.LockPatternView
 import com.android.internal.widget.LockscreenCredential
 import com.android.systemui.biometrics.Utils
 import com.android.systemui.biometrics.data.repository.PromptRepository
 import com.android.systemui.biometrics.domain.model.BiometricOperationInfo
 import com.android.systemui.biometrics.domain.model.BiometricPromptRequest
-import com.android.systemui.biometrics.shared.model.BiometricUserInfo
+import com.android.systemui.biometrics.domain.model.BiometricUserInfo
 import com.android.systemui.biometrics.shared.model.PromptKind
 import com.android.systemui.dagger.qualifiers.Background
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -61,13 +59,6 @@ constructor(
     /** If the prompt is currently showing. */
     val isShowing: Flow<Boolean> = biometricPromptRepository.isShowing
 
-    /**
-     * If biometric prompt without icon needs to show for displaying content prior to credential
-     * view.
-     */
-    val showBpWithoutIconForCredential: StateFlow<Boolean> =
-        biometricPromptRepository.showBpWithoutIconForCredential
-
     /** Metadata about the current credential prompt, including app-supplied preferences. */
     val prompt: Flow<BiometricPromptRequest.Credential?> =
         combine(
@@ -84,32 +75,20 @@ constructor(
                     PromptKind.Pin ->
                         BiometricPromptRequest.Credential.Pin(
                             info = promptInfo,
-                            userInfo =
-                                userInfo(
-                                    userId,
-                                    promptInfo.shouldUseParentProfileForDeviceCredential()
-                                ),
+                            userInfo = userInfo(userId),
                             operationInfo = operationInfo(challenge)
                         )
                     PromptKind.Pattern ->
                         BiometricPromptRequest.Credential.Pattern(
                             info = promptInfo,
-                            userInfo =
-                                userInfo(
-                                    userId,
-                                    promptInfo.shouldUseParentProfileForDeviceCredential()
-                                ),
+                            userInfo = userInfo(userId),
                             operationInfo = operationInfo(challenge),
                             stealthMode = credentialInteractor.isStealthModeActive(userId)
                         )
                     PromptKind.Password ->
                         BiometricPromptRequest.Credential.Password(
                             info = promptInfo,
-                            userInfo =
-                                userInfo(
-                                    userId,
-                                    promptInfo.shouldUseParentProfileForDeviceCredential()
-                                ),
+                            userInfo = userInfo(userId),
                             operationInfo = operationInfo(challenge)
                         )
                     else -> null
@@ -117,17 +96,10 @@ constructor(
             }
             .distinctUntilChanged()
 
-    private fun userInfo(
-        userId: Int,
-        useParentProfileForDeviceCredential: Boolean
-    ): BiometricUserInfo =
+    private fun userInfo(userId: Int): BiometricUserInfo =
         BiometricUserInfo(
             userId = userId,
-            deviceCredentialOwnerId = credentialInteractor.getCredentialOwnerOrSelfId(userId),
-            userIdForPasswordEntry =
-                if (useParentProfileForDeviceCredential)
-                    credentialInteractor.getParentProfileIdOrSelfId(userId)
-                else credentialInteractor.getCredentialOwnerOrSelfId(userId),
+            deviceCredentialOwnerId = credentialInteractor.getCredentialOwnerOrSelfId(userId)
         )
 
     private fun operationInfo(challenge: Long): BiometricOperationInfo =
@@ -143,14 +115,12 @@ constructor(
         @Utils.CredentialType kind: Int,
         userId: Int,
         challenge: Long,
-        opPackageName: String,
     ) {
         biometricPromptRepository.setPrompt(
             promptInfo,
             userId,
             challenge,
-            kind.asBiometricPromptCredential(),
-            opPackageName,
+            kind.asBiometricPromptCredential()
         )
     }
 
@@ -175,7 +145,6 @@ constructor(
         request: BiometricPromptRequest.Credential,
         text: CharSequence? = null,
         pattern: List<LockPatternView.Cell>? = null,
-        patternSize: Byte = LockPatternUtils.PATTERN_SIZE_DEFAULT
     ): CredentialStatus =
         withContext(bgDispatcher) {
             val credential =
@@ -185,7 +154,7 @@ constructor(
                     is BiometricPromptRequest.Credential.Password ->
                         LockscreenCredential.createPasswordOrNone(text ?: "")
                     is BiometricPromptRequest.Credential.Pattern ->
-                        LockscreenCredential.createPattern(pattern ?: listOf(), patternSize)
+                        LockscreenCredential.createPattern(pattern ?: listOf())
                 }
 
             credential.use { c -> verifyCredential(request, c) }

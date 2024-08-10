@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.hardware.biometrics.BiometricSourceType;
 
 import com.android.systemui.dagger.SysUISingleton;
+import com.android.systemui.statusbar.phone.SystemUIDialog;
 
 import javax.inject.Inject;
 
@@ -40,8 +41,7 @@ public class BiometricNotificationBroadcastReceiver extends BroadcastReceiver {
     private final Context mContext;
     private final BiometricNotificationDialogFactory mNotificationDialogFactory;
     @Inject
-    BiometricNotificationBroadcastReceiver(
-            Context context,
+    BiometricNotificationBroadcastReceiver(Context context,
             BiometricNotificationDialogFactory notificationDialogFactory) {
         mContext = context;
         mNotificationDialogFactory = notificationDialogFactory;
@@ -53,16 +53,15 @@ public class BiometricNotificationBroadcastReceiver extends BroadcastReceiver {
 
         switch (action) {
             case ACTION_SHOW_FACE_REENROLL_DIALOG:
-                mNotificationDialogFactory.createReenrollDialog(
-                        mContext.getUserId(),
-                        mContext::startActivity,
+                mNotificationDialogFactory.createReenrollDialog(mContext,
+                        new SystemUIDialog(mContext),
                         BiometricSourceType.FACE)
                         .show();
                 break;
             case ACTION_SHOW_FINGERPRINT_REENROLL_DIALOG:
                 mNotificationDialogFactory.createReenrollDialog(
-                        mContext.getUserId(),
-                        mContext::startActivity,
+                        mContext,
+                        new SystemUIDialog(mContext),
                         BiometricSourceType.FINGERPRINT)
                         .show();
                 break;

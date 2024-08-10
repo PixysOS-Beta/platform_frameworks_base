@@ -16,8 +16,6 @@
 
 package com.android.server.biometrics.sensors.fingerprint.hidl;
 
-import static com.android.systemui.shared.Flags.sidefpsControllerRefactor;
-
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.app.TaskStackListener;
@@ -29,9 +27,9 @@ import android.hardware.biometrics.BiometricManager.Authenticators;
 import android.hardware.biometrics.fingerprint.PointerContext;
 import android.hardware.biometrics.fingerprint.V2_1.IBiometricsFingerprint;
 import android.hardware.fingerprint.FingerprintAuthenticateOptions;
-import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.fingerprint.FingerprintSensorPropertiesInternal;
 import android.hardware.fingerprint.ISidefpsController;
+import android.hardware.fingerprint.IUdfpsOverlay;
 import android.hardware.fingerprint.IUdfpsOverlayController;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -42,7 +40,6 @@ import com.android.server.biometrics.log.BiometricLogger;
 import com.android.server.biometrics.log.CallbackWithProbe;
 import com.android.server.biometrics.log.Probe;
 import com.android.server.biometrics.sensors.AuthenticationClient;
-import com.android.server.biometrics.sensors.AuthenticationStateListeners;
 import com.android.server.biometrics.sensors.BiometricNotificationUtils;
 import com.android.server.biometrics.sensors.ClientMonitorCallback;
 import com.android.server.biometrics.sensors.ClientMonitorCallbackConverter;
@@ -71,7 +68,6 @@ class FingerprintAuthenticationClient
     @NonNull private final SensorOverlays mSensorOverlays;
     @NonNull private final FingerprintSensorPropertiesInternal mSensorProps;
     @NonNull private final CallbackWithProbe<Probe> mALSProbeCallback;
-    @NonNull private final AuthenticationStateListeners mAuthenticationStateListeners;
 
     private boolean mIsPointerDown;
 
@@ -85,9 +81,8 @@ class FingerprintAuthenticationClient
             @NonNull TaskStackListener taskStackListener,
             @NonNull LockoutFrameworkImpl lockoutTracker,
             @Nullable IUdfpsOverlayController udfpsOverlayController,
-            // TODO(b/288175061): remove with Flags.FLAG_SIDEFPS_CONTROLLER_REFACTOR
             @Nullable ISidefpsController sidefpsController,
-            @NonNull AuthenticationStateListeners authenticationStateListeners,
+            @Nullable IUdfpsOverlay udfpsOverlay,
             boolean allowBackgroundAuthentication,
             @NonNull FingerprintSensorPropertiesInternal sensorProps,
             @Authenticators.Types int sensorStrength) {
@@ -97,12 +92,8 @@ class FingerprintAuthenticationClient
                 false /* shouldVibrate */, sensorStrength);
         setRequestId(requestId);
         mLockoutFrameworkImpl = lockoutTracker;
-        if (sidefpsControllerRefactor()) {
-            mSensorOverlays = new SensorOverlays(udfpsOverlayController);
-        } else {
-            mSensorOverlays = new SensorOverlays(udfpsOverlayController, sidefpsController);
-        }
-        mAuthenticationStateListeners = authenticationStateListeners;
+        mSensorOverlays = new SensorOverlays(udfpsOverlayController,
+                sidefpsController, udfpsOverlay);
         mSensorProps = sensorProps;
         mALSProbeCallback = getLogger().getAmbientLightProbe(false /* startWithClient */);
     }
@@ -139,9 +130,6 @@ class FingerprintAuthenticationClient
             mState = STATE_STOPPED;
             resetFailedAttempts(getTargetUserId());
             mSensorOverlays.hide(getSensorId());
-            if (sidefpsControllerRefactor()) {
-                mAuthenticationStateListeners.onAuthenticationStopped();
-            }
         } else {
             mState = STATE_STARTED_PAUSED_ATTEMPTED;
             final @LockoutTracker.LockoutMode int lockoutMode =
@@ -155,9 +143,6 @@ class FingerprintAuthenticationClient
                 // controlled by the HAL, the framework must stop the sensor before finishing the
                 // client.
                 mSensorOverlays.hide(getSensorId());
-                if (sidefpsControllerRefactor()) {
-                    mAuthenticationStateListeners.onAuthenticationStopped();
-                }
                 onErrorInternal(errorCode, 0 /* vendorCode */, false /* finish */);
                 cancel();
             }
@@ -173,9 +158,6 @@ class FingerprintAuthenticationClient
         }
 
         mSensorOverlays.hide(getSensorId());
-        if (sidefpsControllerRefactor()) {
-            mAuthenticationStateListeners.onAuthenticationStopped();
-        }
     }
 
     private void resetFailedAttempts(int userId) {
@@ -225,10 +207,7 @@ class FingerprintAuthenticationClient
 
     @Override
     protected void startHalOperation() {
-        mSensorOverlays.show(getSensorId(), getRequestReason(), this);
-        if (sidefpsControllerRefactor()) {
-            mAuthenticationStateListeners.onAuthenticationStarted(getRequestReason());
-        }
+        mSensorOverlays.show(getSensorId(), getShowOverlayReason(), this);
 
         try {
             // GroupId was never used. In fact, groupId is always the same as userId.
@@ -238,9 +217,6 @@ class FingerprintAuthenticationClient
             onError(BiometricFingerprintConstants.FINGERPRINT_ERROR_HW_UNAVAILABLE,
                     0 /* vendorCode */);
             mSensorOverlays.hide(getSensorId());
-            if (sidefpsControllerRefactor()) {
-                mAuthenticationStateListeners.onAuthenticationStopped();
-            }
             mCallback.onClientFinished(this, false /* success */);
         }
     }
@@ -248,9 +224,6 @@ class FingerprintAuthenticationClient
     @Override
     protected void stopHalOperation() {
         mSensorOverlays.hide(getSensorId());
-        if (sidefpsControllerRefactor()) {
-            mAuthenticationStateListeners.onAuthenticationStopped();
-        }
 
         try {
             getFreshDaemon().cancel();
@@ -300,7 +273,7 @@ class FingerprintAuthenticationClient
     }
 
     @Override
-    public void onUdfpsUiEvent(@FingerprintManager.UdfpsUiEvent int event) {
+    public void onUiReady() {
         // Unsupported in HIDL.
     }
 }

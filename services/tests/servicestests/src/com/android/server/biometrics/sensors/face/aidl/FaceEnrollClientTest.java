@@ -33,16 +33,11 @@ import android.hardware.face.Face;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.platform.test.annotations.Presubmit;
-import android.platform.test.annotations.RequiresFlagsDisabled;
-import android.platform.test.annotations.RequiresFlagsEnabled;
-import android.platform.test.flag.junit.CheckFlagsRule;
-import android.platform.test.flag.junit.DeviceFlagsValueProvider;
 import android.testing.TestableContext;
 
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
 import com.android.server.biometrics.log.OperationContextExt;
@@ -72,9 +67,6 @@ public class FaceEnrollClientTest {
     @Rule
     public final TestableContext mContext = new TestableContext(
             InstrumentationRegistry.getInstrumentation().getTargetContext(), null);
-    @Rule
-    public final CheckFlagsRule mCheckFlagsRule =
-            DeviceFlagsValueProvider.createCheckFlagsRule();
 
     @Mock
     private ISession mHal;
@@ -91,13 +83,11 @@ public class FaceEnrollClientTest {
     @Mock
     private ClientMonitorCallback mCallback;
     @Mock
-    private AidlResponseHandler mAidlResponseHandler;
+    private Sensor.HalSessionCallback mHalSessionCallback;
     @Captor
     private ArgumentCaptor<OperationContextExt> mOperationContextCaptor;
     @Captor
     private ArgumentCaptor<Consumer<OperationContext>> mContextInjector;
-    @Captor
-    private ArgumentCaptor<Consumer<OperationContext>> mStartHalConsumer;
 
     @Rule
     public final MockitoRule mockito = MockitoJUnit.rule();
@@ -118,7 +108,6 @@ public class FaceEnrollClientTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void enrollWithContext_v2() throws RemoteException {
         final FaceEnrollClient client = createClient(2);
         client.start(mCallback);
@@ -133,9 +122,8 @@ public class FaceEnrollClientTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void notifyHalWhenContextChanges() throws RemoteException {
-        final FaceEnrollClient client = createClient(3);
+        final FaceEnrollClient client = createClient();
         client.start(mCallback);
 
         final ArgumentCaptor<OperationContext> captor =
@@ -155,59 +143,6 @@ public class FaceEnrollClientTest {
         verify(mBiometricContext).unsubscribe(same(mOperationContextCaptor.getValue()));
     }
 
-    @Test
-    @RequiresFlagsEnabled(Flags.FLAG_DE_HIDL)
-    public void subscribeContextAndStartHal() throws RemoteException {
-        final FaceEnrollClient client = createClient(3);
-        client.start(mCallback);
-
-        verify(mBiometricContext).subscribe(
-                mOperationContextCaptor.capture(), mStartHalConsumer.capture(),
-                mContextInjector.capture(), any());
-
-        mStartHalConsumer.getValue().accept(mOperationContextCaptor.getValue().toAidlContext());
-        final ArgumentCaptor<OperationContext> captor =
-                ArgumentCaptor.forClass(OperationContext.class);
-
-        verify(mHal).enrollWithContext(any(), anyByte(), any(), any(), captor.capture());
-
-        OperationContext opContext = captor.getValue();
-
-        assertThat(opContext).isSameInstanceAs(
-                mOperationContextCaptor.getValue().toAidlContext());
-
-        mContextInjector.getValue().accept(opContext);
-
-        verify(mHal).onContextChanged(same(opContext));
-
-        client.stopHalOperation();
-
-        verify(mBiometricContext).unsubscribe(same(mOperationContextCaptor.getValue()));
-    }
-
-    @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
-    public void enrollWithFaceOptions() throws RemoteException {
-        final FaceEnrollClient client = createClient(4);
-        client.start(mCallback);
-
-        verify(mHal).enrollWithOptions(any());
-    }
-
-    @Test
-    @RequiresFlagsEnabled(Flags.FLAG_DE_HIDL)
-    public void enrollWithFaceOptionsAfterSubscribingContext() throws RemoteException {
-        final FaceEnrollClient client = createClient(4);
-        client.start(mCallback);
-
-        verify(mBiometricContext).subscribe(mOperationContextCaptor.capture(),
-                mStartHalConsumer.capture(), any(), any());
-
-        mStartHalConsumer.getValue().accept(mOperationContextCaptor.getValue().toAidlContext());
-
-        verify(mHal).enrollWithOptions(any());
-    }
-
     private FaceEnrollClient createClient() throws RemoteException {
         return createClient(200 /* version */);
     }
@@ -215,7 +150,7 @@ public class FaceEnrollClientTest {
     private FaceEnrollClient createClient(int version) throws RemoteException {
         when(mHal.getInterfaceVersion()).thenReturn(version);
 
-        final AidlSession aidl = new AidlSession(version, mHal, USER_ID, mAidlResponseHandler);
+        final AidlSession aidl = new AidlSession(version, mHal, USER_ID, mHalSessionCallback);
         return new FaceEnrollClient(mContext, () -> aidl, mToken, mClientMonitorCallbackConverter,
                 USER_ID, HAT, "com.foo.bar", 44 /* requestId */,
                 mUtils, new int[0] /* disabledFeatures */, 6 /* timeoutSec */,

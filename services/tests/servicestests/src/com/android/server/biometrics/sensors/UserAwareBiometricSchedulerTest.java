@@ -33,9 +33,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.UserHandle;
 import android.platform.test.annotations.Presubmit;
-import android.platform.test.annotations.RequiresFlagsDisabled;
-import android.platform.test.flag.junit.CheckFlagsRule;
-import android.platform.test.flag.junit.DeviceFlagsValueProvider;
 import android.testing.AndroidTestingRunner;
 import android.testing.TestableLooper;
 
@@ -43,7 +40,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.test.filters.SmallTest;
 
-import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
 
@@ -70,9 +66,6 @@ public class UserAwareBiometricSchedulerTest {
 
     @Rule
     public final MockitoRule mockito = MockitoJUnit.rule();
-    @Rule
-    public final CheckFlagsRule mCheckFlagsRule =
-            DeviceFlagsValueProvider.createCheckFlagsRule();
 
     private Handler mHandler;
     private UserAwareBiometricScheduler mScheduler;
@@ -129,7 +122,6 @@ public class UserAwareBiometricSchedulerTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void testScheduleOperation_whenNoUser() {
         mCurrentUserId = UserHandle.USER_NULL;
 
@@ -191,7 +183,6 @@ public class UserAwareBiometricSchedulerTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void testScheduleOperation_whenSameUser() {
         mCurrentUserId = 10;
 
@@ -208,7 +199,6 @@ public class UserAwareBiometricSchedulerTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void testScheduleOperation_whenDifferentUser() {
         mCurrentUserId = 10;
 
@@ -229,7 +219,6 @@ public class UserAwareBiometricSchedulerTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void testStartUser_alwaysStartsNextOperation() {
         BaseClientMonitor nextClient = mock(BaseClientMonitor.class);
         when(nextClient.getTargetUserId()).thenReturn(10);
@@ -257,7 +246,6 @@ public class UserAwareBiometricSchedulerTest {
     }
 
     @Test
-    @RequiresFlagsDisabled(Flags.FLAG_DE_HIDL)
     public void testStartUser_failsClearsStopUserClient() {
         // When a stop user client fails, check that mStopUserClient
         // is set to null to prevent the scheduler from getting stuck.

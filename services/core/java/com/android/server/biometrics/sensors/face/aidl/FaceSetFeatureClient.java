@@ -46,7 +46,7 @@ public class FaceSetFeatureClient extends HalClientMonitor<AidlSession> implemen
     private final boolean mEnabled;
     private final HardwareAuthToken mHardwareAuthToken;
 
-    public FaceSetFeatureClient(@NonNull Context context, @NonNull Supplier<AidlSession> lazyDaemon,
+    FaceSetFeatureClient(@NonNull Context context, @NonNull Supplier<AidlSession> lazyDaemon,
             @NonNull IBinder token, @NonNull ClientMonitorCallbackConverter listener, int userId,
             @NonNull String owner, int sensorId,
             @NonNull BiometricLogger logger, @NonNull BiometricContext biometricContext,

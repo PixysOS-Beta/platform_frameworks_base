@@ -25,25 +25,20 @@ import android.hardware.biometrics.BiometricFingerprintConstants
 import android.hardware.biometrics.BiometricSourceType
 import android.util.DisplayMetrics
 import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.repeatOnLifecycle
-import com.android.app.animation.Interpolators
 import com.android.keyguard.KeyguardUpdateMonitor
 import com.android.keyguard.KeyguardUpdateMonitorCallback
 import com.android.keyguard.logging.KeyguardLogger
 import com.android.settingslib.Utils
+import com.android.settingslib.udfps.UdfpsOverlayParams
 import com.android.systemui.CoreStartable
-import com.android.systemui.Flags.lightRevealMigration
-import com.android.systemui.biometrics.data.repository.FacePropertyRepository
-import com.android.systemui.biometrics.shared.model.UdfpsOverlayParams
+import com.android.systemui.R
+import com.android.app.animation.Interpolators
 import com.android.systemui.dagger.SysUISingleton
-import com.android.systemui.deviceentry.domain.interactor.AuthRippleInteractor
-import com.android.systemui.deviceentry.shared.DeviceEntryUdfpsRefactor
+import com.android.systemui.flags.FeatureFlags
+import com.android.systemui.flags.Flags
 import com.android.systemui.keyguard.WakefulnessLifecycle
-import com.android.systemui.keyguard.shared.model.BiometricUnlockSource
-import com.android.systemui.lifecycle.repeatWhenAttached
-import com.android.systemui.log.core.LogLevel
+import com.android.systemui.log.LogLevel
 import com.android.systemui.plugins.statusbar.StatusBarStateController
-import com.android.systemui.res.R
 import com.android.systemui.statusbar.CircleReveal
 import com.android.systemui.statusbar.LiftReveal
 import com.android.systemui.statusbar.LightRevealEffect
@@ -80,11 +75,10 @@ class AuthRippleController @Inject constructor(
     private val udfpsControllerProvider: Provider<UdfpsController>,
     private val statusBarStateController: StatusBarStateController,
     private val displayMetrics: DisplayMetrics,
+    private val featureFlags: FeatureFlags,
     private val logger: KeyguardLogger,
     private val biometricUnlockController: BiometricUnlockController,
     private val lightRevealScrim: LightRevealScrim,
-    private val authRippleInteractor: AuthRippleInteractor,
-    private val facePropertyRepository: FacePropertyRepository,
     rippleView: AuthRippleView?
 ) :
     ViewController<AuthRippleView>(rippleView),
@@ -106,22 +100,6 @@ class AuthRippleController @Inject constructor(
         init()
     }
 
-    init {
-        if (DeviceEntryUdfpsRefactor.isEnabled) {
-            rippleView?.repeatWhenAttached {
-                repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.CREATED) {
-                    authRippleInteractor.showUnlockRipple.collect { biometricUnlockSource ->
-                        if (biometricUnlockSource == BiometricUnlockSource.FINGERPRINT_SENSOR) {
-                            showUnlockRippleInternal(BiometricSourceType.FINGERPRINT)
-                        } else {
-                            showUnlockRippleInternal(BiometricSourceType.FACE)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     @VisibleForTesting
     public override fun onViewAttached() {
         authController.addCallback(authControllerCallback)
@@ -133,9 +111,7 @@ class AuthRippleController @Inject constructor(
         keyguardStateController.addCallback(this)
         wakefulnessLifecycle.addObserver(this)
         commandRegistry.registerCommand("auth-ripple") { AuthRippleCommand() }
-        if (!DeviceEntryUdfpsRefactor.isEnabled) {
-            biometricUnlockController.addListener(biometricModeListener)
-        }
+        biometricUnlockController.addListener(biometricModeListener)
     }
 
     private val biometricModeListener =
@@ -143,9 +119,8 @@ class AuthRippleController @Inject constructor(
             override fun onBiometricUnlockedWithKeyguardDismissal(
                     biometricSourceType: BiometricSourceType?
             ) {
-                DeviceEntryUdfpsRefactor.assertInLegacyMode()
                 if (biometricSourceType != null) {
-                    showUnlockRippleInternal(biometricSourceType)
+                    showUnlockRipple(biometricSourceType)
                 } else {
                     logger.log(TAG,
                             LogLevel.ERROR,
@@ -168,13 +143,7 @@ class AuthRippleController @Inject constructor(
         notificationShadeWindowController.setForcePluginOpen(false, this)
     }
 
-     @Deprecated("Update authRippleInteractor.showUnlockRipple instead of calling this.")
-     fun showUnlockRipple(biometricSourceType: BiometricSourceType) {
-         DeviceEntryUdfpsRefactor.assertInLegacyMode()
-         showUnlockRippleInternal(biometricSourceType)
-     }
-
-    private fun showUnlockRippleInternal(biometricSourceType: BiometricSourceType) {
+    fun showUnlockRipple(biometricSourceType: BiometricSourceType) {
         val keyguardNotShowing = !keyguardStateController.isShowing
         val unlockNotAllowed = !keyguardUpdateMonitor
                 .isUnlockingWithBiometricAllowed(biometricSourceType)
@@ -222,7 +191,7 @@ class AuthRippleController @Inject constructor(
 
         // This code path is not used if the KeyguardTransitionRepository is managing the light
         // reveal scrim.
-        if (!lightRevealMigration()) {
+        if (!featureFlags.isEnabled(Flags.LIGHT_REVEAL_MIGRATION)) {
             if (statusBarStateController.isDozing || biometricUnlockController.isWakeAndUnlock) {
                 circleReveal?.let {
                     lightRevealScrim.revealAmount = 0f
@@ -241,7 +210,7 @@ class AuthRippleController @Inject constructor(
     }
 
     override fun onKeyguardFadingAwayChanged() {
-        if (lightRevealMigration()) {
+        if (featureFlags.isEnabled(Flags.LIGHT_REVEAL_MIGRATION)) {
             return
         }
 
@@ -255,17 +224,13 @@ class AuthRippleController @Inject constructor(
                     addUpdateListener { animator ->
                         if (lightRevealScrim.revealEffect != circleReveal) {
                             // if something else took over the reveal, let's cancel ourselves
-                            // When the animator is almost done, fully reveal the scrim.
-                            if (animator.animatedValue as Float >= 0.9999f) {
-                                lightRevealScrim.revealAmount = 1f
-                            }
                             cancel()
                             return@addUpdateListener
                         }
                         lightRevealScrim.revealAmount = animator.animatedValue as Float
                     }
                     addListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
+                        override fun onAnimationEnd(animation: Animator?) {
                             // Reset light reveal scrim to the default, so the CentralSurfaces
                             // can handle any subsequent light reveal changes
                             // (ie: from dozing changes)
@@ -297,7 +262,7 @@ class AuthRippleController @Inject constructor(
 
     fun updateSensorLocation() {
         fingerprintSensorLocation = authController.fingerprintSensorLocation
-        faceSensorLocation = facePropertyRepository.sensorLocation.value
+        faceSensorLocation = authController.faceSensorLocation
     }
 
     private fun updateRippleColor() {
@@ -363,10 +328,7 @@ class AuthRippleController @Inject constructor(
     private val udfpsControllerCallback =
         object : UdfpsController.Callback {
             override fun onFingerDown() {
-                // only show dwell ripple for device entry
-                if (keyguardUpdateMonitor.isFingerprintDetectionRunning) {
-                    showDwellRipple()
-                }
+                showDwellRipple()
             }
 
             override fun onFingerUp() {
@@ -412,12 +374,12 @@ class AuthRippleController @Inject constructor(
                     }
                     "fingerprint" -> {
                         pw.println("fingerprint ripple sensorLocation=$fingerprintSensorLocation")
-                        showUnlockRippleInternal(BiometricSourceType.FINGERPRINT)
+                        showUnlockRipple(BiometricSourceType.FINGERPRINT)
                     }
                     "face" -> {
                         // note: only shows when about to proceed to the home screen
                         pw.println("face ripple sensorLocation=$faceSensorLocation")
-                        showUnlockRippleInternal(BiometricSourceType.FACE)
+                        showUnlockRipple(BiometricSourceType.FACE)
                     }
                     "custom" -> {
                         if (args.size != 3 ||
@@ -444,7 +406,7 @@ class AuthRippleController @Inject constructor(
             pw.println("  custom <x-location: int> <y-location: int>")
         }
 
-        private fun invalidCommand(pw: PrintWriter) {
+        fun invalidCommand(pw: PrintWriter) {
             pw.println("invalid command")
             help(pw)
         }

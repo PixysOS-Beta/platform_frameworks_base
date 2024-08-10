@@ -30,7 +30,7 @@ import com.android.server.biometrics.sensors.HalClientMonitor;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class FingerprintGetAuthenticatorIdClient extends HalClientMonitor<AidlSession> {
+class FingerprintGetAuthenticatorIdClient extends HalClientMonitor<AidlSession> {
 
     private static final String TAG = "FingerprintGetAuthenticatorIdClient";
 

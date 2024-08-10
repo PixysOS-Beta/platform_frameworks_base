@@ -31,7 +31,6 @@ import android.util.Slog;
 
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
-import com.android.server.biometrics.sensors.fingerprint.aidl.AidlSession;
 
 import java.util.function.Supplier;
 
@@ -207,22 +206,8 @@ public abstract class AcquisitionClient<T> extends HalClientMonitor<T> implement
         }
     }
 
-    // TODO(b/317414324): Deprecate setIgnoreDisplayTouches
-    protected final void resetIgnoreDisplayTouches() {
-        final AidlSession session = (AidlSession) getFreshDaemon();
-        try {
-            session.getSession().setIgnoreDisplayTouches(false);
-        } catch (RemoteException e) {
-            Slog.e(TAG, "Remote exception when resetting setIgnoreDisplayTouches");
-        }
-    }
-
     @Override
     public boolean isInterruptable() {
         return true;
-    }
-
-    public boolean isAlreadyCancelled() {
-        return mAlreadyCancelled;
     }
 }

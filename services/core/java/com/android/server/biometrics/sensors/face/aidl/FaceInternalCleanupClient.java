@@ -38,9 +38,9 @@ import java.util.function.Supplier;
 /**
  * Face-specific internal cleanup client for the {@link IFace} AIDL HAL interface.
  */
-public class FaceInternalCleanupClient extends InternalCleanupClient<Face, AidlSession> {
+class FaceInternalCleanupClient extends InternalCleanupClient<Face, AidlSession> {
 
-    public FaceInternalCleanupClient(@NonNull Context context,
+    FaceInternalCleanupClient(@NonNull Context context,
             @NonNull Supplier<AidlSession> lazyDaemon, int userId, @NonNull String owner,
             int sensorId, @NonNull BiometricLogger logger,
             @NonNull BiometricContext biometricContext,

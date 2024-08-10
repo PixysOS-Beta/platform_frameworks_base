@@ -18,21 +18,14 @@ package com.android.systemui.biometrics
 import android.animation.ValueAnimator
 import android.graphics.PointF
 import android.graphics.RectF
-import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.repeatOnLifecycle
-import com.android.app.animation.Interpolators
 import com.android.systemui.Dumpable
-import com.android.systemui.biometrics.domain.interactor.UdfpsOverlayInteractor
+import com.android.app.animation.Interpolators
 import com.android.systemui.dump.DumpManager
-import com.android.systemui.lifecycle.repeatWhenAttached
 import com.android.systemui.plugins.statusbar.StatusBarStateController
-import com.android.systemui.shade.domain.interactor.ShadeInteractor
+import com.android.systemui.shade.ShadeExpansionListener
+import com.android.systemui.shade.ShadeExpansionStateManager
 import com.android.systemui.statusbar.phone.SystemUIDialogManager
 import com.android.systemui.util.ViewController
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import java.io.PrintWriter
 
 /**
@@ -48,10 +41,9 @@ import java.io.PrintWriter
 abstract class UdfpsAnimationViewController<T : UdfpsAnimationView>(
     view: T,
     protected val statusBarStateController: StatusBarStateController,
-    protected val shadeInteractor: ShadeInteractor,
+    protected val shadeExpansionStateManager: ShadeExpansionStateManager,
     protected val dialogManager: SystemUIDialogManager,
-    private val dumpManager: DumpManager,
-    private val udfpsOverlayInteractor: UdfpsOverlayInteractor,
+    private val dumpManager: DumpManager
 ) : ViewController<T>(view), Dumpable {
 
     protected abstract val tag: String
@@ -61,6 +53,14 @@ abstract class UdfpsAnimationViewController<T : UdfpsAnimationView>(
 
     private var dialogAlphaAnimator: ValueAnimator? = null
     private val dialogListener = SystemUIDialogManager.Listener { runDialogAlphaAnimator() }
+
+    private val shadeExpansionListener = ShadeExpansionListener { event ->
+        // Notification shade can be expanded but not visible (fraction: 0.0), for example
+        // when a heads-up notification (HUN) is showing.
+        notificationShadeVisible = event.expanded && event.fraction > 0f
+        view.onExpansionChanged(event.fraction)
+        updatePauseAuth()
+    }
 
     /** If the notification shade is visible. */
     var notificationShadeVisible: Boolean = false
@@ -88,28 +88,6 @@ abstract class UdfpsAnimationViewController<T : UdfpsAnimationView>(
         view.updateAlpha()
     }
 
-    init {
-        view.repeatWhenAttached {
-            // repeatOnLifecycle CREATED (as opposed to STARTED) because the Bouncer expansion
-            // can make the view not visible; and we still want to listen for events
-            // that may make the view visible again.
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                listenForShadeExpansion(this)
-            }
-        }
-    }
-
-    @VisibleForTesting
-    suspend fun listenForShadeExpansion(scope: CoroutineScope): Job {
-        return scope.launch {
-            shadeInteractor.anyExpansion.collect { expansion ->
-                notificationShadeVisible = expansion > 0f
-                view.onExpansionChanged(expansion)
-                updatePauseAuth()
-            }
-        }
-    }
-
     fun runDialogAlphaAnimator() {
         val hideAffordance = dialogManager.shouldHideAffordance()
         dialogAlphaAnimator?.cancel()
@@ -130,15 +108,17 @@ abstract class UdfpsAnimationViewController<T : UdfpsAnimationView>(
     }
 
     override fun onViewAttached() {
+        val currentState =
+            shadeExpansionStateManager.addExpansionListener(shadeExpansionListener)
+        shadeExpansionListener.onPanelExpansionChanged(currentState)
         dialogManager.registerListener(dialogListener)
         dumpManager.registerDumpable(dumpTag, this)
-        udfpsOverlayInteractor.setHandleTouches(shouldHandle = !shouldPauseAuth())
     }
 
     override fun onViewDetached() {
+        shadeExpansionStateManager.removeExpansionListener(shadeExpansionListener)
         dialogManager.unregisterListener(dialogListener)
         dumpManager.unregisterDumpable(dumpTag)
-        udfpsOverlayInteractor.setHandleTouches(shouldHandle = !shouldPauseAuth())
     }
 
     /**
@@ -169,7 +149,6 @@ abstract class UdfpsAnimationViewController<T : UdfpsAnimationView>(
     fun updatePauseAuth() {
         if (view.setPauseAuth(shouldPauseAuth())) {
             view.postInvalidate()
-            udfpsOverlayInteractor.setHandleTouches(shouldHandle = !shouldPauseAuth())
         }
     }
 

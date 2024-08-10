@@ -32,7 +32,6 @@ public class LockoutCache implements LockoutTracker {
         mUserLockoutStates = new SparseIntArray();
     }
 
-    @Override
     public void setLockoutModeForUser(int userId, @LockoutMode int mode) {
         Slog.d(TAG, "Lockout for user: " + userId +  " is " + mode);
         synchronized (this) {
