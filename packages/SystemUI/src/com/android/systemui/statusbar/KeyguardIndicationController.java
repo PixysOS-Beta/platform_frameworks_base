@@ -1008,7 +1008,7 @@ public class KeyguardIndicationController {
             mFaceIconView.setState(FaceUnlockImageView.State.SCANNING);
         }
         showBiometricMessage(mContext.getResources().getString(
-                                    R.string.face_unlock_recognizing), null);
+                                    R.string.face_unlock_recognizing));
     }
 
     private void hideFaceUnlockRecognizingMessage() {
