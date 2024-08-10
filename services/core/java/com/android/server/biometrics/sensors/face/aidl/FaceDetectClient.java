@@ -29,7 +29,6 @@ import android.util.Slog;
 
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.server.biometrics.BiometricsProto;
-import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
 import com.android.server.biometrics.log.OperationContextExt;
@@ -112,11 +111,7 @@ public class FaceDetectClient extends AcquisitionClient<AidlSession> implements 
         }
 
         try {
-            if (Flags.deHidl()) {
-                startDetect();
-            } else {
-                mCancellationSignal = doDetectInteraction();
-            }
+            mCancellationSignal = doDetectInteraction();
         } catch (RemoteException e) {
             Slog.e(TAG, "Remote exception when requesting face detect", e);
             mCallback.onClientFinished(this, false /* success */);
@@ -140,30 +135,6 @@ public class FaceDetectClient extends AcquisitionClient<AidlSession> implements 
             return cancel;
         } else {
             return session.getSession().detectInteraction();
-        }
-    }
-
-    private void startDetect() throws RemoteException {
-        final AidlSession session = getFreshDaemon();
-
-        if (session.hasContextMethods()) {
-            final OperationContextExt opContext = getOperationContext();
-            getBiometricContext().subscribe(opContext, ctx -> {
-                try {
-                    mCancellationSignal = session.getSession().detectInteractionWithContext(ctx);
-                } catch (RemoteException e) {
-                    Slog.e(TAG, "Remote exception when requesting face detect", e);
-                    mCallback.onClientFinished(this, false /* success */);
-                }
-            }, ctx -> {
-                try {
-                    session.getSession().onContextChanged(ctx);
-                } catch (RemoteException e) {
-                    Slog.e(TAG, "Unable to notify context changed", e);
-                }
-            }, mOptions);
-        } else {
-            mCancellationSignal = session.getSession().detectInteraction();
         }
     }
 

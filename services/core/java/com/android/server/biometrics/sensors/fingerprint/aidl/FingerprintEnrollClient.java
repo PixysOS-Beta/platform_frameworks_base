@@ -39,7 +39,6 @@ import android.os.RemoteException;
 import android.util.Slog;
 import android.view.accessibility.AccessibilityManager;
 
-import com.android.server.biometrics.Flags;
 import com.android.server.biometrics.HardwareAuthTokenUtils;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
@@ -204,11 +203,7 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
 
         BiometricNotificationUtils.cancelBadCalibrationNotification(getContext());
         try {
-            if (Flags.deHidl()) {
-                startEnroll();
-            } else {
-                mCancellationSignal = doEnroll();
-            }
+            mCancellationSignal = doEnroll();
         } catch (RemoteException e) {
             Slog.e(TAG, "Remote exception when requesting enroll", e);
             onError(BiometricFingerprintConstants.FINGERPRINT_ERROR_UNABLE_TO_PROCESS,
@@ -242,35 +237,6 @@ public class FingerprintEnrollClient extends EnrollClient<AidlSession> implement
             return cancel;
         } else {
             return session.getSession().enroll(hat);
-        }
-    }
-
-    private void startEnroll() throws RemoteException {
-        final AidlSession session = getFreshDaemon();
-        final HardwareAuthToken hat =
-                HardwareAuthTokenUtils.toHardwareAuthToken(mHardwareAuthToken);
-
-        if (session.hasContextMethods()) {
-            final OperationContextExt opContext = getOperationContext();
-            getBiometricContext().subscribe(opContext, ctx -> {
-                try {
-                    mCancellationSignal = session.getSession().enrollWithContext(
-                            hat, ctx);
-                } catch (RemoteException e) {
-                    Slog.e(TAG, "Remote exception when requesting enroll", e);
-                    onError(BiometricFingerprintConstants.FINGERPRINT_ERROR_UNABLE_TO_PROCESS,
-                            0 /* vendorCode */);
-                    mCallback.onClientFinished(this, false /* success */);
-                }
-            }, ctx -> {
-                try {
-                    session.getSession().onContextChanged(ctx);
-                } catch (RemoteException e) {
-                    Slog.e(TAG, "Unable to notify context changed", e);
-                }
-            }, null /* options */);
-        } else {
-            mCancellationSignal = session.getSession().enroll(hat);
         }
     }
 
