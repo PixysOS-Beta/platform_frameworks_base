@@ -67,8 +67,8 @@ class SideFpsProgressBarViewModel
 @Inject
 constructor(
     private val context: Context,
-    biometricStatusInteractor: BiometricStatusInteractor,
-    deviceEntryFingerprintAuthInteractor: DeviceEntryFingerprintAuthInteractor,
+    private val biometricStatusInteractor: BiometricStatusInteractor,
+    private val deviceEntryFingerprintAuthInteractor: DeviceEntryFingerprintAuthInteractor,
     private val sfpsSensorInteractor: SideFpsSensorInteractor,
     // todo (b/317432075) Injecting DozeServiceHost directly instead of using it through
     //  DozeInteractor as DozeServiceHost already depends on DozeInteractor.
@@ -88,6 +88,9 @@ constructor(
         _visible.value = false
         _progress.value = 0.0f
     }
+
+    private val additionalSensorLengthPadding =
+        context.resources.getDimension(R.dimen.sfps_progress_bar_length_extra_padding).toInt()
 
     // Merged [FingerprintAuthenticationStatus] from BiometricPrompt acquired messages and
     // device entry authentication messages
@@ -111,7 +114,9 @@ constructor(
     val progress: Flow<Float> = _progress.asStateFlow()
 
     val progressBarLength: Flow<Int> =
-        sfpsSensorInteractor.sensorLocation.map { it.length }.distinctUntilChanged()
+        sfpsSensorInteractor.sensorLocation
+            .map { it.length + additionalSensorLengthPadding }
+            .distinctUntilChanged()
 
     val progressBarThickness =
         context.resources.getDimension(R.dimen.sfps_progress_bar_thickness).toInt()
@@ -123,6 +128,7 @@ constructor(
                     context.resources
                         .getDimension(R.dimen.sfps_progress_bar_padding_from_edge)
                         .toInt()
+                val lengthOfTheProgressBar = sensorLocation.length + additionalSensorLengthPadding
                 val viewLeftTop = Point(sensorLocation.left, sensorLocation.top)
                 val totalDistanceFromTheEdge = paddingFromEdge + progressBarThickness
 
@@ -133,7 +139,7 @@ constructor(
                     // Sensor is vertical to the current orientation, we rotate it 270 deg
                     // around the (left,top) point as the pivot. We need to push it down the
                     // length of the progress bar so that it is still aligned to the sensor
-                    viewLeftTop.y += sensorLocation.length
+                    viewLeftTop.y += lengthOfTheProgressBar
                     val isSensorOnTheNearEdge =
                         rotation == DisplayRotation.ROTATION_180 ||
                             rotation == DisplayRotation.ROTATION_90
@@ -158,6 +164,7 @@ constructor(
                         // We want to push it up from the bottom edge by the padding and
                         // the thickness of the progressbar.
                         viewLeftTop.y -= totalDistanceFromTheEdge
+                        viewLeftTop.x -= additionalSensorLengthPadding
                     }
                 }
                 viewLeftTop
