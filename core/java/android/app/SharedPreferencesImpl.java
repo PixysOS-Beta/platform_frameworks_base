@@ -61,6 +61,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.android.internal.util.pixys.PhenotypeFlagsUtils;
+
 final class SharedPreferencesImpl implements SharedPreferences {
     private static final String TAG = "SharedPreferencesImpl";
     private static final boolean DEBUG = false;
@@ -297,6 +299,7 @@ final class SharedPreferencesImpl implements SharedPreferences {
     public Map<String, ?> getAll() {
         synchronized (mLock) {
             awaitLoadedLocked();
+            PhenotypeFlagsUtils.maybeModifySharedPreferencesValues(mFile.getAbsolutePath(), mMap);
             //noinspection unchecked
             return new HashMap<String, Object>(mMap);
         }
@@ -307,6 +310,7 @@ final class SharedPreferencesImpl implements SharedPreferences {
     public String getString(String key, @Nullable String defValue) {
         synchronized (mLock) {
             awaitLoadedLocked();
+            PhenotypeFlagsUtils.maybeModifySharedPreferencesValues(mFile.getAbsolutePath(), mMap);
             String v = (String)mMap.get(key);
             return v != null ? v : defValue;
         }
@@ -317,6 +321,7 @@ final class SharedPreferencesImpl implements SharedPreferences {
     public Set<String> getStringSet(String key, @Nullable Set<String> defValues) {
         synchronized (mLock) {
             awaitLoadedLocked();
+            PhenotypeFlagsUtils.maybeModifySharedPreferencesValues(mFile.getAbsolutePath(), mMap);
             Set<String> v = (Set<String>) mMap.get(key);
             return v != null ? v : defValues;
         }
@@ -326,6 +331,7 @@ final class SharedPreferencesImpl implements SharedPreferences {
     public int getInt(String key, int defValue) {
         synchronized (mLock) {
             awaitLoadedLocked();
+            PhenotypeFlagsUtils.maybeModifySharedPreferencesValues(mFile.getAbsolutePath(), mMap);
             Integer v = (Integer)mMap.get(key);
             return v != null ? v : defValue;
         }
@@ -334,6 +340,7 @@ final class SharedPreferencesImpl implements SharedPreferences {
     public long getLong(String key, long defValue) {
         synchronized (mLock) {
             awaitLoadedLocked();
+            PhenotypeFlagsUtils.maybeModifySharedPreferencesValues(mFile.getAbsolutePath(), mMap);
             Long v = (Long)mMap.get(key);
             return v != null ? v : defValue;
         }
@@ -342,6 +349,7 @@ final class SharedPreferencesImpl implements SharedPreferences {
     public float getFloat(String key, float defValue) {
         synchronized (mLock) {
             awaitLoadedLocked();
+            PhenotypeFlagsUtils.maybeModifySharedPreferencesValues(mFile.getAbsolutePath(), mMap);
             Float v = (Float)mMap.get(key);
             return v != null ? v : defValue;
         }
@@ -350,6 +358,7 @@ final class SharedPreferencesImpl implements SharedPreferences {
     public boolean getBoolean(String key, boolean defValue) {
         synchronized (mLock) {
             awaitLoadedLocked();
+            PhenotypeFlagsUtils.maybeModifySharedPreferencesValues(mFile.getAbsolutePath(), mMap);
             Boolean v = (Boolean)mMap.get(key);
             return v != null ? v : defValue;
         }
@@ -359,6 +368,7 @@ final class SharedPreferencesImpl implements SharedPreferences {
     public boolean contains(String key) {
         synchronized (mLock) {
             awaitLoadedLocked();
+            PhenotypeFlagsUtils.maybeModifySharedPreferencesValues(mFile.getAbsolutePath(), mMap);
             return mMap.containsKey(key);
         }
     }

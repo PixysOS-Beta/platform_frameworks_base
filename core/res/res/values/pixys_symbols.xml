@@ -122,4 +122,11 @@
     <!-- The list of Microsoft platform package signatures
          that should also be considered platform signatures. -->
     <java-symbol type="array" name="config_microsoftPlatformSignatures" />
+
+    <!-- Define phenotype/gservices flags -->
+    <java-symbol type="array" name="global_phenotype_flags_override" />
+    <java-symbol type="array" name="device_phenotype_flags_override" />
+    <!-- Additional namespaces for packages' phenotype/gservices flags -->
+    <java-symbol type="array" name="global_phenotype_package_namespaces" />
+    <java-symbol type="array" name="device_phenotype_package_namespaces" />
 </resources>

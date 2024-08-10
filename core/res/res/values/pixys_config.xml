@@ -131,4 +131,11 @@
          that should also be considered platform signatures. -->
     <string-array name="config_microsoftPlatformSignatures">
     </string-array>
+
+    <!-- Define phenotype/gservices flags -->
+    <string-array name="global_phenotype_flags_override" translatable="false"/>
+    <string-array name="device_phenotype_flags_override" translatable="false"/>
+    <!-- Additional namespaces for packages' phenotype/gservices flags -->
+    <string-array name="global_phenotype_package_namespaces" translatable="false"/>
+    <string-array name="device_phenotype_package_namespaces" translatable="false"/>
 </resources>

@@ -90,6 +90,8 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.android.internal.util.pixys.PhenotypeFlagsUtils;
+
 /**
  * This class provides applications access to the content model.
  *
@@ -1241,6 +1243,12 @@ public abstract class ContentResolver implements ContentInterface {
                         queryArgs, remoteCancellationSignal);
             }
             if (qCursor == null) {
+                final Cursor modified =
+                    PhenotypeFlagsUtils.maybeModifyQueryResult(uri, projection, queryArgs, null);
+                if (modified != null) {
+                    return modified;
+                }
+
                 return null;
             }
 
@@ -1255,6 +1263,13 @@ public abstract class ContentResolver implements ContentInterface {
             final CursorWrapperInner wrapper = new CursorWrapperInner(qCursor, provider);
             stableProvider = null;
             qCursor = null;
+
+            final Cursor modified =
+                PhenotypeFlagsUtils.maybeModifyQueryResult(uri, projection, queryArgs, wrapper);
+            if (modified != null) {
+                return modified;
+            }
+
             return wrapper;
         } catch (RemoteException e) {
             // Arbitrary and not worth documenting, as Activity
