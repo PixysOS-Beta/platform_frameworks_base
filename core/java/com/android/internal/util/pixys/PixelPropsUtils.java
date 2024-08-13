@@ -62,8 +62,8 @@ public class PixelPropsUtils {
     private static final Map<String, Object> propsToChangeGeneric;
 
     private static final Map<String, Object> propsToChangeRecentPixel =
-            createGoogleSpoofProps("Pixel 8 Pro",
-                    "google/husky/husky:14/AP2A.240805.005/12025142:user/release-keys");
+            createGoogleSpoofProps("Pixel 9 Pro",
+                    "google/caiman/caiman:14/AD1A.240530.047.U1/12150698:user/release-keys");
 
     private static final Map<String, Object> propsToChangePixel5a =
             createGoogleSpoofProps("Pixel 5a",
@@ -104,7 +104,10 @@ public class PixelPropsUtils {
                 "com.google.android.apps.nexuslauncher",
                 "com.google.android.tts",
                 "com.google.android.inputmethod.latin",
-                "com.google.android.aicore"
+                "com.google.android.aicore",
+                "com.google.android.apps.pixel.creativeassistant",
+                "com.google.android.apps.pixel.agent",
+                "com.google.android.apps.bard"
         ));
 
    private static final ArrayList<String> packagesToChangePixel5a = 

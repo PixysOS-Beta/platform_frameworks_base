@@ -904,6 +904,12 @@ public class ApplicationPackageManager extends PackageManager {
                 }
             }
 
+       if (packageName != null) {
+            if (packageName.toLowerCase().equals("com.google.android.aicore")) {
+                if (containsAny(name, featuresPixel, featuresPixelOthers, featuresTensor, featuresNexus)) {
+                    return true;
+                }
+            }
 
             if (packageName.equals("com.google.android.apps.photos") && isGPhotosSpoofed) {
                 if (Arrays.asList(featuresPixel).contains(name)) {
