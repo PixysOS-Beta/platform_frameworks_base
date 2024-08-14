@@ -57,14 +57,14 @@ public class PropImitationHooks {
             "com.google.android.gms/.auth.uiflows.minutemaid.MinuteMaidActivity");
 
     private static final Map<String, String> sPixelNineProps = Map.of(
-            "PRODUCT", "caiman",
-            "DEVICE", "caiman",
-            "HARDWARE", "caiman",
+            "PRODUCT", "komodo",
+            "DEVICE", "komodo",
+            "HARDWARE", "komodo",
             "MANUFACTURER", "Google",
             "BRAND", "google",
-            "MODEL", "Pixel 9 Pro",
-            "ID", "AD1A.240530.047.U1",
-            "FINGERPRINT", "google/caiman/caiman:14/AD1A.240530.047.U1/12150698:user/release-keys"
+            "MODEL", "Pixel 9 Pro XL",
+            "ID", "AP3A.241005.015",
+            "FINGERPRINT", "google/komodo/komodo:15/AP3A.241005.015/12366759:user/release-keys"
     );
 
     private static final Map<String, String> sPixelTabletProps = Map.of(
@@ -136,7 +136,7 @@ public class PropImitationHooks {
 
         /* Set certified properties for GMSCore
          * Set stock fingerprint for ARCore
-         * Set Pixel 9 Pro / Pixel Tablet for Google, ASI and GMS device configurator
+         * Set Pixel 9 / Pixel Tablet for Google, ASI and GMS device configurator
          */
         switch (processName) {
             case PROCESS_GMS_UNSTABLE:
@@ -154,7 +154,7 @@ public class PropImitationHooks {
                     dlog("Spoofing Pixel Tablet for: " + packageName + " process: " + processName);
                     setProps(sPixelTabletProps);
                 } else {
-                    dlog("Spoofing Pixel 9 Pro for: " + packageName + " process: " + processName);
+                    dlog("Spoofing Pixel 9 Pro XL for: " + packageName + " process: " + processName);
                     setProps(sPixelNineProps);
                 }
                 return;
