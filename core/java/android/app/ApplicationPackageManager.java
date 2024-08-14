@@ -911,7 +911,9 @@ public class ApplicationPackageManager extends PackageManager {
                 }
             }
 
-            if (packageName.equals("com.google.android.apps.photos") && isGPhotosSpoofed) {
+          }
+ 
+           if (packageName.equals("com.google.android.apps.photos") && isGPhotosSpoofed) {
                 if (Arrays.asList(featuresPixel).contains(name)) {
                     return false;
                 }
@@ -920,12 +922,6 @@ public class ApplicationPackageManager extends PackageManager {
                 }
             }
 
-            if (packageName.equals("com.google.android.as")) {
-                if (Arrays.asList(featuresTensor).contains(name)) {
-                    if (!isTensorDevice) {
-                        return false;
-                    }
-                }
                 if (containsAny(name, featuresPixel, featuresPixelOthers, featuresNexus)) {
                     return true;
                 }

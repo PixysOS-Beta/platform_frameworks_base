@@ -65,9 +65,9 @@ public class PixelPropsUtils {
             createGoogleSpoofProps("Pixel 9 Pro",
                     "google/caiman/caiman:14/AD1A.240530.047.U1/12150698:user/release-keys");
 
-    private static final Map<String, Object> propsToChangePixel5a =
-            createGoogleSpoofProps("Pixel 5a",
-		    "google/barbet/barbet:14/AP2A.240805.005/12025142:user/release-keys");
+    private static final Map<String, Object> propsToChangePixel6a =
+            createGoogleSpoofProps("Pixel 6a",
+		    "google/bluejay/bluejay:14/AP2A.240705.004/11875680:user/release-keys");
 
     private static final Map<String, Object> propsToChangePixelXL =
             createGoogleSpoofProps("Pixel XL",
@@ -97,38 +97,36 @@ public class PixelPropsUtils {
                 "com.google.android.apps.subscriptions.red",
                 "com.google.android.apps.photos",
 	        "com.google.android.googlequicksearchbox",
-                "com.google.android.gms.gservice",
-                "com.google.android.gms.search",
-                "com.google.android.gms.learning",
-                "com.google.android.gms.persistent",
                 "com.google.android.apps.nexuslauncher",
                 "com.google.android.tts",
                 "com.google.android.inputmethod.latin",
                 "com.google.android.aicore",
                 "com.google.android.apps.pixel.creativeassistant",
-                "com.google.android.apps.pixel.agent",
-                "com.google.android.apps.bard"
+                "com.google.android.apps.bard",
+	        "com.google.android.apps.pixel.agent",
+		"com.google.android.markup",
+            "com.google.android.gms.ui",
+            "com.google.android.gms.learning",
+            "com.google.android.gms.persistent",
+            "com.google.android.gms.gservice",
+            "com.google.android.gms.search",
+            "com.google.android.gms"
         ));
 
-   private static final ArrayList<String> packagesToChangePixel5a = 
+   private static final ArrayList<String> packagesToChangePixel6a = 
         new ArrayList<String> (
             Arrays.asList(
-		"com.breel.wallpapers20"
-       ));
-
-    private static final ArrayList<String> extraPackagesToChange = 
-        new ArrayList<String> (
-            Arrays.asList(
-                "com.android.chrome",
-                "com.microsoft.android.smsorganizer",
-                "com.nothing.smartcenter",
-                "com.nhs.online.nhsonline",
-                "com.amazon.avod.thirdpartyclient",
-                "com.disney.disneyplus",
-                "com.netflix.mediaclient",
-                "in.startv.hotstar",
-                "jp.id_credit_sp2.android"
-        ));
+               "com.android.chrome",
+               "com.breel.wallpapers20",
+               "com.nhs.online.nhsonline",
+               "com.nothing.smartcenter",
+               "com.microsoft.android.smsorganizer",
+               "com.amazon.avod.thirdpartyclient",
+               "com.disney.disneyplus",
+               "com.netflix.mediaclient",
+               "in.startv.hotstar",
+               "jp.id_credit_sp2.android" 
+      ));
 
     private static final String PROP_SECURITY_PATCH = "persist.sys.pihooks.security_patch";
     private static final String PROP_FIRST_API_LEVEL = "persist.sys.pihooks.first_api_level";
@@ -279,7 +277,6 @@ public class PixelPropsUtils {
         propsToChangeGeneric.forEach((k, v) -> setPropValue(k, v));
 
         sIsGoogle = packageName.toLowerCase().contains("com.google");
-        sIsSamsung = packageName.toLowerCase().contains("samsung") || processName.toLowerCase().contains("samsung");
         sIsGms = packageName.equals("com.google.android.gms") && processName.equals("com.google.android.gms.unstable");
         sIsFinsky = packageName.equals("com.android.vending");
         sIsSetupWizard = packageName.equals("com.google.android.setupwizard");
@@ -289,15 +286,13 @@ public class PixelPropsUtils {
         }
 
         Map<String, Object> propsToChange = new HashMap<>();
-        if (sIsGoogle || sIsSamsung
-            || extraPackagesToChange.contains(packageName)
-            || extraPackagesToChange.contains(processName)) {
-
             if (packagesToChangeRecentPixel.contains(packageName)
                 || packagesToChangeRecentPixel.contains(processName)) {
                 propsToChange = propsToChangeRecentPixel;
-            } else if (packagesToChangePixel5a.contains(packageName)) {
-                propsToChange = propsToChangePixel5a;
+            } else if (packagesToChangePixel6a.contains(packageName)
+		|| packageName.toLowerCase().contains("samsung")
+	        || packagesToChangePixel6a.contains(processName)) {
+                propsToChange = propsToChangePixel6a;
             }
 
             if (packageName.equals("com.google.android.apps.photos")) {
@@ -305,7 +300,7 @@ public class PixelPropsUtils {
                     propsToChange = propsToChangePixelXL;
                 }
             }
-        }
+
         if (propsToChange == null || propsToChange.isEmpty()) return;
         dlog("Defining props for: " + packageName);
         for (Map.Entry<String, Object> prop : propsToChange.entrySet()) {
