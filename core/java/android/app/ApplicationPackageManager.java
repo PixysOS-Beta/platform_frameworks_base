@@ -902,7 +902,6 @@ public class ApplicationPackageManager extends PackageManager {
                     return true;
                 }
             }
-         }
 
        if (packageName != null) {
             if (packageName.toLowerCase().equals("com.google.android.aicore")) {
@@ -911,17 +910,15 @@ public class ApplicationPackageManager extends PackageManager {
                 }
              }
           }
- 
-           if (packageName.equals("com.google.android.apps.photos") && isGPhotosSpoofed) {
+
+            if (packageName.equals("com.google.android.apps.photos") && isGPhotosSpoofed) {
                 if (Arrays.asList(featuresPixel).contains(name)) {
                     return false;
                 }
                 if (containsAny(name, featuresPixelOthers, featuresNexus)) {
                     return true;
                 }
-                if (containsAny(name, featuresPixel, featuresPixelOthers, featuresNexus)) {
-                    return true;
-                }
+              }
             }
 
             if (Arrays.asList(featuresTensor).contains(name) && !isTensorDevice) {
@@ -932,6 +929,7 @@ public class ApplicationPackageManager extends PackageManager {
                 return true;
             }
         }
+
         return mHasSystemFeatureCache.query(new HasSystemFeatureQuery(name, version));
     }
 
