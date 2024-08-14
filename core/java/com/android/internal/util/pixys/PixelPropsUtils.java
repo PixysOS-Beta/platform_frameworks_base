@@ -66,8 +66,8 @@ public class PixelPropsUtils {
                     "google/caiman/caiman:14/AD1A.240530.047.U1/12150698:user/release-keys");
 
     private static final Map<String, Object> propsToChangePixel6a =
-            createGoogleSpoofProps("Pixel 6a",
-		    "google/bluejay/bluejay:14/AP2A.240705.004/11875680:user/release-keys");
+            createGoogleSpoofProps("Pixel 5a",
+		    "google/barbet/barbet:14/AP2A.240805.005/12025142:user/release-keys");
 
     private static final Map<String, Object> propsToChangePixelXL =
             createGoogleSpoofProps("Pixel XL",
@@ -105,12 +105,7 @@ public class PixelPropsUtils {
                 "com.google.android.apps.bard",
 	        "com.google.android.apps.pixel.agent",
 		"com.google.android.markup",
-            "com.google.android.gms.ui",
-            "com.google.android.gms.learning",
-            "com.google.android.gms.persistent",
-            "com.google.android.gms.gservice",
-            "com.google.android.gms.search",
-            "com.google.android.gms"
+                "com.google.android.gms"
         ));
 
    private static final ArrayList<String> packagesToChangePixel6a = 
@@ -125,7 +120,11 @@ public class PixelPropsUtils {
                "com.disney.disneyplus",
                "com.netflix.mediaclient",
                "in.startv.hotstar",
-               "jp.id_credit_sp2.android" 
+               "jp.id_credit_sp2.android",
+                "com.google.android.gms.gapps",
+                "com.google.android.gms.gservice",
+                "com.google.android.gms.learning",
+                "com.google.android.gms.persistent"
       ));
 
     private static final String PROP_SECURITY_PATCH = "persist.sys.pihooks.security_patch";
