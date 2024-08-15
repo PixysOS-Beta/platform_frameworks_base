@@ -894,6 +894,7 @@ public class ApplicationPackageManager extends PackageManager {
                     return true;
                 }
             }
+
          }
 
         if (packageName != null) {
@@ -903,14 +904,6 @@ public class ApplicationPackageManager extends PackageManager {
                 }
             }
 
-       if (packageName != null) {
-            if (packageName.toLowerCase().equals("com.google.android.aicore")) {
-                if (containsAny(name, featuresPixel, featuresPixelOthers, featuresTensor, featuresNexus)) {
-                    return true;
-                }
-             }
-          }
-
             if (packageName.equals("com.google.android.apps.photos") && isGPhotosSpoofed) {
                 if (Arrays.asList(featuresPixel).contains(name)) {
                     return false;
@@ -918,7 +911,17 @@ public class ApplicationPackageManager extends PackageManager {
                 if (containsAny(name, featuresPixelOthers, featuresNexus)) {
                     return true;
                 }
-              }
+            }
+
+            if (packageName.equals("com.google.android.as")) {
+                if (Arrays.asList(featuresTensor).contains(name)) {
+                    if (!isTensorDevice) {
+                        return false;
+                    }
+                }
+                if (containsAny(name, featuresPixel, featuresPixelOthers, featuresNexus)) {
+                    return true;
+                }
             }
 
             if (Arrays.asList(featuresTensor).contains(name) && !isTensorDevice) {
