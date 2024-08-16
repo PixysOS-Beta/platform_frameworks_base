@@ -31,6 +31,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.List;
 import java.util.Map;
@@ -58,13 +59,9 @@ public class PhenotypeFlagsUtils {
     public static final String GSERVICES_URI = "content://"
             + PACKAGE_GSF + '.' + NAMESPACE_GSERVICES + "/prefix";
 
-    private static boolean isNamespaceMatches(String namespaceArg, String namespace) {
-        if (namespaceArg == null || namespace == null) return false;
-
-        if (namespace.equals(namespaceArg)
-            || namespace.equals(namespaceArg + "#" + namespaceArg)) {
-            return true;
-        }
+    private static ArrayList<String> getNamespacesList(
+            String namespaceArg, boolean isSharedPref) {
+        if (namespaceArg == null) return null;
 
         String[] global =
             Resources.getSystem().getStringArray(R.array.global_phenotype_package_namespaces);
@@ -73,30 +70,33 @@ public class PhenotypeFlagsUtils {
         String[] all = Arrays.copyOf(global, global.length + device.length);
         System.arraycopy(device, 0, all, global.length, device.length);
 
-        try {
-            for (String p : all) {
-                String[] pn = p.split("=");
-                String pkg = pn[0];
-                if (namespaceArg.equals(pkg)) {
-                    for (String ns : pn[1].split(",")) {
-                        if (namespace.equals(ns)) {
-                            return true;
-                        }
-    
-                        if (ns.startsWith(".")) {
-                            if (namespace.equals(pkg + ns)) {
-                                return true;
-                            }
-                        }
-                    }
+        final ArrayMap<String, ArrayList<String>> nsMap = new ArrayMap();
+        for (String p : all) {
+            String[] pn = p.split("=");
+            String pkg = pn[0];
+            String[] ns = pn[1].split(",");
+            for (String n : ns) {
+                if (n.startsWith(".")) {
+                    nsMap.computeIfAbsent(pkg, k -> new ArrayList<>()).add(pkg + n);
+                } else {
+                    nsMap.computeIfAbsent(pkg, k -> new ArrayList<>()).add(n);
                 }
             }
-        } catch (Exception e) {
-            logd("Exception occured while checking namespace match: " + e);
-            return false;
-        } 
+            nsMap.computeIfAbsent(pkg, k -> new ArrayList<>()).add(pkg);
+            nsMap.computeIfAbsent(pkg, k -> new ArrayList<>()).add(pkg + "#" + pkg);
+        }
 
-        return false;
+        String pkg = "";
+        if (isSharedPref) {
+            pkg = namespaceArg.split("/")[0]; // package name
+        } else {
+            pkg = namespaceArg;
+            if (namespaceArg.contains("#")) {
+                pkg = namespaceArg.split("#")[1];
+            }
+        }
+
+        return nsMap.get(pkg);
     }
 
     private static String[] getFlagsOverride() {
@@ -120,85 +120,107 @@ public class PhenotypeFlagsUtils {
             return false;
         }
 
-        try {
-            for (String p : getFlagsOverride()) {
-                String[] kv = p.split("=");
-                String fullKey = kv[0];
-                String[] nsKey = fullKey.split("/");
+        final ArrayMap<String, ArrayMap<String, Object>> flagMap = new ArrayMap();
+        for (String p : getFlagsOverride()) {
+            String[] kv = p.split("=");
+            String fullKey = kv[0];
+            String[] nsKey = fullKey.split("/");
 
-                if (nsKey.length != 3) {
-                    logd("Invalid config: " + p);
+            if (nsKey.length != 3) {
+                logd("Invalid config: " + p);
+                continue;
+            }
+
+            String namespace = nsKey[0];
+            String key = nsKey[1];
+            String type = nsKey[2];
+
+            Object value = "";
+            if (kv.length < 1) {
+                flagMap.computeIfAbsent(namespace, k -> new ArrayMap<>()).put(key, value);
+                continue;
+            }
+
+            if (isSharedPref) {
+                if (type.equals("bool")) {
+                    value = kv[1].equals("true") ? "1" : "0";
+                }
+                flagMap.computeIfAbsent(namespace, k -> new ArrayMap<>()).put(key, value);
+                continue;
+            }
+
+            switch (type) {
+                case "int":
+                    value = Long.parseLong(kv[1]);
+                    break;
+                case "bool":
+                    value = Boolean.parseBoolean(kv[1]);
+                    break;
+                case "float":
+                    value = Float.parseFloat(kv[1]);
+                    break;
+                case "string":
+                    value = kv[1];
+                    break;
+                case "extension":
+                    value = Base64.decode(kv[1], PHENOTYPE_BASE64_FLAGS);
+                    break;
+                default:
+                    logd("Unsupported type specifier: " + type + " for config: " + p);
                     continue;
-                }
+            }
 
-                String namespace = nsKey[0];
-                String key = nsKey[1];
-                String type = nsKey[2];
+            flagMap.computeIfAbsent(namespace, k -> new ArrayMap<>()).put(key, value);
+        }
 
-                if (!isNamespaceMatches(namespaceArg, namespace)) {
-                    continue;
-                }
+        // Add extra check for gservices flag
+        if (selectionArgs != null
+            && namespaceArg.equals(NAMESPACE_GSERVICES)) {
+            final ArrayMap<String, Object> gflags = flagMap.get(NAMESPACE_GSERVICES);
+            if (gflags == null) return false;
 
-                Object value = "";
-                if (kv.length > 1) {
-                    if (isSharedPref) {
-                        switch (type) {
-                            case "int":
-                                value = Long.parseLong(kv[1]);
-                                break;
-                            case "bool":
-                                value = Boolean.parseBoolean(kv[1]);
-                                break;
-                            case "float":
-                                value = Float.parseFloat(kv[1]);
-                                break;
-                            case "string":
-                                value = kv[1];
-                                break;
-                            case "extension":
-                                value = Base64.decode(kv[1], PHENOTYPE_BASE64_FLAGS);
-                                break;
-                            default:
-                                logd("Unsupported type specifier: " + type + " for config: " + p);
-                                break;
-                        }
-                    } else {
-                        if (type.equals("bool")) {
-                            value = kv[1].equals("true") ? "1" : "0";
-                        }
-                    }
-                }
-
-                // Add extra check for gservices flag
-                if (selectionArgs != null
-                    && namespace.equals(NAMESPACE_GSERVICES)
-                    && namespaceArg.equals(NAMESPACE_GSERVICES)) {
-                    for (String sel : selectionArgs) {
-                        if (key.startsWith(sel)) {
-                            logd("maybeUpdateMap: " + namespace + "/" + sel);
-                            map.put(key, value);
-                            break;
-                        }
-                    }
-                } else {
-                    if (isSharedPref) {
-                        if (map.keySet().contains(key)) {
-                            map.put(key, value);
-                        }
-                    } else {
-                        map.put(key, value);
+            boolean isMapModified = false;
+            for (String sel : selectionArgs) {
+                for (String key : gflags.keySet()) {
+                    if (key.startsWith(sel)) {
+                        logd("maybeUpdateMap: " + namespaceArg + "/" + sel);
+                        map.put(key, gflags.get(key));
+                        isMapModified = true;
                     }
                 }
             }
 
-            if (!map.isEmpty()) {
+            return isMapModified;
+        } else {
+            ArrayList<String> namespaces = getNamespacesList(namespaceArg, isSharedPref);
+            if (isSharedPref) {
+                if (namespaces == null) return false;
+    
+                String fileName = namespaceArg.split("/")[1]; // file name
+                if (!namespaces.contains(fileName)) {
+                    return false;
+                }
+            }
+
+            final ArrayMap<String, Object> pflags = new ArrayMap<>();
+            if (namespaces != null) {
+                for (String ns : namespaces) {
+                    if (!flagMap.keySet().contains(ns)) {
+                        continue;
+                    }
+                    pflags.putAll(flagMap.get(ns));
+                }
+            }
+            if (flagMap.keySet().contains(namespaceArg)) {
+                pflags.putAll(flagMap.get(namespaceArg));
+            }
+
+            if (!pflags.isEmpty()) {
+                map.putAll(pflags);
                 return true;
             }
-            return false;
-
-        } catch (Exception e) {
-            logd("Failed to update map: " + e);
         }
+
         return false;
     }
 
@@ -297,8 +319,11 @@ public class PhenotypeFlagsUtils {
         }
 
         Map<String, Object> mapTmp = map;
+        String[] pathStr = path.split("/");
+        String pkg = pathStr[4];
+        String fileName = pathStr[pathStr.length - 1];
         // some PhenotypeFlags are stored in SharedPreferences instead of phenotype.db database
-        if (maybeUpdateMap(path.split("/")[4], null, mapTmp, true)) {
+        if (maybeUpdateMap(pkg + "/" + fileName, null, mapTmp, true)) {
             map.putAll(mapTmp);
         }
     }
