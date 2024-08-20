@@ -271,9 +271,9 @@
     <string name="oem_unlock_enable_summary" msgid="5857388174390953829">"Laat toe dat die selflaaiprogram ontsluit word"</string>
     <string name="confirm_enable_oem_unlock_title" msgid="8249318129774367535">"Laat OEM-ontsluit toe?"</string>
     <string name="confirm_enable_oem_unlock_text" msgid="854131050791011970">"WAARSKUWING: Toestelbeskermingkenmerke sal nie op hierdie toestel werk terwyl hierdie instelling aangeskakel is nie."</string>
-    <string name="mock_location_app" msgid="6269380172542248304">"Kies skynliggingprogram"</string>
+    <string name="mock_location_app" msgid="6269380172542248304">"Kies skynliggingapp"</string>
     <string name="mock_location_app_not_set" msgid="6972032787262831155">"Geen skynliggingprogram gestel nie"</string>
-    <string name="mock_location_app_set" msgid="4706722469342913843">"Skynliggingprogram: <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
+    <string name="mock_location_app_set" msgid="4706722469342913843">"Skynliggingapp: <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
     <string name="debug_networking_category" msgid="6829757985772659599">"Inligtingruiling"</string>
     <string name="wifi_display_certification" msgid="1805579519992520381">"Draadlose skermsertifisering"</string>
     <string name="wifi_verbose_logging" msgid="1785910450009679371">"Aktiveer Wi-Fi-woordryke aanmelding"</string>
@@ -357,7 +357,7 @@
     <string name="media_category" msgid="8122076702526144053">"Media"</string>
     <string name="debug_monitoring_category" msgid="1597387133765424994">"Monitering"</string>
     <string name="strict_mode" msgid="889864762140862437">"Strengmodus geaktiveer"</string>
-    <string name="strict_mode_summary" msgid="1838248687233554654">"Flits skerm as programme lang bewerkings uitvoer op die hoofdraad"</string>
+    <string name="strict_mode_summary" msgid="1838248687233554654">"Flits skerm as apps lang bewerkings uitvoer op die hoofdraad"</string>
     <string name="pointer_location" msgid="7516929526199520173">"Wyserligging"</string>
     <string name="pointer_location_summary" msgid="957120116989798464">"Skermlaag wys huidige raakdata"</string>
     <string name="show_touches" msgid="8437666942161289025">"Wys tikke"</string>
@@ -431,7 +431,7 @@
     <string name="inactive_app_inactive_summary" msgid="3161222402614236260">"Onaktief. Tik om te wissel."</string>
     <string name="inactive_app_active_summary" msgid="8047630990208722344">"Aktief. Tik om te wissel."</string>
     <string name="standby_bucket_summary" msgid="5128193447550429600">"Programbystandstatus:<xliff:g id="BUCKET"> %s</xliff:g>"</string>
-    <string name="transcode_settings_title" msgid="2581975870429850549">"Mediakodewisselinginstellings"</string>
+    <string name="transcode_settings_title" msgid="2581975870429850549">"Mediatranskoderinginstellings"</string>
     <string name="transcode_user_control" msgid="6176368544817731314">"Ignoreer kodewisselingverstekke"</string>
     <string name="transcode_enable_all" msgid="2411165920039166710">"Aktiveer kodewisseling"</string>
     <string name="transcode_default" msgid="3784803084573509491">"Aanvaar dat programme moderne formate steun"</string>
@@ -479,6 +479,10 @@
     <string name="power_charging_duration" msgid="6127154952524919719">"<xliff:g id="LEVEL">%1$s</xliff:g> – <xliff:g id="TIME">%2$s</xliff:g> oor tot vol"</string>
     <string name="power_charging_limited" msgid="8202147604844938236">"<xliff:g id="LEVEL">%1$s</xliff:g> – Laaiproses word geoptimeer"</string>
     <string name="power_charging_future_paused" msgid="1809543660923642799">"<xliff:g id="LEVEL">%1$s</xliff:g> – Laai tans"</string>
+    <string name="power_fast_charging_duration_v2" msgid="3797735998640359490">"<xliff:g id="LEVEL">%1$s</xliff:g> – <xliff:g id="STATUS">%2$s</xliff:g> – Volgelaai teen <xliff:g id="TIME">%3$s</xliff:g>"</string>
+    <string name="power_charging_duration_v2" msgid="2938998284074003248">"<xliff:g id="LEVEL">%1$s</xliff:g> – Volgelaai teen <xliff:g id="TIME">%2$s</xliff:g>"</string>
+    <string name="power_remaining_charging_duration_only_v2" msgid="5358176435722950193">"Volgelaai teen <xliff:g id="TIME">%1$s</xliff:g>"</string>
+    <string name="power_remaining_fast_charging_duration_only_v2" msgid="6270950195810579563">"Volgelaai teen <xliff:g id="TIME">%1$s</xliff:g>"</string>
     <string name="battery_info_status_unknown" msgid="268625384868401114">"Onbekend"</string>
     <string name="battery_info_status_charging" msgid="4279958015430387405">"Laai"</string>
     <string name="battery_info_status_charging_fast" msgid="8027559755902954885">"Laai tans vinnig"</string>
@@ -490,6 +494,8 @@
     <string name="battery_info_status_full" msgid="1339002294876531312">"Gelaai"</string>
     <string name="battery_info_status_full_charged" msgid="3536054261505567948">"Volgelaai"</string>
     <string name="battery_info_status_charging_on_hold" msgid="6364355145521694438">"Laai wag tans"</string>
+    <string name="battery_info_status_charging_v2" msgid="6118522107222245505">"Laai tans"</string>
+    <string name="battery_info_status_charging_fast_v2" msgid="1825439848151256589">"Laai vinnig"</string>
     <string name="disabled_by_admin_summary_text" msgid="5343911767402923057">"Beheer deur administrateur"</string>
     <string name="disabled_by_app_ops_text" msgid="8373595926549098012">"Beheer deur Beperkte Instellings"</string>
     <string name="disabled" msgid="8017887509554714950">"Gedeaktiveer"</string>
@@ -678,6 +684,7 @@
     <string name="accessibility_phone_one_bar" msgid="5719721147018970063">"Foon, een staaf."</string>
     <string name="accessibility_phone_two_bars" msgid="2531458337458953263">"Foon, twee stawe."</string>
     <string name="accessibility_phone_three_bars" msgid="1523967995996696619">"Foon, drie stawe."</string>
+    <string name="accessibility_phone_four_bars" msgid="4477202400261338403">"Foon vier strepies."</string>
     <string name="accessibility_phone_signal_full" msgid="4302338883816077134">"Foonsein is vol."</string>
     <string name="accessibility_no_data" msgid="4563181886936931008">"Geen data nie."</string>
     <string name="accessibility_data_one_bar" msgid="6892888138070752480">"Data, een staaf."</string>

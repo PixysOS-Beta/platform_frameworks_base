@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"Таны IT админ дэлгэцийн агшин авахыг блоклосон байна"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Засах"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Дэлгэцийн агшныг засах"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Хуваалцах"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Дэлгэцийн агшныг хуваалцах"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Ихийг багтаасан зураг авах"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Дэлгэцийн агшныг хаах"</string>
@@ -588,7 +589,7 @@
     <string name="volume_ringer_hint_vibrate" msgid="6211609047099337509">"чичрэх"</string>
     <string name="volume_dialog_title" msgid="6502703403483577940">"%s түвшний хяналт"</string>
     <string name="volume_dialog_ringer_guidance_ring" msgid="9143194270463146858">"Дуудлага болон мэдэгдлийн хонх дуугарна (<xliff:g id="VOLUME_LEVEL">%1$s</xliff:g>)"</string>
-    <string name="media_output_label_title" msgid="872824698593182505">"<xliff:g id="LABEL">%s</xliff:g> дээр тоглуулж байна"</string>
+    <string name="media_output_label_title" msgid="872824698593182505">"<xliff:g id="LABEL">%s</xliff:g> тоглуулж байна"</string>
     <string name="media_output_title_without_playing" msgid="3825663683169305013">"Аудиог дараахад тоглуулна"</string>
     <string name="system_ui_tuner" msgid="1471348823289954729">"Системийн UI Тохируулагч"</string>
     <string name="status_bar" msgid="4357390266055077437">"Статус самбар"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Хиймэл дагуул, холболт муу байна"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Хиймэл дагуул, холболт сайн байна"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Хиймэл дагуул, холболт боломжтой"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"Хиймэл дагуул SOS"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Ажлын профайл"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Зарим хүнд хөгжилтэй байж болох ч бүх хүнд тийм биш"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"Системийн UI Tохируулагч нь Android хэрэглэгчийн интерфэйсийг тааруулах, өөрчлөх нэмэлт аргыг зааж өгөх болно. Эдгээр туршилтын тохиргоо нь цаашид өөрчлөгдөх, эвдрэх, алга болох магадлалтай. Үйлдлийг болгоомжтой хийнэ үү."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Асаах/унтраах цэс"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"<xliff:g id="ID_2">%2$d</xliff:g>-н <xliff:g id="ID_1">%1$d</xliff:g>-р хуудас"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Түгжээтэй дэлгэц"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Та энэ утсыг унтраалттай байсан ч Миний төхөөрөмжийг олохоор байршлыг нь тогтоох боломжтой"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Унтрааж байна…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Хянамж болгоомжийн алхмыг харах"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Хянамж болгоомжийн алхмыг харах"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Төхөөрөмжөө салгана уу"</string>

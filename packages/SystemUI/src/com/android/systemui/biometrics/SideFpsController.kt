@@ -124,8 +124,10 @@ constructor(
     private var overlayView: View? = null
         set(value) {
             field?.let { oldView ->
+                Log.d(TAG, "overlayView updated: removing existing view $oldView")
                 val lottie = oldView.requireViewById(R.id.sidefps_animation) as LottieAnimationView
                 lottie.pauseAnimation()
+                lottie.removeAllLottieOnCompositionLoadedListener()
                 windowManager.removeView(oldView)
                 orientationListener.disable()
             }
@@ -134,6 +136,7 @@ constructor(
 
             field = value
             field?.let { newView ->
+                Log.d(TAG, "overlayView updated: adding new view $newView")
                 if (requests.contains(SideFpsUiRequestSource.PRIMARY_BOUNCER)) {
                     newView.alpha = 0f
                     overlayShowAnimator =
@@ -177,14 +180,19 @@ constructor(
                     override fun show(
                         sensorId: Int,
                         @BiometricRequestConstants.RequestReason reason: Int
-                    ) =
+                    ) {
+                        Log.d(TAG, "ISidefpsController#show invoked $sensorId, $reason")
                         if (reason.isReasonToAutoShow(activityTaskManager)) {
                             show(SideFpsUiRequestSource.AUTO_SHOW, reason)
                         } else {
                             hide(SideFpsUiRequestSource.AUTO_SHOW)
                         }
+                    }
 
-                    override fun hide(sensorId: Int) = hide(SideFpsUiRequestSource.AUTO_SHOW)
+                    override fun hide(sensorId: Int) {
+                        Log.d(TAG, "ISidefpsController#hide invoked $sensorId")
+                        hide(SideFpsUiRequestSource.AUTO_SHOW)
+                    }
                 }
             )
             listenForAlternateBouncerVisibility()
@@ -217,16 +225,25 @@ constructor(
     ) {
         SideFpsControllerRefactor.assertInLegacyMode()
         if (!displayStateInteractor.isInRearDisplayMode.value) {
-            requests.add(request)
             mainExecutor.execute {
                 if (overlayView == null) {
                     traceSection(
                         "SideFpsController#show(request=${request.name}, reason=$reason)"
                     ) {
+                        Log.d(
+                            TAG,
+                            "show(request=${request.name}, reason=$reason): " +
+                                "overlayView == null, adding request"
+                        )
+                        requests.add(request)
                         createOverlayForDisplay(reason)
                     }
                 } else {
-                    Log.v(TAG, "overlay already shown")
+                    Log.d(
+                        TAG,
+                        "show(request=${request.name}, reason=$reason): " +
+                            "overlay already shown, ignoring request"
+                    )
                 }
             }
         }
@@ -235,10 +252,18 @@ constructor(
     /** Hides the fps overlay if shown. */
     fun hide(request: SideFpsUiRequestSource) {
         SideFpsControllerRefactor.assertInLegacyMode()
-        requests.remove(request)
         mainExecutor.execute {
+            Log.d(TAG, "hide(request=${request.name}): removing request")
+            requests.remove(request)
             if (requests.isEmpty()) {
-                traceSection("SideFpsController#hide(${request.name})") { overlayView = null }
+                traceSection("SideFpsController#hide(${request.name})") {
+                    Log.d(
+                        TAG,
+                        "hide(request=${request.name}): requests.isEmpty(), " +
+                            "setting overlayView = null"
+                    )
+                    overlayView = null
+                }
             }
         }
     }
@@ -288,7 +313,7 @@ constructor(
     }
 
     private fun onOrientationChanged(@BiometricRequestConstants.RequestReason reason: Int) {
-        if (overlayView != null) {
+        if (overlayView?.isAttachedToWindow == true) {
             createOverlayForDisplay(reason)
         }
     }

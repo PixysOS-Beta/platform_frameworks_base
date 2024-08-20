@@ -37,6 +37,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
@@ -53,9 +54,9 @@ import android.widget.Toast;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.logging.UiEventLogger;
 import com.android.internal.util.ScreenshotRequest;
-import com.android.systemui.res.R;
 import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.flags.FeatureFlags;
+import com.android.systemui.res.R;
 
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -89,7 +90,7 @@ public class TakeScreenshotService extends Service {
                     // TODO(b/295143676): move receiver inside executor when the flag is enabled.
                     mTakeScreenshotExecutor.get().onCloseSystemDialogsReceived();
                 } else if (!mScreenshot.isPendingSharedTransition()) {
-                    mScreenshot.dismissScreenshot(SCREENSHOT_DISMISSED_OTHER);
+                    mScreenshot.requestDismissal(SCREENSHOT_DISMISSED_OTHER);
                 }
             }
         }
@@ -116,7 +117,8 @@ public class TakeScreenshotService extends Service {
             UiEventLogger uiEventLogger,
             ScreenshotNotificationsController.Factory notificationsControllerFactory,
             Context context, @Background Executor bgExecutor, FeatureFlags featureFlags,
-            RequestProcessor processor, Provider<TakeScreenshotExecutor> takeScreenshotExecutor) {
+            RequestProcessor processor, Provider<TakeScreenshotExecutor> takeScreenshotExecutor,
+            DisplayManager displayManager) {
         if (DEBUG_SERVICE) {
             Log.d(TAG, "new " + this);
         }
@@ -134,7 +136,8 @@ public class TakeScreenshotService extends Service {
             mScreenshot = null;
         } else {
             mScreenshot = screenshotControllerFactory.create(
-                    Display.DEFAULT_DISPLAY, /* showUIOnExternalDisplay= */ false);
+                    displayManager.getDisplay(
+                            Display.DEFAULT_DISPLAY), /* showUIOnExternalDisplay= */ false);
         }
     }
 

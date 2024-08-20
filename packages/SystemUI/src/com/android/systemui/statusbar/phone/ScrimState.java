@@ -45,7 +45,11 @@ public enum ScrimState {
             mFrontAlpha = 1f;
             mBehindAlpha = 1f;
 
-            mAnimationDuration = ScrimController.ANIMATION_DURATION_LONG;
+            if (previousState == AOD) {
+                mAnimateChange = false;
+            } else {
+                mAnimationDuration = ScrimController.ANIMATION_DURATION_LONG;
+            }
         }
 
         @Override
@@ -192,11 +196,15 @@ public enum ScrimState {
             mBehindAlpha = ScrimController.TRANSPARENT;
 
             mAnimationDuration = ScrimController.ANIMATION_DURATION_LONG;
-            // DisplayPowerManager may blank the screen for us, or we might blank it for ourselves
-            // by animating the screen off via the LightRevelScrim. In either case we just need to
-            // set our state.
-            mAnimateChange = mDozeParameters.shouldControlScreenOff()
-                    && !mDozeParameters.shouldShowLightRevealScrim();
+            if (previousState == OFF) {
+                mAnimateChange = false;
+            } else {
+                // DisplayPowerManager may blank the screen for us, or we might blank it by
+                // animating the screen off via the LightRevelScrim. In either case we just need to
+                // set our state.
+                mAnimateChange = mDozeParameters.shouldControlScreenOff()
+                        && !mDozeParameters.shouldShowLightRevealScrim();
+            }
         }
 
         @Override

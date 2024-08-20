@@ -662,7 +662,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"Hindi nakilala ang fingerprint"</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"Hindi nakilala ang fingerprint"</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"Hindi makilala ang mukha. Gumamit ng fingerprint."</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"Hindi nakilala ang mukha. Gumamit ng fingerprint."</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"Na-authenticate ang fingerprint"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"Na-authenticate ang mukha"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"Na-authenticate ang mukha, pakipindot ang kumpirmahin"</string>
@@ -709,7 +709,7 @@
     <string name="face_acquired_too_right" msgid="6245286514593540859">"Iusog pakaliwa ang telepono mo"</string>
     <string name="face_acquired_too_left" msgid="9201762240918405486">"Iusog pakanan ang telepono mo"</string>
     <string name="face_acquired_poor_gaze" msgid="4427153558773628020">"Tumingin nang mas direkta sa iyong device."</string>
-    <string name="face_acquired_not_detected" msgid="1057966913397548150">"Hindi makita ang mukha mo. Hawakan ang telepono kapantay ng mata."</string>
+    <string name="face_acquired_not_detected" msgid="1057966913397548150">"Hindi makita ang mukha mo. Ipantay ang telepono sa mata."</string>
     <string name="face_acquired_too_much_motion" msgid="8199691445085189528">"Masyadong magalaw. Hawakang mabuti ang telepono."</string>
     <string name="face_acquired_recalibrate" msgid="8724013080976469746">"Paki-enroll muli ang iyong mukha."</string>
     <string name="face_acquired_too_different" msgid="4505278456634706967">"Hindi nakilala ang mukha. Subukan ulit."</string>
@@ -2135,6 +2135,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"Notification ng impormasyon ng Routine Mode"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"Na-on ang Pantipid ng Baterya"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"Binabawasan ang paggamit sa baterya para mapatagal ang baterya"</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"Naka-on ang Pantipid ng Baterya"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"Naka-on ang Pantipid ng Baterya para mapahaba ang tagal ng baterya"</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"Pantipid ng Baterya"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"Na-off ang Pantipid ng Baterya"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"May sapat na charge ang telepono. Hindi na pinaghihigpitan ang mga feature."</string>
@@ -2393,4 +2395,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"Puwede kang magpadala at tumanggap ng mga mensahe nang walang mobile o Wi-Fi network"</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"Buksan ang Messages"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"Paano ito gumagana"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"I-set up ulit ang Pag-unlock Gamit ang Fingerprint"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"Hindi na makilala ang <xliff:g id="FINGERPRINT">%s</xliff:g>."</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"Hindi na makilala ang <xliff:g id="FINGERPRINT_0">%1$s</xliff:g> at <xliff:g id="FINGERPRINT_1">%2$s</xliff:g>."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"Hindi na makilala ang <xliff:g id="FINGERPRINT">%s</xliff:g>. I-set up ulit ang Pag-unlock Gamit ang Fingerprint."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"Hindi na makilala ang <xliff:g id="FINGERPRINT_0">%1$s</xliff:g> at <xliff:g id="FINGERPRINT_1">%2$s</xliff:g>. I-set up ulit ang Pag-unlock Gamit ang Fingerprint."</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"I-set up ulit ang Pag-unlock Gamit ang Mukha"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"Hindi na makilala ang iyong face model. I-set up ulit ang Pag-unlock Gamit ang Mukha."</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"I-set up"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"Huwag muna"</string>
 </resources>

@@ -221,7 +221,7 @@
     <string name="choose_profile" msgid="343803890897657450">"প্রোফাইল বেছে নিন"</string>
     <string name="category_personal" msgid="6236798763159385225">"ব্যক্তিগত"</string>
     <string name="category_work" msgid="4014193632325996115">"অফিস"</string>
-    <string name="category_private" msgid="4244892185452788977">"ব্যক্তিগত"</string>
+    <string name="category_private" msgid="4244892185452788977">"প্রাইভেট"</string>
     <string name="category_clone" msgid="1554511758987195974">"ক্লোন"</string>
     <string name="development_settings_title" msgid="140296922921597393">"ডেভেলপার বিকল্প"</string>
     <string name="development_settings_enable" msgid="4285094651288242183">"ডেভেলপার বিকল্প সক্ষম করুন"</string>
@@ -479,6 +479,10 @@
     <string name="power_charging_duration" msgid="6127154952524919719">"<xliff:g id="LEVEL">%1$s</xliff:g> - <xliff:g id="TIME">%2$s</xliff:g>-এ ব্যাটারি পুরো চার্জ হয়ে যাবে"</string>
     <string name="power_charging_limited" msgid="8202147604844938236">"<xliff:g id="LEVEL">%1$s</xliff:g> - চার্জিং অপ্টিমাইজ করা হয়েছে"</string>
     <string name="power_charging_future_paused" msgid="1809543660923642799">"<xliff:g id="LEVEL">%1$s</xliff:g> - চার্জ করা হচ্ছে"</string>
+    <string name="power_fast_charging_duration_v2" msgid="3797735998640359490">"<xliff:g id="LEVEL">%1$s</xliff:g> - <xliff:g id="STATUS">%2$s</xliff:g> - <xliff:g id="TIME">%3$s</xliff:g>-এর মধ্যে পুরো চার্জ হয়ে যাবে"</string>
+    <string name="power_charging_duration_v2" msgid="2938998284074003248">"<xliff:g id="LEVEL">%1$s</xliff:g> - <xliff:g id="TIME">%2$s</xliff:g>-এর মধ্যে পুরো চার্জ হয়ে যাবে"</string>
+    <string name="power_remaining_charging_duration_only_v2" msgid="5358176435722950193">"<xliff:g id="TIME">%1$s</xliff:g>-এর মধ্যে পুরো চার্জ হয়ে যাবে"</string>
+    <string name="power_remaining_fast_charging_duration_only_v2" msgid="6270950195810579563">"<xliff:g id="TIME">%1$s</xliff:g>-এর মধ্যে পুরো চার্জ হয়ে যাবে"</string>
     <string name="battery_info_status_unknown" msgid="268625384868401114">"অজানা"</string>
     <string name="battery_info_status_charging" msgid="4279958015430387405">"চার্জ হচ্ছে"</string>
     <string name="battery_info_status_charging_fast" msgid="8027559755902954885">"দ্রুত চার্জ হচ্ছে"</string>
@@ -490,6 +494,8 @@
     <string name="battery_info_status_full" msgid="1339002294876531312">"চার্জ হয়েছে"</string>
     <string name="battery_info_status_full_charged" msgid="3536054261505567948">"সম্পূর্ণ চার্জ আছে"</string>
     <string name="battery_info_status_charging_on_hold" msgid="6364355145521694438">"চার্জিং হোল্ডে আছে"</string>
+    <string name="battery_info_status_charging_v2" msgid="6118522107222245505">"চার্জ হচ্ছে"</string>
+    <string name="battery_info_status_charging_fast_v2" msgid="1825439848151256589">"ফাস্ট চার্জিং"</string>
     <string name="disabled_by_admin_summary_text" msgid="5343911767402923057">"প্রশাসকের দ্বারা নিয়ন্ত্রিত"</string>
     <string name="disabled_by_app_ops_text" msgid="8373595926549098012">"এটি বিধিনিষেধ সেটিং থেকে নিয়ন্ত্রণ করা হয়"</string>
     <string name="disabled" msgid="8017887509554714950">"অক্ষম হয়েছে"</string>
@@ -678,6 +684,7 @@
     <string name="accessibility_phone_one_bar" msgid="5719721147018970063">"এক দন্ড ফোনের সংকেত রয়েছে৷"</string>
     <string name="accessibility_phone_two_bars" msgid="2531458337458953263">"দুই দন্ড ফোনের সংকেত রয়েছে৷"</string>
     <string name="accessibility_phone_three_bars" msgid="1523967995996696619">"তিন দন্ড ফোনের সংকেত রয়েছে৷"</string>
+    <string name="accessibility_phone_four_bars" msgid="4477202400261338403">"ফোনে চারটি বার দেখা যাচ্ছে।"</string>
     <string name="accessibility_phone_signal_full" msgid="4302338883816077134">"ফোনের সংকেত পূর্ণ রয়েছে৷"</string>
     <string name="accessibility_no_data" msgid="4563181886936931008">"কোনো ডেটা নেই৷"</string>
     <string name="accessibility_data_one_bar" msgid="6892888138070752480">"এক দন্ড ডেটার সংকেত৷"</string>

@@ -187,7 +187,7 @@
     <string name="contentServiceTooManyDeletesNotificationDesc" msgid="4562226280528716090">"<xliff:g id="CONTENT_TYPE">%s</xliff:g> gehiegi ezabatzen saiatu zara."</string>
     <string name="low_memory" product="tablet" msgid="5557552311566179924">"Tabletaren memoria beteta dago. Tokia egiteko, ezabatu fitxategi batzuk."</string>
     <string name="low_memory" product="watch" msgid="3479447988234030194">"Erlojuaren memoria beteta dago. Tokia egiteko, ezabatu fitxategi batzuk."</string>
-    <string name="low_memory" product="tv" msgid="6663680413790323318">"Android TV gailuaren memoria beteta dago. Tokia egiteko, ezabatu fitxategi batzuk."</string>
+    <string name="low_memory" product="tv" msgid="6663680413790323318">"Android TV gailuko biltegia beteta dago. Tokia egiteko, ezabatu fitxategi batzuk."</string>
     <string name="low_memory" product="default" msgid="2539532364144025569">"Telefonoaren memoria beteta dago. Tokia egiteko, ezabatu fitxategi batzuk."</string>
     <string name="ssl_ca_cert_warning" msgid="7233573909730048571">"{count,plural, =1{Autoritate ziurtagiri-emaile bat dago instalatuta}other{Autoritate ziurtagiri-emaile bat baino gehiago daude instalatuta}}"</string>
     <string name="ssl_ca_cert_noti_by_unknown" msgid="4961102218216815242">"Hirugarren alderdi ezezagun baten arabera"</string>
@@ -265,7 +265,7 @@
     <string name="bugreport_option_interactive_title" msgid="7968287837902871289">"Txosten dinamikoa"</string>
     <string name="bugreport_option_interactive_summary" msgid="8493795476325339542">"Aukera hau erabili beharko zenuke ia beti. Txostenaren jarraipena egin ahal izango duzu eta arazoari buruzko xehetasunak eman ahal izango dituzu. Baliteke gutxitan erabili behar izaten diren atalak ez agertzea, denbora aurrezteko."</string>
     <string name="bugreport_option_full_title" msgid="7681035745950045690">"Txosten osoa"</string>
-    <string name="bugreport_option_full_summary" msgid="1975130009258435885">"Erabili aukera hau sisteman ahalik eta traba gutxien eragiteko gailuak erantzuten ez duenean, mantsoegi dabilenean edo txosteneko atal guztiak behar dituzunean. Ez dizu uzten xehetasun gehiago idazten, ezta beste pantaila-argazkirik ateratzen ere."</string>
+    <string name="bugreport_option_full_summary" msgid="1975130009258435885">"Erabili aukera hau sistemaren interferentzia ahalik eta txikiena izateko gailuak erantzuten ez duenean, mantsoegi dabilenean edo txosteneko atal guztiak behar dituzunean. Ez dizu uzten xehetasun gehiago idazten, ezta beste pantaila-argazkirik ateratzen ere."</string>
     <string name="bugreport_countdown" msgid="6418620521782120755">"{count,plural, =1{Akatsen txostenerako argazkia aterako da # segundo barru.}other{Akatsen txostenerako argazkia aterako da # segundo barru.}}"</string>
     <string name="bugreport_screenshot_success_toast" msgid="7986095104151473745">"Pantaila-argazkia egin da akatsen txostenarekin"</string>
     <string name="bugreport_screenshot_failure_toast" msgid="6736320861311294294">"Ezin izan da egin pantaila-argazkia akatsen txostenarekin"</string>
@@ -463,9 +463,9 @@
     <string name="permdesc_broadcastSticky" product="tv" msgid="2338185920171000650">"Igorpen iraunkorrak egiteko baimena ematen dio aplikazioari. Igorpena amaitu ondoren ere igortzen jarraitzen dute igorpen iraunkorrek. Gehiegi erabiliz gero, Android TV gailua motel edo ezegonkor ibiliko da, memoria gehiago erabiliko delako."</string>
     <string name="permdesc_broadcastSticky" product="default" msgid="134529339678913453">"Igorpen iraunkorrak emateko baimena ematen dio aplikazioari; horiek igorpena amaitu ondoren mantentzen dira. Gehiegi erabiliz gero, telefonoa motel edo ezegonkor ibiliko da, memoria gehiago erabiliko delako."</string>
     <string name="permlab_readContacts" msgid="8776395111787429099">"irakurri kontaktuak"</string>
-    <string name="permdesc_readContacts" product="tablet" msgid="6430093481659992692">"Tabletan gordetako kontaktuei buruzko datuak irakurtzeko baimena ematen dio aplikazioari. Kontaktuak sortu dituzten tabletako kontuak ere atzitu ahalko ditu aplikazioak. Horrek barnean hartuko ditu instalatutako aplikazioak sortutako kontuak, agian. Baimen horrekin, kontaktuen datuak gorde ditzake aplikazioak, eta baliteke asmo txarreko aplikazioek zuk jakin gabe partekatzea datu horiek."</string>
-    <string name="permdesc_readContacts" product="tv" msgid="8400138591135554789">"Android TV gailuan gordetako kontaktuei buruzko datuak irakurtzeko baimena ematen dio aplikazioari. Kontaktuak sortu dituzten Android TV gailuko kontuak ere atzitu ahalko ditu aplikazioak. Horrek barnean hartuko ditu instalatutako aplikazioak sortutako kontuak, agian. Baimen horrekin, kontaktuen datuak gorde ditzake aplikazioak, eta baliteke asmo txarreko aplikazioek zuk jakin gabe partekatzea datu horiek."</string>
-    <string name="permdesc_readContacts" product="default" msgid="4911989776203207644">"Telefonoan gordetako kontaktuei buruzko datuak irakurtzeko baimena ematen dio aplikazioari. Kontaktuak sortu dituzten telefonoko kontuak ere atzitu ahalko ditu aplikazioak. Horrek barnean hartuko ditu instalatutako aplikazioak sortutako kontuak, agian. Baimen horrekin, kontaktuen datuak gorde ditzake aplikazioak, eta baliteke asmo txarreko aplikazioek zuk jakin gabe partekatzea datu horiek."</string>
+    <string name="permdesc_readContacts" product="tablet" msgid="6430093481659992692">"Tabletan biltegiratutako kontaktuei buruzko datuak irakurtzeko baimena ematen dio aplikazioari. Kontaktuak sortu dituzten tabletako kontuak ere atzitu ahalko ditu aplikazioak. Horrek barnean hartuko ditu instalatutako aplikazioak sortutako kontuak, agian. Baimen horrekin, kontaktuen datuak gorde ditzake aplikazioak, eta baliteke asmo txarreko aplikazioek zuk jakin gabe partekatzea datu horiek."</string>
+    <string name="permdesc_readContacts" product="tv" msgid="8400138591135554789">"Android TV gailuan biltegiratutako kontaktuei buruzko datuak irakurtzeko baimena ematen dio aplikazioari. Kontaktuak sortu dituzten Android TV gailuko kontuak ere atzitu ahalko ditu aplikazioak. Horrek barnean hartuko ditu instalatutako aplikazioak sortutako kontuak, agian. Baimen horrekin, kontaktuen datuak gorde ditzake aplikazioak, eta baliteke asmo txarreko aplikazioek zuk jakin gabe partekatzea datu horiek."</string>
+    <string name="permdesc_readContacts" product="default" msgid="4911989776203207644">"Telefonoan biltegiratutako kontaktuei buruzko datuak irakurtzeko baimena ematen dio aplikazioari. Kontaktuak sortu dituzten telefonoko kontuak ere atzitu ahalko ditu aplikazioak. Horrek barnean hartuko ditu instalatutako aplikazioak sortutako kontuak, agian. Baimen horrekin, kontaktuen datuak gorde ditzake aplikazioak, eta baliteke asmo txarreko aplikazioek zuk jakin gabe partekatzea datu horiek."</string>
     <string name="permlab_writeContacts" msgid="8919430536404830430">"aldatu kontaktuak"</string>
     <string name="permdesc_writeContacts" product="tablet" msgid="6422419281427826181">"Tabletan gordetako kontaktuei buruzko datuak aldatzeko baimena ematen dio aplikazioari. Baimen horrekin, aplikazioak kontaktuen datuak ezaba ditzake."</string>
     <string name="permdesc_writeContacts" product="tv" msgid="6488872735379978935">"Android TV gailuan gordetako kontaktuei buruzko datuak aldatzeko baimena ematen dio aplikazioari. Baimen horrekin, aplikazioak kontaktuen datuak ezaba ditzake."</string>
@@ -481,9 +481,9 @@
     <string name="permlab_bodySensors_background" msgid="4912560779957760446">"Atzitu gorputz-sentsoreen datuak (adib., bihotz-maiztasunarenak) atzeko planoan"</string>
     <string name="permdesc_bodySensors_background" product="default" msgid="8870726027557749417">"Aplikazioa atzeko planoan egon bitartean, gorputz-sentsoreen datuak (besteak beste, bihotz-maiztasuna, tenperatura eta odolean dagoen oxigenoaren ehunekoa) erabiltzeko baimena ematen dio aplikazioari."</string>
     <string name="permlab_readCalendar" msgid="6408654259475396200">"irakurri egutegiko gertaerak eta xehetasunak"</string>
-    <string name="permdesc_readCalendar" product="tablet" msgid="515452384059803326">"Aplikazioak tabletan gordetako egutegiko gertaerak irakur ditzake eta egutegiko datuak parteka eta gorde ditzake."</string>
-    <string name="permdesc_readCalendar" product="tv" msgid="5811726712981647628">"Aplikazioak Android TV gailuan gordeta dituzun egutegiko gertaerak irakur ditzake, baita egutegiko datuak partekatu eta gorde ere."</string>
-    <string name="permdesc_readCalendar" product="default" msgid="9118823807655829957">"Aplikazioak telefonoan gordetako egutegiko gertaerak irakur ditzake eta egutegiko datuak parteka eta gorde ditzake."</string>
+    <string name="permdesc_readCalendar" product="tablet" msgid="515452384059803326">"Aplikazioak tabletan biltegiratutako egutegiko gertaerak irakur ditzake eta egutegiko datuak parteka eta gorde ditzake."</string>
+    <string name="permdesc_readCalendar" product="tv" msgid="5811726712981647628">"Aplikazioak Android TV gailuan biltegiratuta dituzun egutegiko gertaerak irakur ditzake, baita egutegiko datuak partekatu eta gorde ere."</string>
+    <string name="permdesc_readCalendar" product="default" msgid="9118823807655829957">"Aplikazioak telefonoan biltegiratutako egutegiko gertaerak irakur ditzake eta egutegiko datuak parteka eta gorde ditzake."</string>
     <string name="permlab_writeCalendar" msgid="6422137308329578076">"gehitu edo aldatu egutegiko gertaerak eta bidali mezu elektronikoak gonbidatuei jabeek jakin gabe"</string>
     <string name="permdesc_writeCalendar" product="tablet" msgid="8722230940717092850">"Tabletako gertaerak gehitzeko, kentzeko edo aldatzeko aukera du aplikazioak. Gainera, egutegien jabeenak diruditen mezuak bidal ditzake, eta gertaerak alda ditzake jabeei beraiei jakinarazi gabe."</string>
     <string name="permdesc_writeCalendar" product="tv" msgid="951246749004952706">"Android TV gailuan egutegiko gertaerak gehitzeko eta gehitutakoak kentzeko edo aldatzeko aukera dute aplikazioek. Gainera, egutegien jabeenak diruditen mezuak bidal ditzakete, edo gertaerak aldatu jabeei ezer esan gabe."</string>
@@ -662,7 +662,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"Ez da ezagutu hatz-marka"</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"Ez da ezagutu hatz-marka"</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"Ezin da hauteman aurpegia. Erabili hatz-marka."</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"Ez da ezagutu aurpegia. Erabili hatz-marka."</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"Autentifikatu da hatz-marka"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"Autentifikatu da aurpegia"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"Autentifikatu da aurpegia; sakatu Berretsi"</string>
@@ -2042,7 +2042,7 @@
     <string name="app_category_maps" msgid="6395725487922533156">"Mapak eta nabigazioa"</string>
     <string name="app_category_productivity" msgid="1844422703029557883">"Produktibitatea"</string>
     <string name="app_category_accessibility" msgid="6643521607848547683">"Erabilerraztasuna"</string>
-    <string name="device_storage_monitor_notification_channel" msgid="5164244565844470758">"Gailuaren memoria"</string>
+    <string name="device_storage_monitor_notification_channel" msgid="5164244565844470758">"Gailuko biltegia"</string>
     <string name="adb_debugging_notification_channel_tv" msgid="4764046459631031496">"USB bidezko arazketa"</string>
     <string name="time_picker_hour_label" msgid="4208590187662336864">"ordu"</string>
     <string name="time_picker_minute_label" msgid="8307452311269824553">"minutu"</string>
@@ -2135,6 +2135,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"Ohitura moduaren informazio-jakinarazpena"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"Bateria-aurreztailea aktibatu da"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"Bateria-erabilera murrizten hasi da haren iraupena luzatzeko"</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"Bateria-aurreztailea aktibatuta dago"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"Bateria-aurreztailea aktibatuta dago, bateriaren iraupena luzatzeko"</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"Bateria-aurreztailea"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"Desaktibatu egin da bateria-aurreztailea"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"Behar adina bateria dauka telefonoak. Jada ez dago eginbiderik murriztuta."</string>
@@ -2393,4 +2395,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"Mezuak bidal eta jaso ditzakezu sare mugikorrik edo wifi-sarerik gabe"</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"Ireki Mezuak"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"Nola funtzionatzen du?"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"Konfiguratu berriro hatz-marka bidez desblokeatzeko eginbidea"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"<xliff:g id="FINGERPRINT">%s</xliff:g> ez da ezagutzen jada."</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> eta <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> ez dira ezagutzen jada."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"<xliff:g id="FINGERPRINT">%s</xliff:g> ez da ezagutzen jada. Konfiguratu berriro hatz-marka bidez desblokeatzeko eginbidea."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> eta <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> ez dira ezagutzen jada. Konfiguratu berriro hatz-marka bidez desblokeatzeko eginbidea."</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"Konfiguratu berriro aurpegi bidez desblokeatzeko eginbidea"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"Zure aurpegi-eredua ez da ezagutzen jada. Konfiguratu berriro aurpegi bidez desblokeatzeko eginbidea."</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"Konfiguratu"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"Orain ez"</string>
 </resources>

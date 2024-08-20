@@ -662,7 +662,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"Parmak izi tanınmadı"</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"Parmak izi tanınmadı"</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"Yüz tanınamadı. Bunun yerine parmak izi kullanın."</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"Yüz tanınmadı. Bunun yerine parmak izi kullanın."</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"Parmak izi kimlik doğrulaması yapıldı"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"Yüz kimliği doğrulandı"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"Yüz kimliği doğrulandı, lütfen onayla\'ya basın"</string>
@@ -2135,6 +2135,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"Rutin Modu bilgi bildirimi"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"Pil Tasarrufu açıldı"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"Pil ömrünü uzatmak için pil kullanımını azaltma"</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"Pil Tasarrufu açık"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"Pil ömrünü uzatmak için Pil Tasarrufu özelliği açıldı"</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"Pil Tasarrufu"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"Pil Tasarrufu kapatıldı"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"Telefon yeterince şarj oldu. Özellikler artık kısıtlanmış değil."</string>
@@ -2381,7 +2383,7 @@
     <string name="keyboard_layout_notification_more_than_three_selected_message" msgid="1581834181578206937">"Klavye düzeni <xliff:g id="LAYOUT_1">%1$s</xliff:g>, <xliff:g id="LAYOUT_2">%2$s</xliff:g>, <xliff:g id="LAYOUT_3">%3$s</xliff:g> olarak ayarlandı… Değiştirmek için dokunun."</string>
     <string name="keyboard_layout_notification_multiple_selected_title" msgid="5242444914367024499">"Fiziksel klavyeler yapılandırıldı"</string>
     <string name="keyboard_layout_notification_multiple_selected_message" msgid="6576533454124419202">"Klavyeleri görüntülemek için dokunun"</string>
-    <string name="profile_label_private" msgid="6463418670715290696">"Gizli"</string>
+    <string name="profile_label_private" msgid="6463418670715290696">"Özel"</string>
     <string name="profile_label_clone" msgid="769106052210954285">"Klon"</string>
     <string name="profile_label_work" msgid="3495359133038584618">"İş"</string>
     <string name="profile_label_work_2" msgid="4691533661598632135">"İş 2"</string>
@@ -2393,4 +2395,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"Mobil veya kablosuz ağa bağlı olmadan mesaj alıp gönderebilirsiniz"</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"Mesajlar\'ı aç"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"İşleyiş şekli"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"Parmak İzi Kilidi\'ni tekrar kurun"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"<xliff:g id="FINGERPRINT">%s</xliff:g> artık tanınamayacak."</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> ve <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> artık tanınamayacak."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"<xliff:g id="FINGERPRINT">%s</xliff:g> artık tanınamayacak. Parmak İzi Kilidi\'ni tekrar kurun."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> ve <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> artık tanınamayacak. Parmak İzi Kilidi\'ni tekrar kurun."</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"Yüz Tanıma Kilidi\'ni tekrar kurun"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"Yüz modeliniz artık tanınamayacak. Yüz Tanıma Kilidi\'ni tekrar kurun."</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"Ayarla"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"Şimdi değil"</string>
 </resources>

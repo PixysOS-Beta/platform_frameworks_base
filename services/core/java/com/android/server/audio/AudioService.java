@@ -174,6 +174,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.HwBinder;
 import android.os.IBinder;
 import android.os.Looper;
@@ -685,6 +686,9 @@ public class AudioService extends IAudioService.Stub
     private static final VibrationAttributes TOUCH_VIBRATION_ATTRIBUTES =
             VibrationAttributes.createForUsage(VibrationAttributes.USAGE_TOUCH);
 
+    // Handler for broadcast receiver
+    // TODO(b/335513647) combine handlers
+    private final HandlerThread mBroadcastHandlerThread;
     // Broadcast receiver for device connections intent broadcasts
     private final BroadcastReceiver mReceiver = new AudioServiceBroadcastReceiver();
 
@@ -1123,6 +1127,9 @@ public class AudioService extends IAudioService.Stub
         mAudioPolicy = audioPolicy;
         mPlatformType = AudioSystem.getPlatformType(context);
 
+        mBroadcastHandlerThread = new HandlerThread("AudioService Broadcast");
+        mBroadcastHandlerThread.start();
+
         mDeviceBroker = new AudioDeviceBroker(mContext, this, mAudioSystem);
 
         mIsSingleVolume = AudioSystem.isSingleVolume(context);
@@ -1513,7 +1520,8 @@ public class AudioService extends IAudioService.Stub
         intentFilter.addAction(ACTION_CHECK_MUSIC_ACTIVE);
         intentFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
 
-        mContext.registerReceiverAsUser(mReceiver, UserHandle.ALL, intentFilter, null, null,
+        mContext.registerReceiverAsUser(mReceiver, UserHandle.ALL, intentFilter, null,
+                mBroadcastHandlerThread.getThreadHandler(),
                 Context.RECEIVER_EXPORTED);
 
         SubscriptionManager subscriptionManager = mContext.getSystemService(
@@ -1886,7 +1894,6 @@ public class AudioService extends IAudioService.Stub
         }
 
         mSpatializerHelper.reset(/* featureEnabled */ mHasSpatializerEffect);
-        mSoundDoseHelper.reset();
 
         // Restore rotation information.
         if (mMonitorRotation) {
@@ -1896,6 +1903,8 @@ public class AudioService extends IAudioService.Stub
         onIndicateSystemReady();
         // indicate the end of reconfiguration phase to audio HAL
         AudioSystem.setParameters("restarting=false");
+
+        mSoundDoseHelper.reset(/*resetISoundDose=*/true);
 
         sendMsg(mAudioHandler, MSG_DISPATCH_AUDIO_SERVER_STATE,
                 SENDMSG_QUEUE, 1, 0, null, 0);
@@ -11304,7 +11313,8 @@ public class AudioService extends IAudioService.Stub
         mDeviceBroker.addOrUpdateBtAudioDeviceCategoryInInventory(deviceState);
         mDeviceBroker.postPersistAudioDeviceSettings();
 
-        mSpatializerHelper.refreshDevice(deviceState.getAudioDeviceAttributes());
+        mSpatializerHelper.refreshDevice(deviceState.getAudioDeviceAttributes(),
+                false /* initState */);
         mSoundDoseHelper.setAudioDeviceCategory(addr, internalType,
                 btAudioDeviceCategory == AUDIO_DEVICE_CATEGORY_HEADPHONES);
     }
@@ -11375,11 +11385,11 @@ public class AudioService extends IAudioService.Stub
 
     /** Update the sound dose and spatializer state based on the new AdiDeviceState. */
     @VisibleForTesting(visibility = PACKAGE)
-    public void onUpdatedAdiDeviceState(AdiDeviceState deviceState) {
+    public void onUpdatedAdiDeviceState(AdiDeviceState deviceState, boolean initSA) {
         if (deviceState == null) {
             return;
         }
-        mSpatializerHelper.refreshDevice(deviceState.getAudioDeviceAttributes());
+        mSpatializerHelper.refreshDevice(deviceState.getAudioDeviceAttributes(), initSA);
         mSoundDoseHelper.setAudioDeviceCategory(deviceState.getDeviceAddress(),
                 deviceState.getInternalDeviceType(),
                 deviceState.getAudioDeviceCategory() == AUDIO_DEVICE_CATEGORY_HEADPHONES);

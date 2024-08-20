@@ -448,7 +448,7 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".screenshot.LongScreenshotActivity"
+        <activity android:name=".screenshot.scroll.LongScreenshotActivity"
                   android:theme="@style/LongScreenshotActivity"
                   android:process=":screenshot"
                   android:exported="false"
@@ -549,6 +549,7 @@
             </intent-filter>
         </activity-alias>
 
+<<<<<<< HEAD
         <!-- Springboard for launching the share and edit activity. This needs to be in the main
              system ui process since we need to notify the status bar to dismiss the keyguard -->
         <receiver android:name=".screenshot.ActionProxyReceiver"
@@ -562,6 +563,8 @@
         <receiver android:name=".screenshot.LensScreenshotReceiver"
             android:exported="false" />
 
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
         <!-- Callback for invoking a smart action from the screenshot notification. -->
         <receiver android:name=".screenshot.SmartActionsReceiver"
                   android:exported="false"/>

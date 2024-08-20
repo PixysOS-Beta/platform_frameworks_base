@@ -22,9 +22,12 @@ import com.android.systemui.GuestResetOrExitSessionReceiver;
 import com.android.systemui.media.dialog.MediaOutputDialogReceiver;
 import com.android.systemui.people.widget.PeopleSpaceWidgetPinnedReceiver;
 import com.android.systemui.people.widget.PeopleSpaceWidgetProvider;
+<<<<<<< HEAD
 import com.android.systemui.screenshot.ActionProxyReceiver;
 import com.android.systemui.screenshot.DeleteScreenshotReceiver;
 import com.android.systemui.screenshot.LensScreenshotReceiver;
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
 import com.android.systemui.screenshot.SmartActionsReceiver;
 import com.android.systemui.volume.VolumePanelDialogReceiver;
 
@@ -43,6 +46,7 @@ public abstract class DefaultBroadcastReceiverBinder {
      */
     @Binds
     @IntoMap
+<<<<<<< HEAD
     @ClassKey(ActionProxyReceiver.class)
     public abstract BroadcastReceiver bindActionProxyReceiver(
             ActionProxyReceiver broadcastReceiver);
@@ -70,6 +74,8 @@ public abstract class DefaultBroadcastReceiverBinder {
      */
     @Binds
     @IntoMap
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     @ClassKey(SmartActionsReceiver.class)
     public abstract BroadcastReceiver bindSmartActionsReceiver(
             SmartActionsReceiver broadcastReceiver);

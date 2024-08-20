@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"การจับภาพหน้าจอถูกบล็อกโดยผู้ดูแลระบบไอทีของคุณ"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"แก้ไข"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"แก้ไขภาพหน้าจอ"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"แชร์"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"แชร์ภาพหน้าจอ"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"จับภาพได้มากขึ้น"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"ปิดภาพหน้าจอ"</string>
@@ -142,7 +143,11 @@
     <string name="accessibility_phone_button" msgid="4256353121703100427">"โทรศัพท์"</string>
     <string name="accessibility_voice_assist_button" msgid="6497706615649754510">"ตัวช่วยเสียง"</string>
     <string name="accessibility_wallet_button" msgid="1458258783460555507">"Wallet"</string>
+<<<<<<< HEAD
     <string name="accessibility_qr_code_scanner_button" msgid="7521277927692910795">"แอปสแกนคิวอาร์โค้ด"</string>
+=======
+    <string name="accessibility_qr_code_scanner_button" msgid="7521277927692910795">"ตัวสแกนคิวอาร์โค้ด"</string>
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="accessibility_unlock_button" msgid="3613812140816244310">"ปลดล็อกแล้ว"</string>
     <string name="accessibility_lock_icon" msgid="661492842417875775">"อุปกรณ์ถูกล็อก"</string>
     <string name="accessibility_scanning_face" msgid="3093828357921541387">"กำลังสแกนใบหน้า"</string>
@@ -255,7 +260,7 @@
     <string name="accessibility_rotation_lock_on_landscape" msgid="936972553861524360">"ขณะนี้หน้าจอถูกล็อกให้วางในแนวนอน"</string>
     <string name="accessibility_rotation_lock_on_portrait" msgid="2356633398683813837">"ขณะนี้หน้าจอถูกล็อกให้วางในแนวตั้ง"</string>
     <string name="dessert_case" msgid="9104973640704357717">"ชั้นแสดงของหวาน"</string>
-    <string name="start_dreams" msgid="9131802557946276718">"โปรแกรมรักษาหน้าจอ"</string>
+    <string name="start_dreams" msgid="9131802557946276718">"ภาพพักหน้าจอ"</string>
     <string name="ethernet_label" msgid="2203544727007463351">"อีเทอร์เน็ต"</string>
     <string name="quick_settings_dnd_label" msgid="7728690179108024338">"ห้ามรบกวน"</string>
     <string name="quick_settings_bluetooth_label" msgid="7018763367142041481">"บลูทูธ"</string>
@@ -605,7 +610,11 @@
     <string name="wallet_secondary_label_device_locked" msgid="5175862019125370506">"ปลดล็อกเพื่อใช้"</string>
     <string name="wallet_error_generic" msgid="257704570182963611">"เกิดปัญหาในการดึงข้อมูลบัตรของคุณ โปรดลองอีกครั้งในภายหลัง"</string>
     <string name="wallet_lockscreen_settings_label" msgid="3539105300870383570">"การตั้งค่าหน้าจอล็อก"</string>
+<<<<<<< HEAD
     <string name="qr_code_scanner_title" msgid="1938155688725760702">"แอปสแกนคิวอาร์โค้ด"</string>
+=======
+    <string name="qr_code_scanner_title" msgid="1938155688725760702">"ตัวสแกนคิวอาร์โค้ด"</string>
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="qr_code_scanner_updating_secondary_label" msgid="8344598017007876352">"กำลังอัปเดต"</string>
     <string name="status_bar_work" msgid="5238641949837091056">"โปรไฟล์งาน"</string>
     <string name="status_bar_airplane" msgid="4848702508684541009">"โหมดบนเครื่องบิน"</string>
@@ -617,6 +626,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"ดาวเทียม, การเชื่อมต่อไม่ดี"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"ดาวเทียม, การเชื่อมต่อดี"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"ดาวเทียม, การเชื่อมต่อที่พร้อมใช้งาน"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"SOS ดาวเทียม"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"โปรไฟล์งาน"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"เพลิดเพลินกับบางส่วนแต่ไม่ใช่ทั้งหมด"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"ตัวรับสัญญาณ UI ระบบช่วยให้คุณมีวิธีพิเศษในการปรับแต่งและกำหนดค่าส่วนติดต่อผู้ใช้ Android ฟีเจอร์รุ่นทดลองเหล่านี้อาจมีการเปลี่ยนแปลง ขัดข้อง หรือหายไปในเวอร์ชันอนาคต โปรดดำเนินการด้วยความระมัดระวัง"</string>
@@ -718,7 +728,7 @@
     <string name="keyboard_shortcut_search_list_no_result" msgid="6819302191660875501">"ไม่พบแป้นพิมพ์ลัด"</string>
     <string name="keyboard_shortcut_search_category_system" msgid="1151182120757052669">"ระบบ"</string>
     <string name="keyboard_shortcut_search_category_input" msgid="5440558509904296233">"อินพุต"</string>
-    <string name="keyboard_shortcut_search_category_open_apps" msgid="1450959949739257562">"แอปที่เปิดอยู่"</string>
+    <string name="keyboard_shortcut_search_category_open_apps" msgid="1450959949739257562">"เปิดแอป"</string>
     <string name="keyboard_shortcut_search_category_current_app" msgid="2011953559133734491">"แอปปัจจุบัน"</string>
     <string name="keyboard_shortcut_a11y_show_search_results" msgid="2865241062981833705">"แสดงผลการค้นหา"</string>
     <string name="keyboard_shortcut_a11y_filter_system" msgid="7744143131119370483">"แสดงแป้นพิมพ์ลัดสำหรับระบบ"</string>
@@ -835,8 +845,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"เมนูเปิด/ปิด"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"หน้า <xliff:g id="ID_1">%1$d</xliff:g> จาก <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"หน้าจอล็อก"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"คุณจะหาตำแหน่งของโทรศัพท์นี้ได้ด้วยแอปหาอุปกรณ์ของฉันแม้จะปิดเครื่องอยู่ก็ตาม"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"กำลังปิด…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"ดูขั้นตอนในการดูแลรักษา"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"ดูขั้นตอนในการดูแลรักษา"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"ถอดปลั๊กอุปกรณ์"</string>
@@ -966,7 +979,7 @@
     <string name="accessibility_floating_button_action_move_top_left" msgid="6253520703618545705">"ย้ายไปด้านซ้ายบน"</string>
     <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"ย้ายไปด้านขวาบน"</string>
     <string name="accessibility_floating_button_action_move_bottom_left" msgid="8063394111137429725">"ย้ายไปด้านซ้ายล่าง"</string>
-    <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"ย้ายไปด้านขาวล่าง"</string>
+    <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"ย้ายไปด้านขวาล่าง"</string>
     <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"ย้ายไปที่ขอบและซ่อน"</string>
     <string name="accessibility_floating_button_action_move_out_edge_and_show" msgid="8354760891651663326">"ย้ายออกจากขอบและแสดง"</string>
     <string name="accessibility_floating_button_action_remove_menu" msgid="6730432848162552135">"นำออก"</string>
@@ -1271,5 +1284,5 @@
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"ไฟแบ็กไลต์ของแป้นพิมพ์"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"ระดับที่ %1$d จาก %2$d"</string>
     <string name="home_controls_dream_label" msgid="6567105701292324257">"ระบบควบคุมอุปกรณ์สมาร์ทโฮม"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"เข้าถึงระบบควบคุมอุปกรณ์สมาร์ทโฮมได้อย่างรวดเร็วที่การพักหน้าจอ"</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"เข้าถึงระบบควบคุมอุปกรณ์สมาร์ทโฮมได้อย่างรวดเร็วผ่านภาพพักหน้าจอ"</string>
 </resources>

@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"你的 IT 管理員已禁止擷取螢幕截圖"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"編輯"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"編輯螢幕截圖"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"分享"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"分享螢幕截圖"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"擷取更大範圍的螢幕內容"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"關閉螢幕截圖"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"衛星，連線質素唔好"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"衛星，連線質素好"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"衛星，可以連線"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"緊急衛星連接"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"工作設定檔"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"這只是測試版本，並不包含完整功能"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"使用者介面調諧器讓你以更多方法修改和自訂 Android 使用者介面。但請小心，這些實驗功能可能會在日後發佈時更改、分拆或消失。"</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"電源選單"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"第 <xliff:g id="ID_1">%1$d</xliff:g> 頁 (共 <xliff:g id="ID_2">%2$d</xliff:g> 頁)"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"螢幕鎖定"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"即使手機關機，仍可透過「尋找我的裝置」尋找此手機"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"正在關機…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"查看保養步驟"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"查看保養步驟"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"拔除裝置"</string>
@@ -1271,5 +1276,5 @@
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"鍵盤背光"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"第 %1$d 級，共 %2$d 級"</string>
     <string name="home_controls_dream_label" msgid="6567105701292324257">"智能家居"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"在螢幕保護程式畫面上快速存取家居控制功能"</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"在螢幕保護程式畫面上控制智能家居"</string>
 </resources>

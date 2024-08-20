@@ -221,7 +221,7 @@
     <string name="choose_profile" msgid="343803890897657450">"Вибрати профіль"</string>
     <string name="category_personal" msgid="6236798763159385225">"Особисті"</string>
     <string name="category_work" msgid="4014193632325996115">"Робочі"</string>
-    <string name="category_private" msgid="4244892185452788977">"Приватні"</string>
+    <string name="category_private" msgid="4244892185452788977">"Приватний простір"</string>
     <string name="category_clone" msgid="1554511758987195974">"Копія профілю"</string>
     <string name="development_settings_title" msgid="140296922921597393">"Параметри розробника"</string>
     <string name="development_settings_enable" msgid="4285094651288242183">"Увімкнути параметри розробника"</string>
@@ -479,6 +479,10 @@
     <string name="power_charging_duration" msgid="6127154952524919719">"<xliff:g id="LEVEL">%1$s</xliff:g> – <xliff:g id="TIME">%2$s</xliff:g> до повного заряду"</string>
     <string name="power_charging_limited" msgid="8202147604844938236">"<xliff:g id="LEVEL">%1$s</xliff:g> – заряджання оптимізовано"</string>
     <string name="power_charging_future_paused" msgid="1809543660923642799">"<xliff:g id="LEVEL">%1$s</xliff:g> – заряджається"</string>
+    <string name="power_fast_charging_duration_v2" msgid="3797735998640359490">"<xliff:g id="LEVEL">%1$s</xliff:g> - <xliff:g id="STATUS">%2$s</xliff:g> - Завершиться до <xliff:g id="TIME">%3$s</xliff:g>"</string>
+    <string name="power_charging_duration_v2" msgid="2938998284074003248">"<xliff:g id="LEVEL">%1$s</xliff:g> - Повністю зарядиться до <xliff:g id="TIME">%2$s</xliff:g>"</string>
+    <string name="power_remaining_charging_duration_only_v2" msgid="5358176435722950193">"Повністю зарядиться до <xliff:g id="TIME">%1$s</xliff:g>"</string>
+    <string name="power_remaining_fast_charging_duration_only_v2" msgid="6270950195810579563">"Завершиться до <xliff:g id="TIME">%1$s</xliff:g>"</string>
     <string name="battery_info_status_unknown" msgid="268625384868401114">"Невідомо"</string>
     <string name="battery_info_status_charging" msgid="4279958015430387405">"Заряджається"</string>
     <string name="battery_info_status_charging_fast" msgid="8027559755902954885">"Швидке заряджання"</string>
@@ -490,6 +494,8 @@
     <string name="battery_info_status_full" msgid="1339002294876531312">"Заряджено"</string>
     <string name="battery_info_status_full_charged" msgid="3536054261505567948">"Повністю заряджено"</string>
     <string name="battery_info_status_charging_on_hold" msgid="6364355145521694438">"Заряджання призупинено"</string>
+    <string name="battery_info_status_charging_v2" msgid="6118522107222245505">"Заряджання"</string>
+    <string name="battery_info_status_charging_fast_v2" msgid="1825439848151256589">"Швидке заряджання"</string>
     <string name="disabled_by_admin_summary_text" msgid="5343911767402923057">"Керується адміністратором"</string>
     <string name="disabled_by_app_ops_text" msgid="8373595926549098012">"Керується налаштуваннями з обмеженнями"</string>
     <string name="disabled" msgid="8017887509554714950">"Вимкнено"</string>
@@ -579,7 +585,7 @@
     <string name="help_label" msgid="3528360748637781274">"Довідка й відгуки"</string>
     <string name="storage_category" msgid="2287342585424631813">"Пам\'ять"</string>
     <string name="shared_data_title" msgid="1017034836800864953">"Спільні дані"</string>
-    <string name="shared_data_summary" msgid="5516326713822885652">"Переглянути та змінити спільні дані"</string>
+    <string name="shared_data_summary" msgid="5516326713822885652">"Переглянути й змінити спільні дані"</string>
     <string name="shared_data_no_blobs_text" msgid="3108114670341737434">"Немає спільних даних для цього користувача."</string>
     <string name="shared_data_query_failure_text" msgid="3489828881998773687">"Не вдалось отримати спільні дані. Повторіть спробу."</string>
     <string name="blob_id_text" msgid="8680078988996308061">"Ідентифікатор спільних даних: <xliff:g id="BLOB_ID">%d</xliff:g>"</string>
@@ -678,6 +684,7 @@
     <string name="accessibility_phone_one_bar" msgid="5719721147018970063">"Одна смужка сигналу телефону."</string>
     <string name="accessibility_phone_two_bars" msgid="2531458337458953263">"Дві смужки сигналу телефону."</string>
     <string name="accessibility_phone_three_bars" msgid="1523967995996696619">"Три смужки сигналу телефону."</string>
+    <string name="accessibility_phone_four_bars" msgid="4477202400261338403">"Чотири смужки сигналу телефона."</string>
     <string name="accessibility_phone_signal_full" msgid="4302338883816077134">"Максимальний сигнал телефону."</string>
     <string name="accessibility_no_data" msgid="4563181886936931008">"Немає сигналу даних."</string>
     <string name="accessibility_data_one_bar" msgid="6892888138070752480">"Одна смужка сигналу даних."</string>

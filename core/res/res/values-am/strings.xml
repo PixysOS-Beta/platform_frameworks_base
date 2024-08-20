@@ -662,7 +662,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"የጣት አሻራ አልታወቀም"</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"የጣት አሻራ አልታወቀም"</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"መልክን መለየት አልተቻለም። በምትኩ የጣት አሻራ ይጠቀሙ።"</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"ፊቱ አልታወቀም። በምትኩ የጣት አሻራ ይጠቀሙ።"</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"የጣት አሻራ ትክክለኛነት ተረጋግጧል"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"ፊት ተረጋግጧል"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"ፊት ተረጋግጧል፣ እባክዎ አረጋግጥን ይጫኑ"</string>
@@ -1892,7 +1892,7 @@
     <string name="clone_profile_label_badge" msgid="1871997694718793964">"<xliff:g id="LABEL">%1$s</xliff:g>ን አባዛ"</string>
     <string name="private_profile_label_badge" msgid="1712086003787839183">"የግል <xliff:g id="LABEL">%1$s</xliff:g>"</string>
     <string name="lock_to_app_unlock_pin" msgid="3890940811866290782">"ከመንቀል በፊት ፒን ጠይቅ"</string>
-    <string name="lock_to_app_unlock_pattern" msgid="2694204070499712503">"ከመንቀል በፊት የማስከፈቻ ስርዓተ-ጥለት ጠይቅ"</string>
+    <string name="lock_to_app_unlock_pattern" msgid="2694204070499712503">"ከመንቀል በፊት የማስከፈቻ ሥርዓተ-ጥለት ጠይቅ"</string>
     <string name="lock_to_app_unlock_password" msgid="9126722403506560473">"ከመንቀል በፊት የይለፍ ቃል ጠይቅ"</string>
     <string name="package_installed_device_owner" msgid="7035926868974878525">"በእርስዎ አስተዳዳሪ ተጭኗል"</string>
     <string name="package_updated_device_owner" msgid="7560272363805506941">"በእርስዎ አስተዳዳሪ ተዘምኗል"</string>
@@ -2135,6 +2135,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"የዕለት ተዕለት ሁነታ መረጃ ማሳወቂያዎች"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"የባትሪ ኃይል ቆጣቢ በርቷል"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"የባትሪ ዕድሜን ለማራዘም የባትሪ አጠቃቀምን በመቀነስ ላይ"</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"ባትሪ ቆጣቢ በርቷል"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"የባትሪ ዕድሜን ለማራዘም የባትሪ ኃይል ቆጣቢ በርቷል"</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"ባትሪ ቆጣቢ"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"የባትሪ ቆጣቢ ጠፍቷል"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"ስልክ በቂ የባትሪ ኃይል አለው። ባህሪያት ከእንግዲህ የተገደቡ አይደሉም።"</string>
@@ -2393,4 +2395,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"ያለ ሞባይል ወይም የWi-Fi አውታረ መረብ መልዕክቶችን መላክ እና መቀበል ይችላሉ"</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"መልዕክቶች ይክፈቱ"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"እንዴት እንደሚሠራ"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"በጣት አሻራ መክፈቻን እንደገና ያዋቅሩ"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"<xliff:g id="FINGERPRINT">%s</xliff:g> ከእንግዲህ መለየት አይችልም።"</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> እና <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> ከእንግዲህ መለየት አይችሉም።"</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"<xliff:g id="FINGERPRINT">%s</xliff:g> ከእንግዲህ መለየት አይችልም። በጣት አሻራ መክፈቻን እንደገና ያዋቅሩ።"</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> እና <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> ከእንግዲህ መለየት አይችሉም። በጣት አሻራ መክፈቻን እንደገና ያዋቅሩ።"</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"በመልክ መክፈትን እንደገና ያዋቅሩ"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"የመልክ ሞዴልዎ ከእንግዲህ መለየት አይችልም። በመልክ መክፈትን እንደገና ያዋቅሩ።"</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"ያዋቅሩ"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"አሁን አይደለም"</string>
 </resources>

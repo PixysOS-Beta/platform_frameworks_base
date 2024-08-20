@@ -44,6 +44,8 @@ import com.android.systemui.statusbar.pipeline.mobile.util.SubscriptionManagerPr
 import com.android.systemui.statusbar.pipeline.mobile.util.SubscriptionManagerProxyImpl
 import com.android.systemui.statusbar.pipeline.satellite.data.DeviceBasedSatelliteRepository
 import com.android.systemui.statusbar.pipeline.satellite.data.prod.DeviceBasedSatelliteRepositoryImpl
+import com.android.systemui.statusbar.pipeline.satellite.ui.viewmodel.DeviceBasedSatelliteViewModel
+import com.android.systemui.statusbar.pipeline.satellite.ui.viewmodel.DeviceBasedSatelliteViewModelImpl
 import com.android.systemui.statusbar.pipeline.shared.data.repository.ConnectivityRepository
 import com.android.systemui.statusbar.pipeline.shared.data.repository.ConnectivityRepositoryImpl
 import com.android.systemui.statusbar.pipeline.shared.ui.binder.CollapsedStatusBarViewBinder
@@ -89,6 +91,11 @@ abstract class StatusBarPipelineModule {
     abstract fun deviceBasedSatelliteRepository(
         impl: DeviceBasedSatelliteRepositoryImpl
     ): DeviceBasedSatelliteRepository
+
+    @Binds
+    abstract fun deviceBasedSatelliteViewModel(
+        impl: DeviceBasedSatelliteViewModelImpl
+    ): DeviceBasedSatelliteViewModel
 
     @Binds abstract fun wifiRepository(impl: WifiRepositorySwitcher): WifiRepository
 
@@ -267,9 +274,16 @@ abstract class StatusBarPipelineModule {
 
         @Provides
         @SysUISingleton
-        @OemSatelliteInputLog
-        fun provideOemSatelliteInputLog(factory: LogBufferFactory): LogBuffer {
-            return factory.create("DeviceBasedSatelliteInputLog", 32)
+        @DeviceBasedSatelliteInputLog
+        fun provideDeviceBasedSatelliteInputLog(factory: LogBufferFactory): LogBuffer {
+            return factory.create("DeviceBasedSatelliteInputLog", 200)
+        }
+
+        @Provides
+        @SysUISingleton
+        @VerboseDeviceBasedSatelliteInputLog
+        fun provideVerboseDeviceBasedSatelliteInputLog(factory: LogBufferFactory): LogBuffer {
+            return factory.create("VerboseDeviceBasedSatelliteInputLog", 200)
         }
 
         const val FIRST_MOBILE_SUB_SHOWING_NETWORK_TYPE_ICON =

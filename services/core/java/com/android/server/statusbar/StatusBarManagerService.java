@@ -1169,6 +1169,7 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
         return mTracingEnabled;
     }
 
+<<<<<<< HEAD
     @Override
     public void toggleCameraFlash() {
         if (mBar != null) {
@@ -1189,16 +1190,25 @@ public class StatusBarManagerService extends IStatusBarService.Stub implements D
                 // do nothing
             }
         }
+=======
+    // TODO(b/117478341): make it aware of multi-display if needed.
+    @Override
+    public void disable(int what, IBinder token, String pkg) {
+        disableForUser(what, token, pkg, mCurrentUserId);
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     }
 
     // TODO(b/117478341): make it aware of multi-display if needed.
     @Override
+<<<<<<< HEAD
     public void disable(int what, IBinder token, String pkg) {
         disableForUser(what, token, pkg, mCurrentUserId);
     }
 
     // TODO(b/117478341): make it aware of multi-display if needed.
     @Override
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     public void disableForUser(int what, IBinder token, String pkg, int userId) {
         enforceStatusBar();
 

@@ -663,7 +663,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"Amprenta nu a fost recunoscută"</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"Amprenta nu a fost recunoscută"</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"Chipul nu a fost recunoscut. Folosește amprenta."</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"Fața nu a fost recunoscută. Folosește amprenta."</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"Amprentă autentificată"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"Chip autentificat"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"Chip autentificat, apasă pe Confirmă"</string>
@@ -2136,6 +2136,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"Notificare pentru informații despre modul Rutină"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"Economisirea bateriei este activată"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"Se reduce utilizarea bateriei pentru a-i extinde autonomia"</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"Economisirea bateriei este activată"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"Economisirea bateriei este activată pentru a extinde autonomia"</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"Economisirea bateriei"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"Economisirea bateriei a fost dezactivată"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"Telefonul este încărcat suficient. Funcțiile nu mai sunt limitate."</string>
@@ -2394,4 +2396,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"Poți să trimiți și să primești mesaje fără o rețea mobilă sau Wi-Fi"</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"Deschide Mesaje"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"Cum funcționează"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"Configurează din nou Deblocarea cu amprenta"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"<xliff:g id="FINGERPRINT">%s</xliff:g> nu mai poate fi recunoscută."</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> și <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> nu mai pot fi recunoscute."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"<xliff:g id="FINGERPRINT">%s</xliff:g> nu mai poate fi recunoscută. Configurează din nou Deblocarea cu amprenta."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> și <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> nu mai pot fi recunoscute. Configurează din nou Deblocarea cu amprenta."</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"Reconfigurează Deblocarea facială"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"Modelul tău facial nu mai poate fi recunoscut. Configurează din nou Deblocarea facială."</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"Configurează"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"Nu acum"</string>
 </resources>

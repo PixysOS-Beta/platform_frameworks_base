@@ -649,11 +649,11 @@
     <string name="biometric_error_generic" msgid="6784371929985434439">"Podczas uwierzytelniania wystąpił błąd"</string>
     <string name="screen_lock_app_setting_name" msgid="6054944352976789228">"Używaj blokady ekranu"</string>
     <string name="screen_lock_dialog_default_subtitle" msgid="120359538048533695">"Użyj blokady ekranu, aby kontynuować"</string>
-    <string name="fingerprint_acquired_partial" msgid="4323789264604479684">"Mocno naciśnij czujnik"</string>
+    <string name="fingerprint_acquired_partial" msgid="4323789264604479684">"Mocno naciśnij czytnik"</string>
     <string name="fingerprint_acquired_insufficient" msgid="2410176550915730974">"Nie rozpoznano odcisku palca. Spróbuj ponownie."</string>
     <string name="fingerprint_acquired_imager_dirty" msgid="1770676120848224250">"Wyczyść czytnik linii papilarnych i spróbuj ponownie"</string>
     <string name="fingerprint_acquired_imager_dirty_alt" msgid="9169582140486372897">"Wyczyść czujnik i spróbuj ponownie"</string>
-    <string name="fingerprint_acquired_too_fast" msgid="1628459767349116104">"Mocno naciśnij czujnik"</string>
+    <string name="fingerprint_acquired_too_fast" msgid="1628459767349116104">"Mocno naciśnij czytnik"</string>
     <string name="fingerprint_acquired_too_slow" msgid="6683510291554497580">"Palec został obrócony zbyt wolno. Spróbuj ponownie."</string>
     <string name="fingerprint_acquired_already_enrolled" msgid="2285166003936206785">"Użyj odcisku innego palca"</string>
     <string name="fingerprint_acquired_too_bright" msgid="3863560181670915607">"Zbyt jasno"</string>
@@ -664,7 +664,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"Nie rozpoznano odcisku palca"</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"Nie rozpoznano odcisku palca"</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"Nie rozpoznaję twarzy. Użyj odcisku palca."</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"Nie rozpoznano twarzy. Użyj odcisku palca."</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"Uwierzytelniono odciskiem palca"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"Twarz rozpoznana"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"Twarz rozpoznana, kliknij Potwierdź"</string>
@@ -830,7 +830,7 @@
     <string name="policylab_limitPassword" msgid="4851829918814422199">"Określ reguły hasła"</string>
     <string name="policydesc_limitPassword" msgid="4105491021115793793">"Kontrolowanie długości haseł blokady ekranu i kodów PIN oraz dozwolonych w nich znaków."</string>
     <string name="policylab_watchLogin" msgid="7599669460083719504">"Monitorowanie prób odblokowania ekranu"</string>
-    <string name="policydesc_watchLogin" product="tablet" msgid="2388436408621909298">"Przy odblokowywaniu ekranu monitoruj, ile razy wpisano nieprawidłowe hasło i blokuj tablet lub usuń z niego wszystkie dane, jeśli nieprawidłowe hasło podano zbyt wiele razy."</string>
+    <string name="policydesc_watchLogin" product="tablet" msgid="2388436408621909298">"Przy odblokowywaniu ekranu monitoruje, ile razy wpisano nieprawidłowe hasło i blokuje tablet lub usuwa z niego wszystkie dane, jeśli nieprawidłowe hasło podano zbyt wiele razy"</string>
     <string name="policydesc_watchLogin" product="tv" msgid="2140588224468517507">"Monitorowanie liczby nieudanych prób odblokowania ekranu za pomocą hasła oraz blokowanie urządzenia z Androidem TV lub kasowanie z niego wszystkich danych w razie wpisania błędnego hasła zbyt wiele razy."</string>
     <string name="policydesc_watchLogin" product="automotive" msgid="7011438994051251521">"Monitorowanie przypadków nieprawidłowego wpisania hasła podczas odblokowywania ekranu i blokowanie systemu multimedialno-rozrywkowego lub usuwanie z niego wszystkich danych przy zbyt dużej liczbie błędnych prób."</string>
     <string name="policydesc_watchLogin" product="default" msgid="4885030206253600299">"Przy odblokowywaniu ekranu monitoruje, ile razy wpisano nieprawidłowe hasło, i blokuje telefon lub usuwa z niego wszystkie dane, jeśli nieprawidłowe hasło podano zbyt wiele razy."</string>
@@ -997,7 +997,7 @@
     <string name="lockscreen_pattern_correct" msgid="8050630103651508582">"Poprawnie!"</string>
     <string name="lockscreen_pattern_wrong" msgid="2940138714468358458">"Spróbuj ponownie."</string>
     <string name="lockscreen_password_wrong" msgid="8605355913868947490">"Spróbuj ponownie."</string>
-    <string name="lockscreen_storage_locked" msgid="634993789186443380">"Odblokowanie wszystkich funkcji i danych"</string>
+    <string name="lockscreen_storage_locked" msgid="634993789186443380">"Odblokuj, by używać wszystkich funkcji i danych"</string>
     <string name="faceunlock_multiple_failures" msgid="681991538434031708">"Przekroczono maksymalną liczbę prób rozpoznania twarzy."</string>
     <string name="lockscreen_missing_sim_message_short" msgid="1229301273156907613">"Brak karty SIM"</string>
     <string name="lockscreen_missing_sim_message" product="tablet" msgid="3986843848305639161">"Brak karty SIM w tablecie."</string>
@@ -1263,7 +1263,7 @@
     <string name="screen_compat_mode_scale" msgid="8627359598437527726">"Skala"</string>
     <string name="screen_compat_mode_show" msgid="5080361367584709857">"Zawsze pokazuj"</string>
     <string name="screen_compat_mode_hint" msgid="4032272159093750908">"Włącz ponownie, wybierając Ustawienia systemu &gt; Aplikacje &gt; Pobrane."</string>
-    <string name="unsupported_display_size_message" msgid="7265211375269394699">"<xliff:g id="APP_NAME">%1$s</xliff:g> nie obsługuje obecnie ustawionego rozmiaru wyświetlacza i może działać niestabilnie."</string>
+    <string name="unsupported_display_size_message" msgid="7265211375269394699">"<xliff:g id="APP_NAME">%1$s</xliff:g> nie obsługuje obecnie ustawionego rozmiaru wyświetlanych elementów i może działać niestabilnie."</string>
     <string name="unsupported_display_size_show" msgid="980129850974919375">"Zawsze pokazuj"</string>
     <string name="unsupported_compile_sdk_message" msgid="7326293500707890537">"Aplikacja <xliff:g id="APP_NAME">%1$s</xliff:g> została skompilowana pod niezgodną wersję systemu Android i może zachowywać się niezgodnie z oczekiwaniami. Sprawdź, czy jest dostępna zaktualizowana wersja aplikacji."</string>
     <string name="unsupported_compile_sdk_show" msgid="1601210057960312248">"Zawsze pokazuj"</string>
@@ -1761,7 +1761,7 @@
     <string name="owner_name" msgid="8713560351570795743">"Właściciel"</string>
     <string name="guest_name" msgid="8502103277839834324">"Gość"</string>
     <string name="error_message_title" msgid="4082495589294631966">"Błąd"</string>
-    <string name="error_message_change_not_allowed" msgid="843159705042381454">"Ta zmiana nie jest dozwolona przez administratora"</string>
+    <string name="error_message_change_not_allowed" msgid="843159705042381454">"Ta zmiana nie jest dozwolona przez administratora."</string>
     <string name="app_not_found" msgid="3429506115332341800">"Nie znaleziono aplikacji do obsługi tej akcji"</string>
     <string name="revoke" msgid="5526857743819590458">"Cofnij"</string>
     <string name="mediasize_iso_a0" msgid="7039061159929977973">"ISO A0"</string>
@@ -1903,7 +1903,7 @@
     <string name="battery_saver_description_with_learn_more" msgid="5444908404021316250">"Oszczędzanie baterii uruchamia ciemny motyw oraz wyłącza lub ogranicza aktywność w tle, niektóre efekty wizualne, pewne funkcje oraz wybrane połączenia sieciowe."</string>
     <string name="battery_saver_description" msgid="8518809702138617167">"Oszczędzanie baterii uruchamia ciemny motyw oraz wyłącza lub ogranicza aktywność w tle, niektóre efekty wizualne, pewne funkcje oraz wybrane połączenia sieciowe."</string>
     <string name="data_saver_description" msgid="4995164271550590517">"Oszczędzanie danych uniemożliwia niektórym aplikacjom wysyłanie i odbieranie danych w tle, zmniejszając w ten sposób ich użycie. Aplikacja, z której w tej chwili korzystasz, może uzyskiwać dostęp do danych, ale rzadziej. Może to powodować, że obrazy będą się wyświetlać dopiero po kliknięciu."</string>
-    <string name="data_saver_enable_title" msgid="7080620065745260137">"Włączyć Oszczędzanie danych?"</string>
+    <string name="data_saver_enable_title" msgid="7080620065745260137">"Włączyć oszczędzanie danych?"</string>
     <string name="data_saver_enable_button" msgid="4399405762586419726">"Włącz"</string>
     <string name="zen_mode_duration_minutes_summary" msgid="4555514757230849789">"{count,plural, =1{Przez 1 minutę (do {formattedTime})}few{Przez # minuty (do {formattedTime})}many{Przez # minut (do {formattedTime})}other{Przez # minuty (do {formattedTime})}}"</string>
     <string name="zen_mode_duration_minutes_summary_short" msgid="1187553788355486950">"{count,plural, =1{Przez 1 min (do {formattedTime})}few{Przez # min (do {formattedTime})}many{Przez # min (do {formattedTime})}other{Przez # min (do {formattedTime})}}"</string>
@@ -2137,6 +2137,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"Powiadomienie z informacją o trybie rutynowym"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"Oszczędzanie baterii jest włączone"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"Ograniczam wykorzystanie baterii, aby przedłużyć jej żywotność"</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"Oszczędzanie baterii jest włączone"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"Oszczędzanie baterii jest włączone, aby wydłużyć jej żywotność"</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"Oszczędzanie baterii"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"Oszczędzanie baterii zostało wyłączone"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"Telefon jest wystarczająco naładowany. Funkcje nie są już ograniczone."</string>
@@ -2395,4 +2397,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"Możesz wymieniać wiadomości bez dostępu do sieci komórkowej lub Wi-Fi"</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"Otwórz Wiadomości"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"Jak to działa"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"Skonfiguruj ponownie odblokowywanie odciskiem palca"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"Ten odcisk palca (<xliff:g id="FINGERPRINT">%s</xliff:g>) nie jest już rozpoznawany."</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"Te odciski palców (<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> i <xliff:g id="FINGERPRINT_1">%2$s</xliff:g>) nie są już rozpoznawane."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"Ten odcisk palca (<xliff:g id="FINGERPRINT">%s</xliff:g>) nie jest już rozpoznawany. Skonfiguruj ponownie odblokowywanie odciskiem palca."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"Te odciski palców (<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> i <xliff:g id="FINGERPRINT_1">%2$s</xliff:g>) nie są już rozpoznawane. Skonfiguruj ponownie odblokowywanie odciskiem palca."</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"Skonfiguruj ponownie rozpoznawanie twarzy"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"Model Twojej twarzy nie jest już rozpoznawany. Skonfiguruj ponownie rozpoznawanie twarzy."</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"Skonfiguruj"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"Nie teraz"</string>
 </resources>

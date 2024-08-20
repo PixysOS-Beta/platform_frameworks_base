@@ -313,6 +313,21 @@ public class WallpaperControllerTests extends WindowTestsBase {
         wallpaperController.adjustWallpaperWindows();
         // Wallpaper is invisible because the lowest show-when-locked activity is opaque.
         assertNull(wallpaperController.getWallpaperTarget());
+<<<<<<< HEAD
+=======
+
+        // Only transient-launch transition will make notification shade as last resort target.
+        // This verifies that regular transition won't choose invisible keyguard as the target.
+        final WindowState keyguard = createWindow(null /* parent */,
+                WindowManager.LayoutParams.TYPE_NOTIFICATION_SHADE, "keyguard");
+        keyguard.mAttrs.flags |= FLAG_SHOW_WALLPAPER;
+        registerTestTransitionPlayer();
+        final Transition transition = wallpaperWindow.mTransitionController.createTransition(
+                WindowManager.TRANSIT_CHANGE);
+        transition.collect(keyguard);
+        wallpaperController.adjustWallpaperWindows();
+        assertNull(wallpaperController.getWallpaperTarget());
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
 
         // A show-when-locked wallpaper is used for lockscreen. So the top wallpaper should
         // be the one that is not show-when-locked.

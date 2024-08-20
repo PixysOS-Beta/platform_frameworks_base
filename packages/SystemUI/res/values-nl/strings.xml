@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"Screenshots maken is geblokkeerd door je IT-beheerder"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Bewerken"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Screenshot bewerken"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Delen"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Screenshot delen"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Meer opnemen"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Screenshot sluiten"</string>
@@ -142,7 +143,7 @@
     <string name="accessibility_phone_button" msgid="4256353121703100427">"Telefoon"</string>
     <string name="accessibility_voice_assist_button" msgid="6497706615649754510">"Spraakassistent"</string>
     <string name="accessibility_wallet_button" msgid="1458258783460555507">"Portemonnee"</string>
-    <string name="accessibility_qr_code_scanner_button" msgid="7521277927692910795">"QR-codescanner"</string>
+    <string name="accessibility_qr_code_scanner_button" msgid="7521277927692910795">"QR-code­scanner"</string>
     <string name="accessibility_unlock_button" msgid="3613812140816244310">"Ontgrendeld"</string>
     <string name="accessibility_lock_icon" msgid="661492842417875775">"Apparaat vergrendeld"</string>
     <string name="accessibility_scanning_face" msgid="3093828357921541387">"Gezicht scannen"</string>
@@ -564,14 +565,14 @@
     <string name="screen_pinning_exit" msgid="4553787518387346893">"App losgemaakt"</string>
     <string name="stream_voice_call" msgid="7468348170702375660">"Bellen"</string>
     <string name="stream_system" msgid="7663148785370565134">"Systeem"</string>
-    <string name="stream_ring" msgid="7550670036738697526">"Bellen"</string>
+    <string name="stream_ring" msgid="7550670036738697526">"Beltoon"</string>
     <string name="stream_music" msgid="2188224742361847580">"Media"</string>
     <string name="stream_alarm" msgid="16058075093011694">"Wekker"</string>
     <string name="stream_notification" msgid="7930294049046243939">"Melding"</string>
     <string name="stream_bluetooth_sco" msgid="6234562365528664331">"Bluetooth"</string>
     <string name="stream_dtmf" msgid="7322536356554673067">"Frequentie voor tweevoudige multitoon"</string>
     <string name="stream_accessibility" msgid="3873610336741987152">"Toe­gankelijk­heid"</string>
-    <string name="volume_ringer_status_normal" msgid="1339039682222461143">"Bellen"</string>
+    <string name="volume_ringer_status_normal" msgid="1339039682222461143">"Beltoon"</string>
     <string name="volume_ringer_status_vibrate" msgid="6970078708957857825">"Trillen"</string>
     <string name="volume_ringer_status_silent" msgid="3691324657849880883">"Geluid staat uit"</string>
     <string name="media_device_cast" msgid="4786241789687569892">"Casten"</string>
@@ -605,7 +606,7 @@
     <string name="wallet_secondary_label_device_locked" msgid="5175862019125370506">"Ontgrendelen om te gebruiken"</string>
     <string name="wallet_error_generic" msgid="257704570182963611">"Er is een probleem opgetreden bij het ophalen van je kaarten. Probeer het later opnieuw."</string>
     <string name="wallet_lockscreen_settings_label" msgid="3539105300870383570">"Instellingen voor vergrendelscherm"</string>
-    <string name="qr_code_scanner_title" msgid="1938155688725760702">"QR-codescanner"</string>
+    <string name="qr_code_scanner_title" msgid="1938155688725760702">"QR-code­scanner"</string>
     <string name="qr_code_scanner_updating_secondary_label" msgid="8344598017007876352">"Updaten"</string>
     <string name="status_bar_work" msgid="5238641949837091056">"Werkprofiel"</string>
     <string name="status_bar_airplane" msgid="4848702508684541009">"Vliegtuig­modus"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Satelliet, slechte verbinding"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Satelliet, goede verbinding"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Satelliet, verbinding beschikbaar"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"SOS via satelliet"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Werkprofiel"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Leuk voor sommige gebruikers, maar niet voor iedereen"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"Met Systeem-UI-tuner beschikt u over extra manieren om de Android-gebruikersinterface aan te passen. Deze experimentele functies kunnen veranderen, vastlopen of verdwijnen in toekomstige releases. Ga voorzichtig verder."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Aan/uit-menu"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Pagina <xliff:g id="ID_1">%1$d</xliff:g> van <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Vergrendelscherm"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Je kunt deze telefoon vinden met Vind mijn apparaat, ook als die uitstaat"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Uitzetten…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Onderhoudsstappen bekijken"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Onderhoudsstappen bekijken"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Je apparaat loskoppelen"</string>
@@ -1062,7 +1067,7 @@
     <string name="media_output_dialog_multiple_devices" msgid="1093771040315422350">"<xliff:g id="COUNT">%1$d</xliff:g> apparaten geselecteerd"</string>
     <string name="media_output_dialog_disconnected" msgid="7090512852817111185">"(verbinding verbroken)"</string>
     <string name="media_output_dialog_connect_failed" msgid="3080972621975339387">"Kan niet schakelen. Tik om het opnieuw te proberen."</string>
-    <string name="media_output_dialog_pairing_new" msgid="5098212763195577270">"Een apparaat koppelen"</string>
+    <string name="media_output_dialog_pairing_new" msgid="5098212763195577270">"Apparaat koppelen"</string>
     <string name="media_output_dialog_launch_app_text" msgid="1527413319632586259">"Als je deze sessie wilt casten, open je de app."</string>
     <string name="media_output_dialog_unknown_launch_app_name" msgid="1084899329829371336">"Onbekende app"</string>
     <string name="media_output_dialog_button_stop_casting" msgid="6581379537930199189">"Casten stoppen"</string>
@@ -1228,7 +1233,7 @@
     <string name="stylus_battery_low_percentage" msgid="1620068112350141558">"Nog <xliff:g id="PERCENTAGE">%s</xliff:g> batterijlading"</string>
     <string name="stylus_battery_low_subtitle" msgid="3583843128908823273">"Verbind je stylus met een oplader"</string>
     <string name="stylus_battery_low" msgid="7134370101603167096">"Batterij van stylus bijna leeg"</string>
-    <string name="video_camera" msgid="7654002575156149298">"Videocamera"</string>
+    <string name="video_camera" msgid="7654002575156149298">"Video­camera"</string>
     <string name="call_from_work_profile_title" msgid="5418253516453177114">"Kan niet bellen vanuit een app voor persoonlijke doeleinden"</string>
     <string name="call_from_work_profile_text" msgid="2856337395968118274">"Je organisatie staat je alleen toe om te bellen vanuit werk-apps"</string>
     <string name="call_from_work_profile_action" msgid="2937701298133010724">"Overschakelen naar werkprofiel"</string>

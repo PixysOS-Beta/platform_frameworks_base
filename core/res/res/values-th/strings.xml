@@ -662,7 +662,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"ไม่รู้จักลายนิ้วมือ"</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"ไม่รู้จักลายนิ้วมือ"</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"ไม่รู้จักใบหน้า ใช้ลายนิ้วมือแทน"</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"ไม่รู้จักใบหน้า ใช้ลายนิ้วมือแทน"</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"ตรวจสอบสิทธิ์ลายนิ้วมือแล้ว"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"ตรวจสอบสิทธิ์ใบหน้าแล้ว"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"ตรวจสอบสิทธิ์ใบหน้าแล้ว โปรดกดยืนยัน"</string>
@@ -1613,7 +1613,7 @@
     <string name="data_usage_mobile_limit_snoozed_title" msgid="101888478915677895">"เกินปริมาณเน็ตมือถือที่กำหนดไว้"</string>
     <string name="data_usage_wifi_limit_snoozed_title" msgid="1622359254521960508">"เกินขีดจำกัดของข้อมูล Wi-Fi"</string>
     <string name="data_usage_limit_snoozed_body" msgid="545146591766765678">"คุณใช้อินเทอร์เน็ตเกินไป <xliff:g id="SIZE">%s</xliff:g> จากปริมาณที่กำหนดไว้"</string>
-    <string name="data_usage_restricted_title" msgid="126711424380051268">"จำกัดอินเทอร์เน็ตที่ใช้งานอยู่เบื้องหลัง"</string>
+    <string name="data_usage_restricted_title" msgid="126711424380051268">"จำกัดข้อมูลในเบื้องหลัง"</string>
     <string name="data_usage_restricted_body" msgid="5338694433686077733">"แตะเพื่อนำข้อจำกัดออก"</string>
     <string name="data_usage_rapid_title" msgid="2950192123248740375">"ปริมาณการใช้เน็ตมือถือสูง"</string>
     <string name="data_usage_rapid_body" msgid="3886676853263693432">"แอปของคุณใช้อินเทอร์เน็ตมากกว่าปกติ"</string>
@@ -2135,6 +2135,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"การแจ้งเตือนข้อมูลโหมดกิจวัตร"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"เปิดโหมดประหยัดแบตเตอรี่แล้ว"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"ลดการใช้งานแบตเตอรี่เพื่อยืดอายุการใช้งานแบตเตอรี่"</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"โหมดประหยัดแบตเตอรี่เปิดอยู่"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"เปิดโหมดประหยัดแบตเตอรี่แล้วเพื่อยืดระยะเวลาการใช้งานแบตเตอรี่"</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"โหมดประหยัดแบตเตอรี่"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"ปิดโหมดประหยัดแบตเตอรี่แล้ว"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"โทรศัพท์มีแบตเตอรี่เพียงพอ ไม่มีการจำกัดฟีเจอร์แล้ว"</string>
@@ -2189,7 +2191,7 @@
     <string name="conversation_title_fallback_one_to_one" msgid="1980753619726908614">"การสนทนา"</string>
     <string name="conversation_title_fallback_group_chat" msgid="456073374993104303">"บทสนทนากลุ่ม"</string>
     <string name="unread_convo_overflow" msgid="920517615597353833">"<xliff:g id="MAX_UNREAD_COUNT">%1$d</xliff:g>+"</string>
-    <string name="resolver_personal_tab" msgid="2051260504014442073">"ส่วนตัว"</string>
+    <string name="resolver_personal_tab" msgid="2051260504014442073">"ส่วนบุคคล"</string>
     <string name="resolver_work_tab" msgid="2690019516263167035">"งาน"</string>
     <string name="resolver_personal_tab_accessibility" msgid="5739524949153091224">"มุมมองส่วนตัว"</string>
     <string name="resolver_work_tab_accessibility" msgid="4753168230363802734">"ดูงาน"</string>
@@ -2393,4 +2395,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"คุณรับส่งข้อความผ่านดาวเทียมได้โดยไม่ต้องใช้เครือข่ายมือถือหรือ Wi-Fi"</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"เปิด Messages"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"วิธีการทำงาน"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"ตั้งค่าการปลดล็อกด้วยลายนิ้วมืออีกครั้ง"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"ระบบไม่จดจำ <xliff:g id="FINGERPRINT">%s</xliff:g> อีกต่อไป"</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"ระบบไม่จดจำ <xliff:g id="FINGERPRINT_0">%1$s</xliff:g> และ <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> อีกต่อไป"</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"ระบบไม่จดจำ <xliff:g id="FINGERPRINT">%s</xliff:g> อีกต่อไป ตั้งค่าการปลดล็อกด้วยลายนิ้วมืออีกครั้ง"</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"ระบบไม่จดจำ <xliff:g id="FINGERPRINT_0">%1$s</xliff:g> และ <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> อีกต่อไป ตั้งค่าการปลดล็อกด้วยลายนิ้วมืออีกครั้ง"</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"ตั้งค่าการปลดล็อกด้วยใบหน้าอีกครั้ง"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"ระบบไม่จดจำรูปแบบใบหน้าของคุณอีกต่อไป ตั้งค่าการปลดล็อกด้วยใบหน้าอีกครั้ง"</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"ตั้งค่า"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"ไว้ทีหลัง"</string>
 </resources>

@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"你的 IT 管理員已禁止擷取螢幕畫面"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"編輯"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"編輯螢幕截圖"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"分享"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"分享螢幕截圖"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"擴大螢幕截圖範圍"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"關閉螢幕截圖"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"衛星，連線品質不佳"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"衛星，連線品質良好"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"衛星，可連線"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"緊急衛星連線"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"工作資料夾"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"有趣與否，見仁見智"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"系統使用者介面調整精靈可讓你透過其他方式，調整及自訂 Android 使用者介面。這些實驗性功能隨著版本更新可能會變更、損壞或消失，執行時請務必謹慎。"</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"電源鍵選單"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"第 <xliff:g id="ID_1">%1$d</xliff:g> 頁，共 <xliff:g id="ID_2">%2$d</xliff:g> 頁"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"螢幕鎖定"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"即使這支手機關機，仍可透過「尋找我的裝置」找出手機位置"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"關機中…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"查看處理步驟"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"查看處理步驟"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"拔除裝置"</string>

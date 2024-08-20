@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"Зачувувањето слики од екранот е блокирано од IT-администраторот"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Измени"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Изменете ја сликата од екранот"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Сподели"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Споделете слика од екранот"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Сними повеќе"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Отфрлете ја сликата од екранот"</string>
@@ -270,7 +271,7 @@
     <string name="accessibility_quick_settings_bluetooth_device_tap_to_activate" msgid="3724301751036877403">"активирај"</string>
     <string name="turn_on_bluetooth_auto_tomorrow" msgid="414836329962473906">"Автоматски вклучи повторно утре"</string>
     <string name="turn_on_bluetooth_auto_info" msgid="8831410009251539988">"Функциите како „Брзо споделување“, „Најди го мојот уред“ и локација на уредот користат Bluetooth"</string>
-    <string name="quick_settings_bluetooth_secondary_label_battery_level" msgid="4182034939479344093">"<xliff:g id="BATTERY_LEVEL_AS_PERCENTAGE">%s</xliff:g> батерија"</string>
+    <string name="quick_settings_bluetooth_secondary_label_battery_level" msgid="4182034939479344093">"Батерија: <xliff:g id="BATTERY_LEVEL_AS_PERCENTAGE">%s</xliff:g>"</string>
     <string name="quick_settings_bluetooth_secondary_label_audio" msgid="780333390310051161">"Аудио"</string>
     <string name="quick_settings_bluetooth_secondary_label_headset" msgid="2332093067553000852">"Слушалки"</string>
     <string name="quick_settings_bluetooth_secondary_label_input" msgid="3887552721233148132">"Влез"</string>
@@ -564,14 +565,18 @@
     <string name="screen_pinning_exit" msgid="4553787518387346893">"Апликацијата е откачена"</string>
     <string name="stream_voice_call" msgid="7468348170702375660">"Повик"</string>
     <string name="stream_system" msgid="7663148785370565134">"Систем"</string>
+<<<<<<< HEAD
     <string name="stream_ring" msgid="7550670036738697526">"Ѕвони"</string>
+=======
+    <string name="stream_ring" msgid="7550670036738697526">"Ѕвонење"</string>
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="stream_music" msgid="2188224742361847580">"Аудиовизуелни содржини"</string>
     <string name="stream_alarm" msgid="16058075093011694">"Аларм"</string>
     <string name="stream_notification" msgid="7930294049046243939">"Известување"</string>
     <string name="stream_bluetooth_sco" msgid="6234562365528664331">"Bluetooth"</string>
     <string name="stream_dtmf" msgid="7322536356554673067">"Двојна повеќетонска фреквенција"</string>
     <string name="stream_accessibility" msgid="3873610336741987152">"Пристапност"</string>
-    <string name="volume_ringer_status_normal" msgid="1339039682222461143">"Ѕвони"</string>
+    <string name="volume_ringer_status_normal" msgid="1339039682222461143">"Ѕвонење"</string>
     <string name="volume_ringer_status_vibrate" msgid="6970078708957857825">"Вибрации"</string>
     <string name="volume_ringer_status_silent" msgid="3691324657849880883">"Исклучи звук"</string>
     <string name="media_device_cast" msgid="4786241789687569892">"Емитување"</string>
@@ -617,6 +622,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Слаба сателитска врска"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Добра сателитска врска"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Достапна е сателитска врска"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"Сателитски SOS"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Работен профил"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Забава за некои, но не за сите"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"Адаптерот на УИ на системот ви дава дополнителни начини за дотерување и приспособување на корисничкиот интерфејс на Android. Овие експериментални функции можеби ќе се изменат, расипат или ќе исчезнат во следните изданија. Продолжете со претпазливост."</string>
@@ -835,8 +841,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Мени на копчето за вклучување"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Страница <xliff:g id="ID_1">%1$d</xliff:g> од <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Заклучен екран"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Може да го лоцирате телефонов со „Најди го мојот уред“ дури и кога е исклучен"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Се исклучува…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Прикажи ги чекорите за грижа за уредот"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Прикажи ги чекорите за грижа за уредот"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Исклучете го уредот од кабел"</string>
@@ -971,7 +980,7 @@
     <string name="accessibility_floating_button_action_move_out_edge_and_show" msgid="8354760891651663326">"Премести над работ и прикажи"</string>
     <string name="accessibility_floating_button_action_remove_menu" msgid="6730432848162552135">"Отстрани"</string>
     <string name="accessibility_floating_button_action_double_tap_to_toggle" msgid="7976492639670692037">"вклучување/исклучување"</string>
-    <string name="accessibility_floating_button_action_edit" msgid="1688227814600463987">"Изменете"</string>
+    <string name="accessibility_floating_button_action_edit" msgid="1688227814600463987">"Измени"</string>
     <string name="quick_controls_title" msgid="6839108006171302273">"Контроли за уредите"</string>
     <string name="controls_providers_title" msgid="6879775889857085056">"Изберете апликација за да додадете контроли"</string>
     <string name="controls_number_of_favorites" msgid="4481806788981836355">"{count,plural, =1{Додадена е # контрола.}one{Додадени се # контрола.}other{Додадени се # контроли.}}"</string>
@@ -1271,5 +1280,5 @@
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"Осветлување на тастатура"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"Ниво %1$d од %2$d"</string>
     <string name="home_controls_dream_label" msgid="6567105701292324257">"Контроли за домот"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"Брзо прист. до контр. за дом. како штедач на екран"</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"Контролите за домот како штедач на екран"</string>
 </resources>

@@ -3137,8 +3137,11 @@ public class DisplayManagerServiceTest {
         }
         displayDeviceInfo.address = new TestUtils.TestDisplayAddress();
         displayDevice.setDisplayDeviceInfo(displayDeviceInfo);
-        displayManager.getDisplayDeviceRepository()
-                .onDisplayDeviceEvent(displayDevice, DisplayAdapter.DISPLAY_DEVICE_EVENT_ADDED);
+
+        displayManager.getDisplayHandler().runWithScissors(() -> {
+            displayManager.getDisplayDeviceRepository()
+                    .onDisplayDeviceEvent(displayDevice, DisplayAdapter.DISPLAY_DEVICE_EVENT_ADDED);
+        }, 0 /* now */);
         return displayDevice;
     }
 

@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"您的 IT 管理员已禁止截取屏幕截图"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"编辑"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"编辑屏幕截图"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"分享"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"分享屏幕截图"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"截取更多内容"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"关闭屏幕截图"</string>
@@ -263,7 +264,7 @@
     <string name="quick_settings_bluetooth_tile_subtitle" msgid="212752719010829550">"点按即可连接设备或断开设备连接"</string>
     <string name="pair_new_bluetooth_devices" msgid="4601767620843349645">"与新设备配对"</string>
     <string name="see_all_bluetooth_devices" msgid="1761596816620200433">"查看全部"</string>
-    <string name="turn_on_bluetooth" msgid="5681370462180289071">"使用蓝牙"</string>
+    <string name="turn_on_bluetooth" msgid="5681370462180289071">"启用蓝牙"</string>
     <string name="quick_settings_bluetooth_device_connected" msgid="7884777006729260996">"已连接"</string>
     <string name="quick_settings_bluetooth_device_saved" msgid="7549938728928069477">"已保存"</string>
     <string name="accessibility_quick_settings_bluetooth_device_tap_to_disconnect" msgid="415980329093277342">"断开连接"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"卫星，连接质量不佳"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"卫星，连接质量良好"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"卫星，可连接"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"卫星紧急呼救"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"工作资料"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"并不适合所有用户"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"系统界面调节工具可让您以更多方式调整及定制 Android 界面。在日后推出的版本中，这些实验性功能可能会变更、失效或消失。操作时请务必谨慎。"</string>
@@ -654,7 +656,7 @@
     <string name="notification_unblockable_call_desc" msgid="5907328164696532169">"无法修改来电通知。"</string>
     <string name="notification_multichannel_desc" msgid="7414593090056236179">"您无法在此处配置这组通知"</string>
     <string name="notification_delegate_header" msgid="1264510071031479920">"代理通知"</string>
-    <string name="notification_channel_dialog_title" msgid="6856514143093200019">"所有的<xliff:g id="APP_NAME">%1$s</xliff:g>通知"</string>
+    <string name="notification_channel_dialog_title" msgid="6856514143093200019">"所有“<xliff:g id="APP_NAME">%1$s</xliff:g>”通知"</string>
     <string name="see_more_title" msgid="7409317011708185729">"查看更多"</string>
     <string name="feedback_alerted" msgid="5192459808484271208">"系统已自动将此通知的重要性&lt;b&gt;提升为“默认”&lt;/b&gt;。"</string>
     <string name="feedback_silenced" msgid="9116540317466126457">"系统已自动将此通知的重要性&lt;b&gt;降低为“静音”&lt;/b&gt;。"</string>
@@ -718,7 +720,11 @@
     <string name="keyboard_shortcut_search_list_no_result" msgid="6819302191660875501">"未找到任何快捷键"</string>
     <string name="keyboard_shortcut_search_category_system" msgid="1151182120757052669">"系统"</string>
     <string name="keyboard_shortcut_search_category_input" msgid="5440558509904296233">"输入"</string>
+<<<<<<< HEAD
     <string name="keyboard_shortcut_search_category_open_apps" msgid="1450959949739257562">"已打开的应用"</string>
+=======
+    <string name="keyboard_shortcut_search_category_open_apps" msgid="1450959949739257562">"打开应用"</string>
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="keyboard_shortcut_search_category_current_app" msgid="2011953559133734491">"当前应用"</string>
     <string name="keyboard_shortcut_a11y_show_search_results" msgid="2865241062981833705">"目前显示的是搜索结果"</string>
     <string name="keyboard_shortcut_a11y_filter_system" msgid="7744143131119370483">"目前显示的是系统快捷键"</string>
@@ -835,8 +841,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"电源菜单"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"第 <xliff:g id="ID_1">%1$d</xliff:g> 页，共 <xliff:g id="ID_2">%2$d</xliff:g> 页"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"锁定屏幕"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"即使手机已关机，您也可以通过“查找我的设备”找到这部手机"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"正在关机…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"查看处理步骤"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"查看处理步骤"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"拔出设备"</string>

@@ -111,10 +111,20 @@ constructor(
                             waitForScreenTurnedOn()
                             playFoldLightRevealOverlayAnimation()
                         }
+<<<<<<< HEAD
                     } catch (e: TimeoutCancellationException) {
                         Log.e(TAG, "Fold light reveal animation timed out")
                         ensureOverlayRemovedInternal()
                     }
+=======
+                        .catchTimeoutAndLog()
+                        .onCompletion {
+                            controller.ensureOverlayRemoved()
+                            val onReady = readyCallback?.takeIf { it.isCompleted }?.getCompleted()
+                            onReady?.run()
+                            readyCallback = null
+                        }
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
                 }
         }
     }

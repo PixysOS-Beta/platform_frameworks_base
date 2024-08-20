@@ -273,7 +273,7 @@
     <string name="confirm_enable_oem_unlock_text" msgid="854131050791011970">"ચેતવણી: જ્યારે આ સેટિંગ ચાલુ હોય ત્યારે આ ઉપકરણ પર ઉપકરણ સંરક્ષણ સુવિધાઓ કાર્ય કરશે નહીં."</string>
     <string name="mock_location_app" msgid="6269380172542248304">"મોક લોકેશન ઍપ પસંદ કરો"</string>
     <string name="mock_location_app_not_set" msgid="6972032787262831155">"કોઈ મોક લોકેશન ઍપ સેટ કરાયેલું નથી"</string>
-    <string name="mock_location_app_set" msgid="4706722469342913843">"મોક સ્થાન ઍપ્લિકેશન: <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
+    <string name="mock_location_app_set" msgid="4706722469342913843">"મૉક લોકેશન ઍપ: <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
     <string name="debug_networking_category" msgid="6829757985772659599">"નેટવર્કિંગ"</string>
     <string name="wifi_display_certification" msgid="1805579519992520381">"વાયરલેસ ડિસ્પ્લે પ્રમાણન"</string>
     <string name="wifi_verbose_logging" msgid="1785910450009679371">"વાઇ-ફાઇ વર્બોઝ લૉગિંગ ચાલુ કરો"</string>
@@ -479,6 +479,10 @@
     <string name="power_charging_duration" msgid="6127154952524919719">"<xliff:g id="LEVEL">%1$s</xliff:g> - પૂર્ણ ચાર્જ થવામાં <xliff:g id="TIME">%2$s</xliff:g> બાકી છે"</string>
     <string name="power_charging_limited" msgid="8202147604844938236">"<xliff:g id="LEVEL">%1$s</xliff:g> - ચાર્જિંગ ઑપ્ટિમાઇઝ કરવામાં આવ્યું છે"</string>
     <string name="power_charging_future_paused" msgid="1809543660923642799">"<xliff:g id="LEVEL">%1$s</xliff:g> - ચાર્જિંગ"</string>
+    <string name="power_fast_charging_duration_v2" msgid="3797735998640359490">"<xliff:g id="LEVEL">%1$s</xliff:g> - <xliff:g id="STATUS">%2$s</xliff:g> - <xliff:g id="TIME">%3$s</xliff:g> સુધીમાં સંપૂર્ણ ચાર્જ થશે"</string>
+    <string name="power_charging_duration_v2" msgid="2938998284074003248">"<xliff:g id="LEVEL">%1$s</xliff:g> - <xliff:g id="TIME">%2$s</xliff:g> સુધીમાં સંપૂર્ણ ચાર્જ થશે"</string>
+    <string name="power_remaining_charging_duration_only_v2" msgid="5358176435722950193">"<xliff:g id="TIME">%1$s</xliff:g> સુધીમાં સંપૂર્ણ ચાર્જ થશે"</string>
+    <string name="power_remaining_fast_charging_duration_only_v2" msgid="6270950195810579563">"<xliff:g id="TIME">%1$s</xliff:g> સુધીમાં સંપૂર્ણ ચાર્જ થશે"</string>
     <string name="battery_info_status_unknown" msgid="268625384868401114">"અજાણ્યું"</string>
     <string name="battery_info_status_charging" msgid="4279958015430387405">"ચાર્જ થઈ રહ્યું છે"</string>
     <string name="battery_info_status_charging_fast" msgid="8027559755902954885">"ઝડપથી ચાર્જ થાય છે"</string>
@@ -490,6 +494,8 @@
     <string name="battery_info_status_full" msgid="1339002294876531312">"ચાર્જ થયું"</string>
     <string name="battery_info_status_full_charged" msgid="3536054261505567948">"સંપૂર્ણપણે ચાર્જ છે"</string>
     <string name="battery_info_status_charging_on_hold" msgid="6364355145521694438">"ચાર્જિંગ હોલ્ડ પર રાખવામાં આવ્યું"</string>
+    <string name="battery_info_status_charging_v2" msgid="6118522107222245505">"ચાર્જ થઈ રહ્યું છે"</string>
+    <string name="battery_info_status_charging_fast_v2" msgid="1825439848151256589">"ઝડપી ચાર્જિંગ"</string>
     <string name="disabled_by_admin_summary_text" msgid="5343911767402923057">"વ્યવસ્થાપક દ્વારા નિયંત્રિત"</string>
     <string name="disabled_by_app_ops_text" msgid="8373595926549098012">"પ્રતિબંધિત સેટિંગ દ્વારા નિયંત્રિત"</string>
     <string name="disabled" msgid="8017887509554714950">"અક્ષમ કર્યો"</string>
@@ -534,7 +540,7 @@
     <string name="okay" msgid="949938843324579502">"ઓકે"</string>
     <string name="done" msgid="381184316122520313">"થઈ ગયું"</string>
     <string name="alarms_and_reminders_label" msgid="6918395649731424294">"અલાર્મ અને રિમાઇન્ડર"</string>
-    <string name="alarms_and_reminders_switch_title" msgid="4939393911531826222">"અલાર્મ અને રિમાન્ડરના સેટિંગની મંજૂરી આપો"</string>
+    <string name="alarms_and_reminders_switch_title" msgid="4939393911531826222">"અલાર્મ અને રિમાઇન્ડરના સેટિંગની મંજૂરી આપો"</string>
     <string name="alarms_and_reminders_title" msgid="8819933264635406032">"અલાર્મ અને રિમાઇન્ડર"</string>
     <string name="alarms_and_reminders_footer_title" msgid="6302587438389079695">"આ ઍપને અલાર્મ સેટ કરવા અને સમય પ્રતિ સંવેદનશીલ ક્રિયાઓ શેડ્યૂલ કરવા માટે મંજૂરી આપો. આ ઍપને બૅકગ્રાઉન્ડમાં ચાલવા દે છે, જેને કારણે બૅટરીનો વધુ વપરાશ થઈ શકે છે.\n\nજો આ પરવાનગી બંધ હોય, તો આ ઍપ દ્વારા શેડ્યૂલ કરવામાં આવેલા વર્તમાન અલાર્મ અને સમય આધારિત ઇવેન્ટ કામ કરશે નહીં."</string>
     <string name="keywords_alarms_and_reminders" msgid="6633360095891110611">"શેડ્યૂલ, અલાર્મ, રિમાઇન્ડર, ઘડિયાળ"</string>
@@ -579,7 +585,7 @@
     <string name="help_label" msgid="3528360748637781274">"સહાય અને પ્રતિસાદ"</string>
     <string name="storage_category" msgid="2287342585424631813">"સ્ટોરેજ"</string>
     <string name="shared_data_title" msgid="1017034836800864953">"શેર કરેલો ડેટા"</string>
-    <string name="shared_data_summary" msgid="5516326713822885652">"શેર કરેલા ડેટાને જુઓ અને તેને સંશોધિત કરો"</string>
+    <string name="shared_data_summary" msgid="5516326713822885652">"શેર કરેલા ડેટાને જુઓ અને તેમાં ફેરફાર કરો"</string>
     <string name="shared_data_no_blobs_text" msgid="3108114670341737434">"આ વપરાશકર્તા માટે કોઈ શેર કરેલો ડેટા નથી."</string>
     <string name="shared_data_query_failure_text" msgid="3489828881998773687">"શેર કરેલો ડેટા મેળવવામાં ભૂલ આવી હતી. ફરી પ્રયાસ કરો."</string>
     <string name="blob_id_text" msgid="8680078988996308061">"શેર કરેલા ડેટાનું ID: <xliff:g id="BLOB_ID">%d</xliff:g>"</string>
@@ -678,6 +684,7 @@
     <string name="accessibility_phone_one_bar" msgid="5719721147018970063">"ફોન એક બાર."</string>
     <string name="accessibility_phone_two_bars" msgid="2531458337458953263">"ફોન બે બાર."</string>
     <string name="accessibility_phone_three_bars" msgid="1523967995996696619">"ફોન ત્રણ બાર."</string>
+    <string name="accessibility_phone_four_bars" msgid="4477202400261338403">"ફોનના સિગ્નલમાં ચાર બાર છે."</string>
     <string name="accessibility_phone_signal_full" msgid="4302338883816077134">"પૂર્ણ ફોન સિગ્નલ."</string>
     <string name="accessibility_no_data" msgid="4563181886936931008">"કોઈ ડેટા નથી."</string>
     <string name="accessibility_data_one_bar" msgid="6892888138070752480">"ડેટા એક બાર."</string>

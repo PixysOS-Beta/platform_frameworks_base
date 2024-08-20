@@ -180,8 +180,8 @@
     <string name="launch_defaults_some" msgid="3631650616557252926">"تم ضبط بعض الإعدادات التلقائية"</string>
     <string name="launch_defaults_none" msgid="8049374306261262709">"لم يتم ضبط إعدادات تلقائية"</string>
     <string name="tts_settings" msgid="8130616705989351312">"إعدادات تحويل النص إلى كلام"</string>
-    <string name="tts_settings_title" msgid="7602210956640483039">"إخراج النص إلى كلام"</string>
-    <string name="tts_default_rate_title" msgid="3964187817364304022">"معدل سرعة الكلام"</string>
+    <string name="tts_settings_title" msgid="7602210956640483039">"الرد الصوتي"</string>
+    <string name="tts_default_rate_title" msgid="3964187817364304022">"سرعة الكلام"</string>
     <string name="tts_default_rate_summary" msgid="3781937042151716987">"سرعة قول الكلام"</string>
     <string name="tts_default_pitch_title" msgid="6988592215554485479">"درجة الصوت"</string>
     <string name="tts_default_pitch_summary" msgid="9132719475281551884">"للتأثير في نبرة الكلام المُرَكَّب"</string>
@@ -194,7 +194,7 @@
     <string name="tts_install_data_title" msgid="1829942496472751703">"تثبيت البيانات الصوتية"</string>
     <string name="tts_install_data_summary" msgid="3608874324992243851">"تثبيت البيانات الصوتية المطلوبة لتجميع الكلام"</string>
     <string name="tts_engine_security_warning" msgid="3372432853837988146">"ربما يمكن لمحرك اصطناع الحديث جمع كل النص التي سيتم نطقه، بما في ذلك البيانات الشخصية مثل كلمات المرور وأرقام بطاقة الائتمان. يتم إحضار ذلك من المحرك <xliff:g id="TTS_PLUGIN_ENGINE_NAME">%s</xliff:g>. هل تريد تفعيل استخدام محرك اصطناع الحديث هذا؟"</string>
-    <string name="tts_engine_network_required" msgid="8722087649733906851">"تتطلب هذه اللغة اتصال شبكة سليمًا لتحويل النص إلى كلام."</string>
+    <string name="tts_engine_network_required" msgid="8722087649733906851">"تتطلب هذه اللغة اتصال شبكة سليمًا لاستخدام ميزة الرد الصوتي."</string>
     <string name="tts_default_sample_string" msgid="6388016028292967973">"هذا مثال لتركيب الكلام"</string>
     <string name="tts_status_title" msgid="8190784181389278640">"حالة اللغة التلقائية"</string>
     <string name="tts_status_ok" msgid="8583076006537547379">"<xliff:g id="LOCALE">%1$s</xliff:g> متوافقة تمامًا"</string>
@@ -218,10 +218,10 @@
     <item msgid="4446831566506165093">"350%"</item>
     <item msgid="6946761421234586000">"400%"</item>
   </string-array>
-    <string name="choose_profile" msgid="343803890897657450">"اختيار ملف شخصي"</string>
-    <string name="category_personal" msgid="6236798763159385225">"الحسابات الشخصية"</string>
-    <string name="category_work" msgid="4014193632325996115">"حسابات العمل"</string>
-    <string name="category_private" msgid="4244892185452788977">"ملف شخصي"</string>
+    <string name="choose_profile" msgid="343803890897657450">"تحديد الملف"</string>
+    <string name="category_personal" msgid="6236798763159385225">"الملف الشخصي"</string>
+    <string name="category_work" msgid="4014193632325996115">"ملف العمل"</string>
+    <string name="category_private" msgid="4244892185452788977">"الملف الخاص"</string>
     <string name="category_clone" msgid="1554511758987195974">"استنساخ"</string>
     <string name="development_settings_title" msgid="140296922921597393">"خيارات المطورين"</string>
     <string name="development_settings_enable" msgid="4285094651288242183">"تفعيل خيارات المطورين"</string>
@@ -479,6 +479,10 @@
     <string name="power_charging_duration" msgid="6127154952524919719">"<xliff:g id="LEVEL">%1$s</xliff:g> - يتبقّى <xliff:g id="TIME">%2$s</xliff:g> حتى اكتمال شحن البطارية."</string>
     <string name="power_charging_limited" msgid="8202147604844938236">"<xliff:g id="LEVEL">%1$s</xliff:g> - تم تحسين الشحن"</string>
     <string name="power_charging_future_paused" msgid="1809543660923642799">"‫<xliff:g id="LEVEL">%1$s</xliff:g>: جارٍ الشحن"</string>
+    <string name="power_fast_charging_duration_v2" msgid="3797735998640359490">"‏‫‎<xliff:g id="LEVEL">%1$s</xliff:g> - <xliff:g id="STATUS">%2$s</xliff:g> - سيكتمل الشحن بحلول <xliff:g id="TIME">%3$s</xliff:g>"</string>
+    <string name="power_charging_duration_v2" msgid="2938998284074003248">"‏‫‎<xliff:g id="LEVEL">%1$s</xliff:g> - سيكتمل الشحن بحلول <xliff:g id="TIME">%2$s</xliff:g>"</string>
+    <string name="power_remaining_charging_duration_only_v2" msgid="5358176435722950193">"سيكتمل الشحن بحلول <xliff:g id="TIME">%1$s</xliff:g>"</string>
+    <string name="power_remaining_fast_charging_duration_only_v2" msgid="6270950195810579563">"سيكتمل الشحن بحلول <xliff:g id="TIME">%1$s</xliff:g>"</string>
     <string name="battery_info_status_unknown" msgid="268625384868401114">"غير معروف"</string>
     <string name="battery_info_status_charging" msgid="4279958015430387405">"جارٍ الشحن"</string>
     <string name="battery_info_status_charging_fast" msgid="8027559755902954885">"جارٍ الشحن سريعًا"</string>
@@ -490,6 +494,8 @@
     <string name="battery_info_status_full" msgid="1339002294876531312">"مشحونة"</string>
     <string name="battery_info_status_full_charged" msgid="3536054261505567948">"البطارية مشحونة بالكامل."</string>
     <string name="battery_info_status_charging_on_hold" msgid="6364355145521694438">"الشحن معلَّق"</string>
+    <string name="battery_info_status_charging_v2" msgid="6118522107222245505">"جارٍ الشحن"</string>
+    <string name="battery_info_status_charging_fast_v2" msgid="1825439848151256589">"جارٍ الشحن السريع"</string>
     <string name="disabled_by_admin_summary_text" msgid="5343911767402923057">"إعدادات يتحكم فيها المشرف"</string>
     <string name="disabled_by_app_ops_text" msgid="8373595926549098012">"يتحكّم فيه إعداد محظور"</string>
     <string name="disabled" msgid="8017887509554714950">"غير مفعّل"</string>
@@ -651,7 +657,7 @@
     <string name="user_image_photo_selector" msgid="433658323306627093">"اختيار صورة"</string>
     <string name="failed_attempts_now_wiping_device" msgid="4016329172216428897">"لقد استنفدت عدد المحاولات غير الصحيحة وسيتم حذف بيانات هذا الجهاز."</string>
     <string name="failed_attempts_now_wiping_user" msgid="469060411789668050">"لقد استنفدت عدد المحاولات غير الصحيحة وسيتم حذف حساب هذا المستخدم."</string>
-    <string name="failed_attempts_now_wiping_profile" msgid="7626589520888963129">"لقد استنفدت عدد المحاولات غير الصحيحة وسيتم حذف الملف الشخصي للعمل وبياناته."</string>
+    <string name="failed_attempts_now_wiping_profile" msgid="7626589520888963129">"لقد استنفدت عدد المحاولات غير الصحيحة وسيتم حذف ملف العمل وبياناته."</string>
     <string name="failed_attempts_now_wiping_dialog_dismiss" msgid="2749889771223578925">"إغلاق"</string>
     <string name="cached_apps_freezer_device_default" msgid="2616594131750144342">"الإعداد التلقائي للجهاز"</string>
     <string name="cached_apps_freezer_disabled" msgid="4816382260660472042">"غير مفعّل"</string>
@@ -678,6 +684,7 @@
     <string name="accessibility_phone_one_bar" msgid="5719721147018970063">"إشارة الهاتف تتكون من شريط واحد."</string>
     <string name="accessibility_phone_two_bars" msgid="2531458337458953263">"إشارة الهاتف تتكون من شريطين."</string>
     <string name="accessibility_phone_three_bars" msgid="1523967995996696619">"إشارة الهاتف تتكون من ثلاثة أشرطة."</string>
+    <string name="accessibility_phone_four_bars" msgid="4477202400261338403">"أربعة أشرطة في إشارة بيانات الهاتف"</string>
     <string name="accessibility_phone_signal_full" msgid="4302338883816077134">"إشارة الهاتف كاملة."</string>
     <string name="accessibility_no_data" msgid="4563181886936931008">"لا تتوفر بيانات."</string>
     <string name="accessibility_data_one_bar" msgid="6892888138070752480">"إشارة البيانات تتكون من شريط واحد."</string>

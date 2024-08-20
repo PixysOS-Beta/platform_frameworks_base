@@ -16,6 +16,8 @@
 
 package com.android.systemui.qs.tiles.dialog;
 
+import static android.telephony.SubscriptionManager.PROFILE_CLASS_PROVISIONING;
+
 import static com.android.settingslib.mobile.MobileMappings.getIconKey;
 import static com.android.settingslib.mobile.MobileMappings.mapIconSets;
 import static com.android.settingslib.wifi.WifiUtils.getHotspotIconResource;
@@ -196,7 +198,7 @@ public class InternetDialogController implements AccessPointController.AccessPoi
     private DialogTransitionAnimator mDialogTransitionAnimator;
     private boolean mHasWifiEntries;
     private WifiStateWorker mWifiStateWorker;
-    private boolean mHasActiveSubId;
+    private boolean mHasActiveSubIdOnDds;
 
     private final HotspotController mHotspotController;
     private final NetworkPolicyManager mPolicyManager;
@@ -332,7 +334,7 @@ public class InternetDialogController implements AccessPointController.AccessPoi
         mPolicyManager.registerListener(mPolicyListener);
         // Listen the subscription changes
         mOnSubscriptionsChangedListener = new InternetOnSubscriptionChangedListener();
-        refreshHasActiveSubId();
+        refreshHasActiveSubIdOnDds();
         mSubscriptionManager.addOnSubscriptionsChangedListener(mExecutor,
                 mOnSubscriptionsChangedListener);
         mDefaultDataSubId = getDefaultDataSubscriptionId();
@@ -463,7 +465,7 @@ public class InternetDialogController implements AccessPointController.AccessPoi
         }
         boolean isActiveOnNonDds = getActiveAutoSwitchNonDdsSubId() != SubscriptionManager
                 .INVALID_SUBSCRIPTION_ID;
-        if (!hasActiveSubId() || (!isVoiceStateInService(mDefaultDataSubId)
+        if (!hasActiveSubIdOnDds() || (!isVoiceStateInService(mDefaultDataSubId)
                 && !isDataStateInService(mDefaultDataSubId) && !isActiveOnNonDds)) {
             if (DEBUG) {
                 Log.d(TAG, "No carrier or service is out of service.");
@@ -948,23 +950,46 @@ public class InternetDialogController implements AccessPointController.AccessPoi
     /**
      * @return whether there is the carrier item in the slice.
      */
-    boolean hasActiveSubId() {
+    boolean hasActiveSubIdOnDds() {
         if (isAirplaneModeEnabled() || mTelephonyManager == null) {
             return false;
         }
 
-        return mHasActiveSubId;
+        return mHasActiveSubIdOnDds;
     }
 
-    private void refreshHasActiveSubId() {
+    private static boolean isEmbeddedSubscriptionVisible(@NonNull SubscriptionInfo subInfo) {
+        if (subInfo.isEmbedded() && subInfo.getProfileClass() == PROFILE_CLASS_PROVISIONING) {
+            return false;
+        }
+        return true;
+    }
+
+    private void refreshHasActiveSubIdOnDds() {
         if (mSubscriptionManager == null) {
-            mHasActiveSubId = false;
+            mHasActiveSubIdOnDds = false;
             Log.e(TAG, "SubscriptionManager is null, set mHasActiveSubId = false");
             return;
         }
+        int dds = getDefaultDataSubscriptionId();
+        if (dds == SubscriptionManager.INVALID_SUBSCRIPTION_ID) {
+            mHasActiveSubIdOnDds = false;
+            Log.d(TAG, "DDS is INVALID_SUBSCRIPTION_ID");
+            return;
+        }
+        SubscriptionInfo ddsSubInfo = mSubscriptionManager.getActiveSubscriptionInfo(dds);
+        if (ddsSubInfo == null) {
+            mHasActiveSubIdOnDds = false;
+            Log.e(TAG, "Can't get DDS subscriptionInfo");
+            return;
+        } else if (ddsSubInfo.isOnlyNonTerrestrialNetwork()) {
+            mHasActiveSubIdOnDds = false;
+            Log.d(TAG, "This is NTN, so do not show mobile data");
+            return;
+        }
 
-        mHasActiveSubId = mSubscriptionManager.getActiveSubscriptionIdList().length > 0;
-        Log.i(TAG, "mHasActiveSubId:" + mHasActiveSubId);
+        mHasActiveSubIdOnDds = isEmbeddedSubscriptionVisible(ddsSubInfo);
+        Log.i(TAG, "mHasActiveSubId:" + mHasActiveSubIdOnDds);
     }
 
     /**
@@ -1280,7 +1305,7 @@ public class InternetDialogController implements AccessPointController.AccessPoi
 
         @Override
         public void onSubscriptionsChanged() {
-            refreshHasActiveSubId();
+            refreshHasActiveSubIdOnDds();
             updateListener();
         }
     }
@@ -1377,6 +1402,7 @@ public class InternetDialogController implements AccessPointController.AccessPoi
                     Log.d(TAG, "ACTION_DEFAULT_DATA_SUBSCRIPTION_CHANGED");
                 }
                 mConfig = MobileMappings.Config.readConfig(context);
+                refreshHasActiveSubIdOnDds();
                 updateListener();
             } else if (WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION.equals(action)) {
                 updateListener();
@@ -1418,15 +1444,12 @@ public class InternetDialogController implements AccessPointController.AccessPoi
         mDefaultDataSubId = defaultDataSubId;
     }
 
-    boolean mayLaunchShareWifiSettings(WifiEntry wifiEntry) {
+    boolean mayLaunchShareWifiSettings(WifiEntry wifiEntry, View view) {
         Intent intent = getConfiguratorQrCodeGeneratorIntentOrNull(wifiEntry);
         if (intent == null) {
             return false;
         }
-        if (mCallback != null) {
-            mCallback.dismissDialog();
-        }
-        mActivityStarter.startActivity(intent, false /* dismissShade */);
+        startActivity(intent, view);
         return true;
     }
 

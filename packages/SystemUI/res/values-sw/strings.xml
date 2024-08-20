@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"Kupiga picha za skrini kumezuiwa na Msimamizi wako wa TEHAMA"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Badilisha"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Badilisha picha ya skrini"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Tuma"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Shiriki picha ya skrini"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Nasa zaidi"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Ondoa picha ya skrini"</string>
@@ -605,7 +606,7 @@
     <string name="wallet_secondary_label_device_locked" msgid="5175862019125370506">"Fungua ili utumie"</string>
     <string name="wallet_error_generic" msgid="257704570182963611">"Hitilafu imetokea wakati wa kuleta kadi zako, tafadhali jaribu tena baadaye"</string>
     <string name="wallet_lockscreen_settings_label" msgid="3539105300870383570">"Mipangilio ya kufunga skrini"</string>
-    <string name="qr_code_scanner_title" msgid="1938155688725760702">"Kichanganuzi cha msimbo wa QR"</string>
+    <string name="qr_code_scanner_title" msgid="1938155688725760702">"Kichanganuzi cha QR"</string>
     <string name="qr_code_scanner_updating_secondary_label" msgid="8344598017007876352">"Inasasisha"</string>
     <string name="status_bar_work" msgid="5238641949837091056">"Wasifu wa kazini"</string>
     <string name="status_bar_airplane" msgid="4848702508684541009">"Hali ya ndegeni"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Setilaiti, muunganisho hafifu"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Setilaiti, muunganisho thabiti"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Setilaiti, muunganisho unapatikana"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"Msaada kupitia Setilaiti"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Wasifu wa kazini"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Kinafurahisha kwa baadhi ya watu lakini si wote"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"Kirekebishi cha kiolesura cha mfumo kinakupa njia zaidi za kugeuza na kubadilisha kiolesura cha Android ili kikufae. Vipengele hivi vya majaribio vinaweza kubadilika, kuharibika au kupotea katika matoleo ya siku zijazo. Endelea kwa uangalifu."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Menyu ya kuzima/kuwasha"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Ukurasa wa <xliff:g id="ID_1">%1$d</xliff:g> kati ya <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Skrini iliyofungwa"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Unaweza kutambua mahali ilipo simu hii ukitumia programu ya Tafuta Kifaa Changu hata kama simu hiyo imezimwa"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Inazima…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Angalia hatua za utunzaji"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Angalia hatua za utunzaji"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Chomoa kifaa chako"</string>
@@ -1228,7 +1233,7 @@
     <string name="stylus_battery_low_percentage" msgid="1620068112350141558">"Chaji ya betri imesalia <xliff:g id="PERCENTAGE">%s</xliff:g>"</string>
     <string name="stylus_battery_low_subtitle" msgid="3583843128908823273">"Unganisha stylus yako kwenye chaja"</string>
     <string name="stylus_battery_low" msgid="7134370101603167096">"Chaji ya betri ya Stylus imepungua"</string>
-    <string name="video_camera" msgid="7654002575156149298">"Kamera ya kuchukulia video"</string>
+    <string name="video_camera" msgid="7654002575156149298">"Kamera ya video"</string>
     <string name="call_from_work_profile_title" msgid="5418253516453177114">"Huwezi kupiga simu kwa kutumia programu ya binafsi"</string>
     <string name="call_from_work_profile_text" msgid="2856337395968118274">"Shirika lako linakuruhusu upige simu ukitumia programu za kazini pekee"</string>
     <string name="call_from_work_profile_action" msgid="2937701298133010724">"Tumia wasifu wa kazini"</string>
@@ -1270,6 +1275,6 @@
     <string name="privacy_dialog_recent_app_usage_2" msgid="2874689735085367167">"Ilitumiwa hivi majuzi na <xliff:g id="APP_NAME">%1$s</xliff:g> (<xliff:g id="ATTRIBUTION_LABEL">%2$s</xliff:g> • <xliff:g id="PROXY_LABEL">%3$s</xliff:g>)"</string>
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"Mwanga chini ya kibodi"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"Kiwango cha %1$d kati ya %2$d"</string>
-    <string name="home_controls_dream_label" msgid="6567105701292324257">"Vidhibiti vya Vifaa Nyumbani"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"Fikia haraka vidhibiti vya vifaa nyumbani kama taswira ya skrini"</string>
+    <string name="home_controls_dream_label" msgid="6567105701292324257">"Dhibiti Vifaa Nyumbani"</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"Fikia haraka vidhibiti vya vifaa nyumbani vikiwa taswira ya skrini"</string>
 </resources>

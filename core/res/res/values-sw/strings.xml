@@ -662,7 +662,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"Alama ya kidole haijatambuliwa"</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"Alama ya kidole haijatambuliwa"</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"Imeshindwa kutambua uso. Tumia alama ya kidole."</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"Uso hautambuliki. Tumia alama ya kidole."</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"Imethibitisha alama ya kidole"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"Uso umethibitishwa"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"Uso umethibitishwa, tafadhali bonyeza thibitisha"</string>
@@ -828,7 +828,7 @@
     <string name="policylab_limitPassword" msgid="4851829918814422199">"Kuweka kanuni za nenosiri"</string>
     <string name="policydesc_limitPassword" msgid="4105491021115793793">"Dhibiti urefu na maandishi yanayokubalika katika nenosiri la kufunga skrini na PIN."</string>
     <string name="policylab_watchLogin" msgid="7599669460083719504">"Kuhesabu mara ambazo skrini inajaribu kufunguliwa"</string>
-    <string name="policydesc_watchLogin" product="tablet" msgid="2388436408621909298">"Kufuatilia idadi ya manenosiri yasiyo sahihi yatakayoingizwa wakati wa kufungua skrini, na kufunga kompyuta kibao au kufuta data yote iliyomo kama manenosiri mengi yasiyo sahihi yataingizwa."</string>
+    <string name="policydesc_watchLogin" product="tablet" msgid="2388436408621909298">"Fuatilia idadi ya manenosiri yasiyo sahihi yatakayoingizwa wakati wa kufungua skrini, na kufunga kishikwambi au kufuta data yote iliyomo ikiwa manenosiri mengi yasiyo sahihi yataingizwa."</string>
     <string name="policydesc_watchLogin" product="tv" msgid="2140588224468517507">"Fuatilia idadi ya manenosiri yasiyo sahihi yanayowekwa wakati wa kufungua skrini na ufunge kifaa chako cha Android TV au ufute data yake yote ikiwa mtumiaji ataweka manenosiri mengi mno yasiyo sahihi."</string>
     <string name="policydesc_watchLogin" product="automotive" msgid="7011438994051251521">"Fuatilia idadi ya manenosiri yasiyo sahihi yanayowekwa wakati wa kufungua skrini, na ufunge mfumo wa burudani na habari au ufute data yote kwenye mfumo wa burudani na habari ikiwa manenosiri mengi mno yasiyo sahihi yatawekwa."</string>
     <string name="policydesc_watchLogin" product="default" msgid="4885030206253600299">"Kufuatilia idadi ya manenosiri yasiyo sahihi yatakayoingizwa wakati wa kufungua skrini, na kufunga simu au kufuta data yote iliyomo kama manenosiri mengi sana yasiyo sahihi yataingizwa."</string>
@@ -841,7 +841,7 @@
     <string name="policylab_forceLock" msgid="7360335502968476434">"Kufunga skrini"</string>
     <string name="policydesc_forceLock" msgid="1008844760853899693">"Kudhibiti jinsi na wakati skrini inapofunga."</string>
     <string name="policylab_wipeData" msgid="1359485247727537311">"Kufuta data yote"</string>
-    <string name="policydesc_wipeData" product="tablet" msgid="7245372676261947507">"Futa data ya kompyuta kibao bila ilani kwa kurejesha mipangilio ambayo kompyuta ilitoka nayo kiwandani."</string>
+    <string name="policydesc_wipeData" product="tablet" msgid="7245372676261947507">"Futa data ya kishikwambi bila ilani kwa kurejesha mipangilio ambayo ilitoka nayo kiwandani."</string>
     <string name="policydesc_wipeData" product="tv" msgid="513862488950801261">"Futa data ya kifaa chako cha Android TV bila onyo kwa kurejesha data kiliyotoka nayo kiwandani."</string>
     <string name="policydesc_wipeData" product="automotive" msgid="660804547737323300">"Futa data ya mfumo wa burudani na habari bila onyo kwa kurejesha data iliyotoka nayo kiwandani."</string>
     <string name="policydesc_wipeData" product="default" msgid="8036084184768379022">"Kufuta data ya simu bila ilani kwa kurejesha mipangilio iliyotoka nayo kiwandani."</string>
@@ -1309,7 +1309,7 @@
     <string name="volume_call" msgid="7625321655265747433">"Sauti ya simu inayoendelea"</string>
     <string name="volume_bluetooth_call" msgid="2930204618610115061">"Sauti ya simu inayoendelea ya Bluetooth"</string>
     <string name="volume_alarm" msgid="4486241060751798448">"Sauti ya kengele"</string>
-    <string name="volume_notification" msgid="6864412249031660057">"Sauti ya notisi"</string>
+    <string name="volume_notification" msgid="6864412249031660057">"Sauti ya arifa"</string>
     <string name="volume_unknown" msgid="4041914008166576293">"Kiwango"</string>
     <string name="volume_icon_description_bluetooth" msgid="7540388479345558400">"Sauti ya Bluetooth"</string>
     <string name="volume_icon_description_ringer" msgid="2187800636867423459">"Sauti ya toni mlio"</string>
@@ -2135,6 +2135,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"Arifa ya maelezo ya Hali ya Kawaida"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"Kiokoa Betri kimewashwa"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"Inapunguza matumizi ya betri ili kuongeza muda wa matumizi ya betri"</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"Kiokoa Betri kimewashwa"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"Kiokoa Betri kimewashwa ili kuongeza muda wa matumizi ya betri"</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"Kiokoa betri"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"Kiokoa Betri kimezimwa"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"Simu ina chaji ya kutosha. Vipengele havizuiliwi tena."</string>
@@ -2393,4 +2395,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"Unaweza kutuma na kupokea ujumbe bila mtandao wa simu au Wi-Fi"</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"Fungua Programu ya Messages"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"Utaratibu wake"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"Weka tena mipangilio ya Kufungua kwa Alama ya Kidole"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"<xliff:g id="FINGERPRINT">%s</xliff:g> haitambuliki tena."</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> na <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> havitambuliki tena."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"<xliff:g id="FINGERPRINT">%s</xliff:g> haitambuliki tena. Weka tena mipangilio ya Kufungua kwa Alama ya Kidole."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> na <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> havitambuliki tena. Weka tena mipangilio ya Kufungua kwa Alama ya Kidole."</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"Weka tena mipangilio ya Kufungua kwa Uso"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"Muundo wa uso wako hautambuliki tena. Weka tena mipangilio ya Kufungua kwa Uso."</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"Weka mipangilio"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"Si sasa"</string>
 </resources>

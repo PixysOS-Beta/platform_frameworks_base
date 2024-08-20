@@ -221,7 +221,7 @@
     <string name="choose_profile" msgid="343803890897657450">"প্ৰ’ফাইল বাছনি কৰক"</string>
     <string name="category_personal" msgid="6236798763159385225">"ব্যক্তিগত"</string>
     <string name="category_work" msgid="4014193632325996115">"কৰ্মস্থান-সম্পৰ্কীয়"</string>
-    <string name="category_private" msgid="4244892185452788977">"ব্যক্তিগত"</string>
+    <string name="category_private" msgid="4244892185452788977">"প্ৰাইভেট"</string>
     <string name="category_clone" msgid="1554511758987195974">"ক্ল’ন"</string>
     <string name="development_settings_title" msgid="140296922921597393">"বিকাশকৰ্তাৰ বিকল্পসমূহ"</string>
     <string name="development_settings_enable" msgid="4285094651288242183">"বিকাশকৰ্তা বিষয়ক বিকল্পসমূহ সক্ষম কৰক"</string>
@@ -357,7 +357,7 @@
     <string name="media_category" msgid="8122076702526144053">"মিডিয়া"</string>
     <string name="debug_monitoring_category" msgid="1597387133765424994">"নিৰীক্ষণ কৰি থকা হৈছে"</string>
     <string name="strict_mode" msgid="889864762140862437">"কঠোৰ ম’ড সক্ষম কৰা হৈছে"</string>
-    <string name="strict_mode_summary" msgid="1838248687233554654">"যেতিয়া এপ্সমূহে মুখ্য থ্ৰেডত দীঘলীয়া কাৰ্যকলাপ চলাই, তেতিয়া স্ক্ৰীন ফ্লাশ্ব কৰক"</string>
+    <string name="strict_mode_summary" msgid="1838248687233554654">"যেতিয়া এপ্‌সমূহে মুখ্য থ্ৰেডত দীঘলীয়া কাৰ্যকলাপ চলায়, তেতিয়া স্ক্ৰীন ফ্লাশ্ব কৰক"</string>
     <string name="pointer_location" msgid="7516929526199520173">"পইণ্টাৰৰ অৱস্থান"</string>
     <string name="pointer_location_summary" msgid="957120116989798464">"চলিত স্পৰ্শ-বিষয়ক তথ্যসহ স্ক্ৰীন অভাৰলে’"</string>
     <string name="show_touches" msgid="8437666942161289025">"টেপসমূহ দেখুৱাওক"</string>
@@ -398,7 +398,7 @@
     <string name="overlay_display_devices_title" msgid="5411894622334469607">"গৌণ প্ৰদৰ্শনৰ নকল বনাওক"</string>
     <string name="debug_applications_category" msgid="5394089406638954196">"এপ্‌সমূহ"</string>
     <string name="immediately_destroy_activities" msgid="1826287490705167403">"কাৰ্যকলাপসমূহ নাৰাখিব"</string>
-    <string name="immediately_destroy_activities_summary" msgid="6289590341144557614">"ব্যৱহাৰকাৰী ওলোৱাৰ লগে লগে সকলো কাৰ্যকলাপ মচক"</string>
+    <string name="immediately_destroy_activities_summary" msgid="6289590341144557614">"ব্যৱহাৰকাৰী ওলোৱাৰ লগে লগে আটাইবোৰ কাৰ্যকলাপ মচক"</string>
     <string name="app_process_limit_title" msgid="8361367869453043007">"নেপথ্যত চলা প্ৰক্ৰিয়াৰ সীমা"</string>
     <string name="show_all_anrs" msgid="9160563836616468726">"নেপথ্য এএনআৰবোৰ দেখুৱাওক"</string>
     <string name="show_all_anrs_summary" msgid="8562788834431971392">"নেপথ্য এপসমূহৰ বাবে এপে সঁহাৰি দিয়া নাই ডায়ল\'গ প্ৰদৰ্শন কৰক"</string>
@@ -479,6 +479,10 @@
     <string name="power_charging_duration" msgid="6127154952524919719">"সম্পূৰ্ণ হ’বলৈ <xliff:g id="LEVEL">%1$s</xliff:g> - <xliff:g id="TIME">%2$s</xliff:g> বাকী আছে"</string>
     <string name="power_charging_limited" msgid="8202147604844938236">"<xliff:g id="LEVEL">%1$s</xliff:g> - চাৰ্জিং অপ্টিমাইজ কৰা হৈছে"</string>
     <string name="power_charging_future_paused" msgid="1809543660923642799">"<xliff:g id="LEVEL">%1$s</xliff:g> ‑ চাৰ্জ হৈ আছে"</string>
+    <string name="power_fast_charging_duration_v2" msgid="3797735998640359490">"<xliff:g id="LEVEL">%1$s</xliff:g> - <xliff:g id="STATUS">%2$s</xliff:g> - <xliff:g id="TIME">%3$s</xliff:g>ৰ ভিতৰত সম্পূৰ্ণ হ’ব"</string>
+    <string name="power_charging_duration_v2" msgid="2938998284074003248">"<xliff:g id="LEVEL">%1$s</xliff:g> - <xliff:g id="TIME">%2$s</xliff:g>ৰ ভিতৰত সম্পূৰ্ণৰূপে চাৰ্জ হ’ব"</string>
+    <string name="power_remaining_charging_duration_only_v2" msgid="5358176435722950193">"<xliff:g id="TIME">%1$s</xliff:g>ৰ ভিতৰত সম্পূৰ্ণৰূপে চাৰ্জ হ’ব"</string>
+    <string name="power_remaining_fast_charging_duration_only_v2" msgid="6270950195810579563">"<xliff:g id="TIME">%1$s</xliff:g>ৰ ভিতৰত সম্পূৰ্ণ হ’ব"</string>
     <string name="battery_info_status_unknown" msgid="268625384868401114">"অজ্ঞাত"</string>
     <string name="battery_info_status_charging" msgid="4279958015430387405">"চাৰ্জ কৰি থকা হৈছে"</string>
     <string name="battery_info_status_charging_fast" msgid="8027559755902954885">"দ্ৰুততাৰে চাৰ্জ হৈছে"</string>
@@ -490,6 +494,8 @@
     <string name="battery_info_status_full" msgid="1339002294876531312">"চাৰ্জ হ’ল"</string>
     <string name="battery_info_status_full_charged" msgid="3536054261505567948">"সম্পূৰ্ণ চাৰ্জ হৈছে"</string>
     <string name="battery_info_status_charging_on_hold" msgid="6364355145521694438">"চাৰ্জিং স্থগিত ৰখা হৈছে"</string>
+    <string name="battery_info_status_charging_v2" msgid="6118522107222245505">"চাৰ্জ হৈ আছে"</string>
+    <string name="battery_info_status_charging_fast_v2" msgid="1825439848151256589">"দ্ৰুত চাৰ্জিং"</string>
     <string name="disabled_by_admin_summary_text" msgid="5343911767402923057">"এডমিনৰ দ্বাৰা নিয়ন্ত্ৰিত"</string>
     <string name="disabled_by_app_ops_text" msgid="8373595926549098012">"প্ৰতিবন্ধিত ছেটিঙৰ দ্বাৰা নিয়ন্ত্ৰিত"</string>
     <string name="disabled" msgid="8017887509554714950">"নিষ্ক্ৰিয়"</string>
@@ -678,6 +684,7 @@
     <string name="accessibility_phone_one_bar" msgid="5719721147018970063">"ফ\'ন ছিগনেলৰ এডাল দণ্ড।"</string>
     <string name="accessibility_phone_two_bars" msgid="2531458337458953263">"ফ\'ন ছিগনেলৰ দুডাল দণ্ড।"</string>
     <string name="accessibility_phone_three_bars" msgid="1523967995996696619">"ফ\'নৰ ছিগনেলৰ তিনিডাল দণ্ড আছে।"</string>
+    <string name="accessibility_phone_four_bars" msgid="4477202400261338403">"ফ’নত চাৰিডাল দণ্ড।"</string>
     <string name="accessibility_phone_signal_full" msgid="4302338883816077134">"ফ\'নৰ ছিগনেল পূৰা আছে৷"</string>
     <string name="accessibility_no_data" msgid="4563181886936931008">"কোনো ডেটা নাই।"</string>
     <string name="accessibility_data_one_bar" msgid="6892888138070752480">"ডেটা ছিগনেলৰ এডাল দণ্ড।"</string>

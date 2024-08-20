@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"IT 관리자가 스크린샷 촬영을 허용하지 않습니다."</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"수정"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"스크린샷 수정"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"공유"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"스크린샷 공유"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"더 캡처하기"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"스크린샷 닫기"</string>
@@ -562,7 +563,7 @@
     <string name="screen_pinning_negative" msgid="6882816864569211666">"거부"</string>
     <string name="screen_pinning_start" msgid="7483998671383371313">"앱 고정됨"</string>
     <string name="screen_pinning_exit" msgid="4553787518387346893">"앱 고정 해제됨"</string>
-    <string name="stream_voice_call" msgid="7468348170702375660">"전화걸기"</string>
+    <string name="stream_voice_call" msgid="7468348170702375660">"통화"</string>
     <string name="stream_system" msgid="7663148785370565134">"시스템"</string>
     <string name="stream_ring" msgid="7550670036738697526">"벨소리"</string>
     <string name="stream_music" msgid="2188224742361847580">"미디어"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"위성, 연결 상태 나쁨"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"위성, 연결 상태 양호"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"위성, 연결 가능"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"위성 긴급 SOS"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"직장 프로필"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"마음에 들지 않을 수도 있음"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"시스템 UI 튜너를 사용하면 Android 사용자 인터페이스를 변경 및 맞춤설정할 수 있습니다. 이러한 실험실 기능은 향후 출시 버전에서는 변경되거나 다운되거나 사라질 수 있습니다. 신중하게 진행하시기 바랍니다."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"전원 메뉴"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"<xliff:g id="ID_2">%2$d</xliff:g>페이지 중 <xliff:g id="ID_1">%1$d</xliff:g>페이지"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"잠금 화면"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"전원이 꺼져 있을 때도 내 기기 찾기로 이 휴대전화를 찾을 수 있습니다."</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"종료 중…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"해결 방법 확인하기"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"해결 방법 확인하기"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"기기 분리하기"</string>
@@ -1271,5 +1276,5 @@
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"키보드 백라이트"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"%2$d단계 중 %1$d단계"</string>
     <string name="home_controls_dream_label" msgid="6567105701292324257">"홈 컨트롤"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"화면 보호기로 홈 컨트롤에 빠르게 액세스합니다."</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"화면 보호기로 홈 컨트롤에 빠르게 액세스하기"</string>
 </resources>

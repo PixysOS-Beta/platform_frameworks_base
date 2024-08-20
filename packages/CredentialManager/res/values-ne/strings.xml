@@ -22,8 +22,8 @@
     <string name="string_continue" msgid="1346732695941131882">"जारी राख्नुहोस्"</string>
     <string name="string_more_options" msgid="2763852250269945472">"अर्को तरिकाले सेभ गर्नुहोस्"</string>
     <string name="string_learn_more" msgid="4541600451688392447">"थप जान्नुहोस्"</string>
-    <string name="content_description_show_password" msgid="3283502010388521607">"पासवर्ड देखाइयोस्"</string>
-    <string name="content_description_hide_password" msgid="6841375971631767996">"पासवर्ड लुकाइयोस्"</string>
+    <string name="content_description_show_password" msgid="3283502010388521607">"पासवर्ड देखाउनुहोस्"</string>
+    <string name="content_description_hide_password" msgid="6841375971631767996">"पासवर्ड लुकाउनुहोस्"</string>
     <string name="passkey_creation_intro_title" msgid="4251037543787718844">"पासकीका सहायताले सुरक्षित रहनुहोस्"</string>
     <string name="passkey_creation_intro_body_password" msgid="8825872426579958200">"तपाईंले पासकी बनाउनुभयो भने तपाईंले जटिल पासवर्ड बनाउनु वा तिनलाई याद गरिराख्नु पर्दैन"</string>
     <string name="passkey_creation_intro_body_fingerprint" msgid="7331338631826254055">"पासकी भनेको तपाईंले आफ्नो फिंगरप्रिन्ट, अनुहार वा स्क्रिन लक प्रयोग गरेर बनाएको इन्क्रिप्ट गरिएको डिजिटल की हो"</string>
@@ -90,7 +90,7 @@
     <string name="no_sign_in_info_in" msgid="2641118151920288356">"<xliff:g id="SOURCE">%1$s</xliff:g> मा साइन इन गर्नेसम्बन्धी कुनै पनि जानकारी छैन"</string>
     <string name="get_dialog_heading_manage_sign_ins" msgid="3522556476480676782">"साइन इनसम्बन्धी विकल्पहरू व्यवस्थापन गर्नुहोस्"</string>
     <string name="get_dialog_heading_from_another_device" msgid="1166697017046724072">"अर्को डिभाइसका लागि"</string>
-    <string name="get_dialog_option_headline_use_a_different_device" msgid="8201578814988047549">"अर्कै डिभाइस प्रयोग गरी हेर्नुहोस्"</string>
+    <string name="get_dialog_option_headline_use_a_different_device" msgid="8201578814988047549">"अर्कै डिभाइस प्रयोग गर्नुहोस्"</string>
     <string name="request_cancelled_by" msgid="3735222326886267820">"<xliff:g id="APP_NAME">%1$s</xliff:g> ले अनुरोध रद्द गरेको छ"</string>
     <string name="dropdown_presentation_more_sign_in_options_text" msgid="1693727354272417902">"साइन इनसम्बन्धी विकल्पहरू"</string>
     <string name="more_options_content_description" msgid="1323427365788198808">"थप"</string>

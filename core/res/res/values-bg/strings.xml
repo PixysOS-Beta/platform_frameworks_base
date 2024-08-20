@@ -153,7 +153,7 @@
     <string name="cfTemplateForwardedTime" msgid="735042369233323609">"<xliff:g id="BEARER_SERVICE_CODE">{0}</xliff:g>: <xliff:g id="DIALING_NUMBER">{1}</xliff:g> след <xliff:g id="TIME_DELAY">{2}</xliff:g> секунди"</string>
     <string name="cfTemplateRegistered" msgid="5619930473441550596">"<xliff:g id="BEARER_SERVICE_CODE">{0}</xliff:g>: Не е пренасочено"</string>
     <string name="cfTemplateRegisteredTime" msgid="5222794399642525045">"<xliff:g id="BEARER_SERVICE_CODE">{0}</xliff:g>: Не е пренасочено"</string>
-    <string name="scCellularNetworkSecurityTitle" msgid="90330018476923559">"Сигурност на мобилната мрежа"</string>
+    <string name="scCellularNetworkSecurityTitle" msgid="90330018476923559">"Сигурност на клетъчната мрежа"</string>
     <string name="scCellularNetworkSecuritySummary" msgid="8659128412709908263">"Преглед на настройките"</string>
     <string name="scIdentifierDisclosureIssueTitle" msgid="3737384845335568193">"Осъществен е достъп до идентификатора на устройството"</string>
     <string name="scIdentifierDisclosureIssueSummary" msgid="3870743771498510600">"Мрежа, свързана с(ъс) <xliff:g id="DISCLOSURE_NETWORK">%4$s</xliff:g>, записа уникалния идентификатор на устройството ви (IMSI) <xliff:g id="DISCLOSURE_COUNT">%1$d</xliff:g> пъти за периода <xliff:g id="DISCLOSURE_WINDOW_START_TIME">%2$tr</xliff:g> – <xliff:g id="DISCLOSURE_WINDOW_END_TIME">%3$tr</xliff:g>."</string>
@@ -662,7 +662,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"Отпечатъкът не е разпознат"</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"Отпечатъкът не е разпознат"</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"Лицето не е разпознато. Използвайте отпечатък."</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"Лицето не е разпознато. Използвайте отпечатък."</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"Отпечатъкът е удостоверен"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"Лицето е удостоверено"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"Лицето е удостоверено. Моля, натиснете „Потвърждаване“"</string>
@@ -1720,7 +1720,7 @@
     <string name="accessibility_shortcut_off" msgid="3651336255403648739">"Без включване"</string>
     <string name="accessibility_shortcut_menu_item_status_on" msgid="6608392117189732543">"ВКЛ."</string>
     <string name="accessibility_shortcut_menu_item_status_off" msgid="5531598275559472393">"ИЗКЛ."</string>
-    <string name="accessibility_enable_service_title" msgid="3931558336268541484">"Искате ли да разрешите на <xliff:g id="SERVICE">%1$s</xliff:g> да има пълен контрол над устройството ви?"</string>
+    <string name="accessibility_enable_service_title" msgid="3931558336268541484">"Искате ли да разрешите на „<xliff:g id="SERVICE">%1$s</xliff:g>“ да има пълен контрол над устройството ви?"</string>
     <string name="accessibility_service_warning_description" msgid="291674995220940133">"Пълният контрол е подходящ за приложенията, които помагат на потребителите със специални нужди, но не и за повечето приложения."</string>
     <string name="accessibility_service_screen_control_title" msgid="190017412626919776">"Преглед и управление на екрана"</string>
     <string name="accessibility_service_screen_control_description" msgid="6946315917771791525">"Услугата може да чете цялото съдържание на екрана и да показва такова върху други приложения."</string>
@@ -2135,6 +2135,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"Известие с информация за режима на поредица"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"Режимът за запазване на батерията е включен"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"Използването на батерията се намалява с цел удължаване на живота ѝ"</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"Режимът за запазване на батерията е включен"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"Режимът за запазване на батерията е включен с цел удължаване на живота ѝ"</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"Режим за запазване на батерията"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"Режимът за запазване на батерията е изключен"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"Батерията на телефона има достатъчно заряд. Функциите вече не са ограничени."</string>
@@ -2393,4 +2395,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"Можете да изпращате и получавате съобщения без мобилна или Wi-Fi мрежа"</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"Отваряне на Messages"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"Начин на работа"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"Повторно настройване на „Отключване с отпечатък“"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"<xliff:g id="FINGERPRINT">%s</xliff:g> вече не може да се разпознае."</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> и <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> вече не могат да бъдат разпознати."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"<xliff:g id="FINGERPRINT">%s</xliff:g> вече не може да се разпознае. Настройте отново „Отключване с отпечатък“."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> и <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> вече не могат да бъдат разпознати. Настройте отново „Отключване с отпечатък“."</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"Повторно настройване на „Отключване с лице“"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"Моделът на лицето ви вече не може да бъде разпознат. Настройте отново „Отключване с лице“."</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"Настройване"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"Не сега"</string>
 </resources>

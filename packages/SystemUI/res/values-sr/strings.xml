@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"ИТ администратор блокира прављење снимака екрана"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Измени"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Измените снимак екрана"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Делите"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Делите снимак екрана"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Снимите још"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Одбаците снимак екрана"</string>
@@ -162,7 +163,7 @@
     <string name="biometric_dialog_tap_confirm_with_face_alt_3" msgid="2192670471930606539">"Лице препознато. Притисните икону откључавања за наставак."</string>
     <string name="biometric_dialog_authenticated" msgid="7337147327545272484">"Идентитет је потврђен"</string>
     <string name="biometric_dialog_cancel_authentication" msgid="981316588773442637">"Откажите потврду идентитета"</string>
-    <string name="biometric_dialog_use_pin" msgid="8385294115283000709">"Користите PIN"</string>
+    <string name="biometric_dialog_use_pin" msgid="8385294115283000709">"Користи PIN"</string>
     <string name="biometric_dialog_use_pattern" msgid="2315593393167211194">"Користите шаблон"</string>
     <string name="biometric_dialog_use_password" msgid="3445033859393474779">"Користите лозинку"</string>
     <string name="biometric_dialog_wrong_pin" msgid="1878539073972762803">"Погрешан PIN"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Сателит, веза је лоша"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Сателит, веза је добра"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Сателит, веза је доступна"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"Хитна помоћ преко сателита"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Пословни профил"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Забава за неке, али не за све"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"Тјунер за кориснички интерфејс система вам пружа додатне начине за подешавање и прилагођавање Android корисничког интерфејса. Ове експерименталне функције могу да се промене, откажу или нестану у будућим издањима. Будите опрезни."</string>
@@ -735,7 +737,7 @@
     <string name="group_system_cycle_back" msgid="8194102916946802902">"Прегледај недавно коришћене апликације уназад"</string>
     <string name="group_system_access_all_apps_search" msgid="1553588630154197469">"Отвори листу апликација"</string>
     <string name="group_system_access_system_settings" msgid="8731721963449070017">"Отвори подешавања"</string>
-    <string name="group_system_access_google_assistant" msgid="7210074957915968110">"Отвори помоћника"</string>
+    <string name="group_system_access_google_assistant" msgid="7210074957915968110">"Отвори Помоћник"</string>
     <string name="group_system_lock_screen" msgid="7391191300363416543">"Закључавање екрана"</string>
     <string name="group_system_quick_memo" msgid="3764560265935722903">"Направи белешку"</string>
     <string name="keyboard_shortcut_group_system_multitasking" msgid="1065232949510862593">"Обављање више задатака система истовремено"</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Мени дугмета за укључивање"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"<xliff:g id="ID_1">%1$d</xliff:g>. страна од <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Закључан екран"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Можете да лоцирате овај телефон помоћу услуге Пронађи мој уређај чак и када је искључен"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Искључује се…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Погледајте упозорења"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Погледајте упозорења"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Искључите уређај"</string>

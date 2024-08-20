@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"Dein IT-Administrator hat das Erstellen von Screenshots blockiert"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Bearbeiten"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Screenshot bearbeiten"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Teilen"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Screenshot teilen"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Mehr aufnehmen"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Screenshot schließen"</string>
@@ -193,7 +194,7 @@
     <string name="face_re_enroll_notification_title" msgid="1850838867718410520">"Entsperrung per Gesichtserkennung neu einrichten"</string>
     <string name="face_re_enroll_notification_name" msgid="7384545252206120659">"Entsperrung per Gesichtserkennung"</string>
     <string name="face_re_enroll_dialog_title" msgid="6392173708176069994">"Entsperrung per Gesichtserkennung einrichten"</string>
-    <string name="face_re_enroll_dialog_content" msgid="7353502359464038511">"Wenn du die Entsperrung per Gesichtserkennung neu einrichtest, wird dein aktuelles Gesichtsmodell gelöscht.\n\nDu musst diese Funktion neu einrichten, damit du dein Smartphone weiterhin mit deinem Gesicht entsperren kannst."</string>
+    <string name="face_re_enroll_dialog_content" msgid="7353502359464038511">"Wenn du die Entsperrung per Gesichtserkennung neu einrichtest, wird dein aktuelles Gesichtsmodell gelöscht.\n\nDu musst diese Funktion neu einrichten, damit du dein Smartphone weiterhin mithilfe der Gesichtserkennung entsperren kannst."</string>
     <string name="face_reenroll_failure_dialog_content" msgid="7073947334397236935">"Die Entsperrung per Gesichtserkennung konnte nicht eingerichtet werden. Gehe zu den Einstellungen und versuche es noch einmal."</string>
     <string name="fingerprint_dialog_touch_sensor" msgid="2817887108047658975">"Berühre den Fingerabdrucksensor"</string>
     <string name="fingerprint_dialog_authenticated_confirmation" msgid="1603899612957562862">"Tippe zum Fortfahren auf das Symbol „Entsperren“"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Satellit, Verbindung schlecht"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Satellit, Verbindung gut"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Satellit, Verbindung verfügbar"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"Notruf über Satellit"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Arbeitsprofil"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Für einige ein Vergnügen, aber nicht für alle"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"Mit System UI Tuner erhältst du zusätzliche Möglichkeiten, die Android-Benutzeroberfläche anzupassen. Achtung: Diese Testfunktionen können sich ändern, abstürzen oder in zukünftigen Versionen verschwinden."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Ein-/Aus-Menü"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Seite <xliff:g id="ID_1">%1$d</xliff:g> von <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Sperrbildschirm"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Du kannst dieses Smartphone über „Mein Gerät finden“ orten, auch wenn es ausgeschaltet ist"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Wird heruntergefahren…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Schritte zur Abkühlung des Geräts ansehen"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Schritte zur Abkühlung des Geräts ansehen"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Gerät vom Stromnetz trennen"</string>
@@ -964,7 +969,7 @@
     <string name="accessibility_floating_button_undo_message_label_text" msgid="9017658016426242640">"Verknüpfung für „<xliff:g id="FEATURE_NAME">%s</xliff:g>“ entfernt"</string>
     <string name="accessibility_floating_button_undo_message_number_text" msgid="4909270290725226075">"{count,plural, =1{# Verknüpfung entfernt}other{# Verknüpfungen entfernt}}"</string>
     <string name="accessibility_floating_button_action_move_top_left" msgid="6253520703618545705">"Nach oben links verschieben"</string>
-    <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"Nach rechts oben verschieben"</string>
+    <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"Nach oben rechts verschieben"</string>
     <string name="accessibility_floating_button_action_move_bottom_left" msgid="8063394111137429725">"Nach unten links verschieben"</string>
     <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"Nach unten rechts verschieben"</string>
     <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"An den Rand verschieben und verbergen"</string>

@@ -426,6 +426,7 @@
     <dimen name="overlay_button_corner_radius">16dp</dimen>
     <!-- Margin between successive chips -->
     <dimen name="overlay_action_chip_margin_start">8dp</dimen>
+    <dimen name="shelf_action_chip_margin_start">12dp</dimen>
     <dimen name="overlay_action_chip_padding_vertical">12dp</dimen>
     <dimen name="overlay_action_chip_icon_size">24sp</dimen>
     <!-- Padding on each side of the icon for icon-only chips -->
@@ -441,6 +442,12 @@
     <dimen name="overlay_preview_container_margin">8dp</dimen>
     <dimen name="overlay_action_container_margin_horizontal">8dp</dimen>
     <dimen name="overlay_action_container_margin_bottom">6dp</dimen>
+    <!--
+        minimum distance to the left, right or bottom edges. Keep in sync with
+        negative_overlay_action_container_minimum_edge_spacing. -->
+    <dimen name="overlay_action_container_minimum_edge_spacing">12dp</dimen>
+    <!-- Keep in sync with overlay_action_container_minimum_edge_spacing -->
+    <dimen name="negative_overlay_action_container_minimum_edge_spacing">-12dp</dimen>
     <dimen name="overlay_bg_protection_height">242dp</dimen>
     <dimen name="overlay_action_container_corner_radius">20dp</dimen>
     <dimen name="overlay_action_container_padding_vertical">8dp</dimen>
@@ -448,6 +455,7 @@
     <dimen name="overlay_action_container_padding_end">8dp</dimen>
     <dimen name="overlay_dismiss_button_tappable_size">48dp</dimen>
     <dimen name="overlay_dismiss_button_margin">8dp</dimen>
+    <dimen name="screenshot_shelf_vertical_margin">8dp</dimen>
     <!-- must be kept aligned with overlay_border_width_neg, below;
          overlay_border_width = overlay_border_width_neg * -1 -->
     <dimen name="overlay_border_width">4dp</dimen>

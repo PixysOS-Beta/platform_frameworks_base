@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"IKT saileko administratzaileak blokeatu egin dizu pantaila-argazkiak ateratzeko aukera"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Editatu"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Editatu pantaila-argazkia"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Partekatu"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Partekatu pantaila-argazkia"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Kapturatu eduki gehiago"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Baztertu pantaila-argazkia"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Satelitea, konexio ahula"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Satelitea, konexio ona"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Satelitea, konexioa erabilgarri"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"Satelite bidezko SOS komunikazioa"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Laneko profila"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Dibertsioa batzuentzat, baina ez guztientzat"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"Sistemaren erabiltzaile-interfazearen konfiguratzaileak Android erabiltzaile-interfazea moldatzeko eta pertsonalizatzeko modu gehiago eskaintzen dizkizu. Baliteke eginbide esperimental horiek hurrengo kaleratzeetan aldatuta, etenda edo desagertuta egotea. Kontuz erabili."</string>
@@ -705,7 +707,7 @@
     <string name="keyboard_key_numpad_template" msgid="7316338238459991821">"Zenbaki-teklatuko <xliff:g id="NAME">%1$s</xliff:g>"</string>
     <string name="notif_inline_reply_remove_attachment_description" msgid="7954075334095405429">"Kendu eranskina"</string>
     <string name="keyboard_shortcut_group_system" msgid="1583416273777875970">"Sistema"</string>
-    <string name="keyboard_shortcut_group_system_home" msgid="7465138628692109907">"Hasierako pantaila"</string>
+    <string name="keyboard_shortcut_group_system_home" msgid="7465138628692109907">"Orri nagusia"</string>
     <string name="keyboard_shortcut_group_system_recents" msgid="8628108256824616927">"Azkenaldikoak"</string>
     <string name="keyboard_shortcut_group_system_back" msgid="1055709713218453863">"Atzera"</string>
     <string name="keyboard_shortcut_group_system_notifications" msgid="3615971650562485878">"Jakinarazpenak"</string>
@@ -731,8 +733,8 @@
     <string name="group_system_go_back" msgid="2730322046244918816">"Egin atzera"</string>
     <string name="group_system_access_home_screen" msgid="4130366993484706483">"Joan orri nagusira"</string>
     <string name="group_system_overview_open_apps" msgid="5659958952937994104">"Ikusi azkenaldiko aplikazioak"</string>
-    <string name="group_system_cycle_forward" msgid="5478663965957647805">"Ikusi azken aplikazioak banan-banan (aurrerantz)"</string>
-    <string name="group_system_cycle_back" msgid="8194102916946802902">"Ikusi azken aplikazioak banan-banan (atzerantz)"</string>
+    <string name="group_system_cycle_forward" msgid="5478663965957647805">"Ikusi azkenaldiko aplikazioak banan-banan (aurrerantz)"</string>
+    <string name="group_system_cycle_back" msgid="8194102916946802902">"Ikusi azkenaldiko aplikazioak banan-banan (atzerantz)"</string>
     <string name="group_system_access_all_apps_search" msgid="1553588630154197469">"Ireki aplikazioen zerrenda"</string>
     <string name="group_system_access_system_settings" msgid="8731721963449070017">"Ireki ezarpenak"</string>
     <string name="group_system_access_google_assistant" msgid="7210074957915968110">"Ireki Laguntzailea"</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Itzaltzeko menua"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"<xliff:g id="ID_1">%1$d</xliff:g>/<xliff:g id="ID_2">%2$d</xliff:g> orria"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Pantaila blokeatua"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Itzalita badago ere aurki dezakezu telefonoa Bilatu nire gailua erabilita"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Itzaltzen…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Ikusi zaintzeko urratsak"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Ikusi zaintzeko urratsak"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Deskonektatu gailua"</string>
@@ -1270,6 +1275,6 @@
     <string name="privacy_dialog_recent_app_usage_2" msgid="2874689735085367167">"<xliff:g id="APP_NAME">%1$s</xliff:g> (<xliff:g id="ATTRIBUTION_LABEL">%2$s</xliff:g> • <xliff:g id="PROXY_LABEL">%3$s</xliff:g>) aplikazioak erabili du duela gutxi"</string>
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"Teklatuaren hondoko argia"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"%1$d/%2$d maila"</string>
-    <string name="home_controls_dream_label" msgid="6567105701292324257">"Etxeko gailuak kontrolatzeko aukerak"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"Atzitu etxeko gailuak kontrolatzeko aukerak pantaila-babesletik"</string>
+    <string name="home_controls_dream_label" msgid="6567105701292324257">"Etxeko gailuen kontrola"</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"Kontrolatu etxeko gailuak pantaila-babesletik"</string>
 </resources>

@@ -558,6 +558,7 @@ public class RecoverySystemService extends IRecoverySystem.Stub implements Reboo
         } catch (android.security.KeyStoreException e) {
             Log.wtf(TAG, "Failed to delete all keys from keystore.", e);
         }
+<<<<<<< HEAD
 
         try {
             ISecretkeeper secretKeeper = getSecretKeeper();
@@ -580,6 +581,8 @@ public class RecoverySystemService extends IRecoverySystem.Stub implements Reboo
         }
 
         return result;
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     }
 
     private void enforcePermissionForResumeOnReboot() {

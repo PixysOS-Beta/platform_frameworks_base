@@ -1329,6 +1329,17 @@ public class ActivityInfo extends ComponentInfo implements Parcelable {
     public static final long OVERRIDE_MIN_ASPECT_RATIO = 174042980L; // buganizer id
 
     /**
+     * This change id restricts treatments that force a given min aspect ratio to
+     * only when an app is connected to the camera
+     *
+     * @hide
+     */
+    @ChangeId
+    @Overridable
+    @Disabled
+    public static final long OVERRIDE_MIN_ASPECT_RATIO_ONLY_FOR_CAMERA = 325586858L; // buganizer id
+
+    /**
      * This change id restricts treatments that force a given min aspect ratio to activities
      * whose orientation is fixed to portrait.
      *
@@ -1517,6 +1528,36 @@ public class ActivityInfo extends ComponentInfo implements Parcelable {
     @ChangeId
     @EnabledSince(targetSdkVersion = Build.VERSION_CODES.S)
     private static final long CHECK_MIN_WIDTH_HEIGHT_FOR_MULTI_WINDOW = 197654537L;
+
+    /**
+     * The activity is targeting a SDK version that should receive the changed behavior of
+     * configuration insets decouple.
+     *
+     * @hide
+     */
+    @ChangeId
+    @EnabledSince(targetSdkVersion = Build.VERSION_CODES.VANILLA_ICE_CREAM)
+    public static final long INSETS_DECOUPLED_CONFIGURATION_ENFORCED = 151861875L;
+
+    /**
+     * When enabled, the activity will receive configuration decoupled from system bar insets.
+     *
+     * <p>This will only apply if the activity is targeting SDK level 34 or earlier versions.
+     *
+     * <p>This will only in effect if the device is trying to provide a different value by default
+     * other than the legacy value, i.e., the
+     * {@code Flags.allowsScreenSizeDecoupledFromStatusBarAndCutout()} is set to true.
+     *
+     * <p>If the {@code Flags.insetsDecoupledConfiguration()} is also set to true, all apps
+     * targeting SDK level 35 or later, and apps with this override flag will receive the insets
+     * decoupled configuration.
+     *
+     * @hide
+     */
+    @ChangeId
+    @Disabled
+    @Overridable
+    public static final long OVERRIDE_ENABLE_INSETS_DECOUPLED_CONFIGURATION = 327313645L;
 
     /**
      * Optional set of a certificates identifying apps that are allowed to embed this activity. From

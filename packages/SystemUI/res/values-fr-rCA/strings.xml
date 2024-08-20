@@ -20,13 +20,13 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_label" msgid="4811759950673118541">"IU système"</string>
-    <string name="battery_low_title" msgid="5319680173344341779">"Activer l\'économiseur de pile?"</string>
+    <string name="battery_low_title" msgid="5319680173344341779">"Activer l\'Économiseur de pile?"</string>
     <string name="battery_low_description" msgid="3282977755476423966">"Il vous reste <xliff:g id="PERCENTAGE">%s</xliff:g> d\'autonomie. L\'économiseur de pile active le thème sombre, limite l\'activité en arrière-plan et retarde les notifications."</string>
     <string name="battery_low_intro" msgid="5148725009653088790">"L\'économiseur de pile active le thème sombre, limite l\'activité en arrière-plan et retarde les notifications."</string>
     <string name="battery_low_percent_format" msgid="4276661262843170964">"<xliff:g id="PERCENTAGE">%s</xliff:g> restants"</string>
     <string name="invalid_charger_title" msgid="938685362320735167">"Impossible de charger l\'appareil par USB"</string>
     <string name="invalid_charger_text" msgid="2339310107232691577">"Servez-vous du chargeur fourni avec votre appareil"</string>
-    <string name="battery_saver_confirmation_title" msgid="1234998463717398453">"Activer l\'économiseur de pile?"</string>
+    <string name="battery_saver_confirmation_title" msgid="1234998463717398453">"Activer l\'Économiseur de pile?"</string>
     <string name="battery_saver_confirmation_title_generic" msgid="2299231884234959849">"À propos du mode Économiseur de pile"</string>
     <string name="battery_saver_confirmation_ok" msgid="5042136476802816494">"Activer"</string>
     <string name="battery_saver_start_action" msgid="8353766979886287140">"Activer"</string>
@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"La prise de captures d\'écran est bloquée par votre administrateur informatique"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Modifier"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Modifier la capture d\'écran"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Partager"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Partagez la capture d\'écran"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Capturer plus"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Fermer la capture d\'écran"</string>
@@ -288,7 +289,7 @@
     <string name="quick_settings_user_title" msgid="8673045967216204537">"Utilisateur"</string>
     <string name="quick_settings_wifi_label" msgid="2879507532983487244">"Wi-Fi"</string>
     <string name="quick_settings_internet_label" msgid="6603068555872455463">"Internet"</string>
-    <string name="quick_settings_networks_available" msgid="1875138606855420438">"Réseaux accessibles"</string>
+    <string name="quick_settings_networks_available" msgid="1875138606855420438">"Réseaux disponibles"</string>
     <string name="quick_settings_networks_unavailable" msgid="1167847013337940082">"Aucun réseau accessible"</string>
     <string name="quick_settings_wifi_detail_empty_text" msgid="483130889414601732">"Aucun réseau Wi-Fi à proximité"</string>
     <string name="quick_settings_wifi_secondary_label_transient" msgid="7501659015509357887">"Activation en cours…"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Connexion satellite faible"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Bonne connexion satellite"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Connexion satellite accessible"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"SOS par satellite"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Profil professionnel"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Divertissant pour certains, mais pas pour tous"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"System UI Tuner vous propose de nouvelles manières d\'adapter et de personnaliser l\'interface utilisateur d\'Android. Ces fonctionnalités expérimentales peuvent être modifiées, cesser de fonctionner ou disparaître dans les versions futures. À utiliser avec prudence."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Menu de l\'interrupteur"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Page <xliff:g id="ID_1">%1$d</xliff:g> sur <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Écran de verrouillage"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Vous pouvez localiser ce téléphone à l\'aide de Localiser mon appareil, même lorsqu\'il est éteint"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Arrêt en cours…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Afficher les étapes d\'entretien"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Afficher les étapes d\'entretien"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Débranchez votre appareil"</string>
@@ -963,11 +968,11 @@
     <string name="accessibility_floating_button_hidden_notification_text" msgid="1457021647040915658">"Touchez pour afficher le bouton d\'accessibilité"</string>
     <string name="accessibility_floating_button_undo_message_label_text" msgid="9017658016426242640">"Le raccourci <xliff:g id="FEATURE_NAME">%s</xliff:g> a été retiré"</string>
     <string name="accessibility_floating_button_undo_message_number_text" msgid="4909270290725226075">"{count,plural, =1{# raccourci retiré}one{# raccourci retiré}many{# de raccourcis retirés}other{# raccourcis retirés}}"</string>
-    <string name="accessibility_floating_button_action_move_top_left" msgid="6253520703618545705">"Déplacer dans coin sup. gauche"</string>
-    <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"Déplacer dans coin sup. droit"</string>
-    <string name="accessibility_floating_button_action_move_bottom_left" msgid="8063394111137429725">"Déplacer dans coin inf. gauche"</string>
-    <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"Déplacer dans coin inf. droit"</string>
-    <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"Éloigner du bord et masquer"</string>
+    <string name="accessibility_floating_button_action_move_top_left" msgid="6253520703618545705">"Déplacer en haut à gauche"</string>
+    <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"Déplacer en haut à droite"</string>
+    <string name="accessibility_floating_button_action_move_bottom_left" msgid="8063394111137429725">"Déplacer en bas à gauche"</string>
+    <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"Déplacer en bas à droite"</string>
+    <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"Rapprocher du bord et masquer"</string>
     <string name="accessibility_floating_button_action_move_out_edge_and_show" msgid="8354760891651663326">"Éloigner du bord et afficher"</string>
     <string name="accessibility_floating_button_action_remove_menu" msgid="6730432848162552135">"Retirer"</string>
     <string name="accessibility_floating_button_action_double_tap_to_toggle" msgid="7976492639670692037">"basculer"</string>
@@ -1271,5 +1276,5 @@
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"Rétroéclairage du clavier"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"Niveau %1$d de %2$d"</string>
     <string name="home_controls_dream_label" msgid="6567105701292324257">"Domotique"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"Accès rapide : domot. sous forme d\'Écran de veille"</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"Accès rapide : domotique sous forme d\'Écran de veille"</string>
 </resources>

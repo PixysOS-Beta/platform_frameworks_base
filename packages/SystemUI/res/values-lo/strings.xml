@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"ຜູ້ເບິ່ງແຍງໄອທີຂອງທ່ານບລັອກການຖ່າຍຮູບໜ້າຈໍໄວ້."</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"ແກ້ໄຂ"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"ແກ້ໄຂຮູບໜ້າຈໍ"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"ແບ່ງປັນ"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"ແບ່ງປັນຮູບໜ້າຈໍ"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"ຖ່າຍຮູບເພີ່ມເຕີມ"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"ປິດຮູບໜ້າຈໍ"</string>
@@ -589,7 +590,7 @@
     <string name="volume_dialog_title" msgid="6502703403483577940">"ການຄວບຄຸມສຽງ %s"</string>
     <string name="volume_dialog_ringer_guidance_ring" msgid="9143194270463146858">"ການໂທ ແລະ ການແຈ້ງເຕືອນຈະມີສຽງດັງ (<xliff:g id="VOLUME_LEVEL">%1$s</xliff:g>)"</string>
     <string name="media_output_label_title" msgid="872824698593182505">"ກຳລັງຫຼິ້ນ <xliff:g id="LABEL">%s</xliff:g> ໃນ"</string>
-    <string name="media_output_title_without_playing" msgid="3825663683169305013">"ສຽງຈະຫຼິ້ນຕໍ່ໄປ"</string>
+    <string name="media_output_title_without_playing" msgid="3825663683169305013">"ສຽງຈະຫຼິ້ນຢູ່"</string>
     <string name="system_ui_tuner" msgid="1471348823289954729">"System UI Tuner"</string>
     <string name="status_bar" msgid="4357390266055077437">"ແຖບສະຖານະ"</string>
     <string name="demo_mode" msgid="263484519766901593">"ໂໝດເດໂມສ່ວນຕິດຕໍ່ຜູ້ໃຊ້ລະບົບ"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"ດາວທຽມ, ການເຊື່ອມຕໍ່ບໍ່ດີ"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"ດາວທຽມ, ການເຊື່ອມຕໍ່ດີ"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"ດາວທຽມ, ການເຊື່ອມຕໍ່ທີ່ພ້ອມນຳໃຊ້"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"SOS ດາວທຽມ"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"​ໂປຣ​ໄຟລ໌​ບ່ອນ​ເຮັດ​ວຽກ"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"ມ່ວນຊື່ນສຳລັບບາງຄົນ ແຕ່ບໍ່ແມ່ນສຳລັບທຸກຄົນ"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"System UI Tuner ໃຫ້ທ່ານມີວິທີພິເສດຕື່ມອີກໃນການປັບປ່ຽນ ແລະຕົບແຕ່ງສ່ວນຕໍ່ປະສານຜູ້ໃຊ້ຂອງ Android. ຄຸນສົມບັດທົດລອງໃຊ້ເຫຼົ່ານີ້ອາດຈະປ່ຽນແປງ, ຢຸດເຊົາ ຫຼືຫາຍໄປໃນການວາງຈຳໜ່າຍໃນອະນາຄົດ. ຈົ່ງດຳເນີນຕໍ່ດ້ວຍຄວາມລະມັດລະວັງ."</string>
@@ -835,8 +837,6 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"ເມນູເປີດປິດ"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"<xliff:g id="ID_1">%1$d</xliff:g> ຈາກທັງໝົດ <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"ໜ້າຈໍລັອກ"</string>
-    <string name="finder_active" msgid="7907846989716941952">"ທ່ານສາມາດຊອກຫາສະຖານທີ່ຂອງໂທລະສັບເຄື່ອງນີ້ໄດ້ດ້ວຍແອັບຊອກຫາອຸປະກອນຂອງຂ້ອຍເຖິງແມ່ນວ່າຈະປິດເຄື່ອງຢູ່ກໍຕາມ"</string>
-    <string name="shutdown_progress" msgid="5464239146561542178">"ກຳລັງປິດເຄື່ອງ…"</string>
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"ເບິ່ງຂັ້ນຕອນການເບິ່ງແຍງ"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"ເບິ່ງຂັ້ນຕອນການເບິ່ງແຍງ"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"ຖອດອຸປະກອນຂອງທ່ານອອກ"</string>

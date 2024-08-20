@@ -47,7 +47,7 @@
     <string name="label_view" msgid="6815442985276363364">"Карап көрүү"</string>
     <string name="always_use_device" msgid="210535878779644679">"<xliff:g id="USB_DEVICE">%2$s</xliff:g> туташып турганда, <xliff:g id="APPLICATION">%1$s</xliff:g> ар дайым ачык болсун"</string>
     <string name="always_use_accessory" msgid="1977225429341838444">"<xliff:g id="USB_ACCESSORY">%2$s</xliff:g> туташып турганда, <xliff:g id="APPLICATION">%1$s</xliff:g> ар дайым ачык болсун"</string>
-    <string name="usb_debugging_title" msgid="8274884945238642726">"USB аркылуу жөндөөгө уруксат берилсинби?"</string>
+    <string name="usb_debugging_title" msgid="8274884945238642726">"USB аркылуу жөндөөгө уруксат бересизби?"</string>
     <string name="usb_debugging_message" msgid="5794616114463921773">"Компүтердин RSA ачкычынын контролдук суммасы:\n<xliff:g id="FINGERPRINT">%1$s</xliff:g>"</string>
     <string name="usb_debugging_always" msgid="4003121804294739548">"Бул компүтерден дайыма уруксат берилсин"</string>
     <string name="usb_debugging_allow" msgid="1722643858015321328">"Ооба"</string>
@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"IT администраторуңуз скриншот тартууга тыюу салган"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Түзөтүү"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Скриншотту түзөтүү"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Бөлүшүү"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Скриншотту бөлүшүү"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Көбүрөөк тартуу"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Скриншотту четке кагуу"</string>
@@ -207,7 +208,7 @@
     <string name="accessibility_bluetooth_device_icon" msgid="9163840051642587982">"Bluetooth түзмөгүнүн сүрөтчөсү"</string>
     <string name="accessibility_bluetooth_device_settings_gear" msgid="3314916468105272540">"Түзмөктүн чоо-жайын конфигурациялоо үчүн чыкылдатыңыз"</string>
     <string name="accessibility_bluetooth_device_settings_see_all" msgid="9111952496905423543">"Бардык түзмөктөрдү көрүү үчүн чыкылдатыңыз"</string>
-    <string name="accessibility_bluetooth_device_settings_pair_new_device" msgid="2435184865793496966">"Жаңы түзмөктү жупташтыруу үчүн чыкылдатыңыз"</string>
+    <string name="accessibility_bluetooth_device_settings_pair_new_device" msgid="2435184865793496966">"Жаңы түзмөк кошуу үчүн чыкылдатыңыз"</string>
     <string name="accessibility_battery_unknown" msgid="1807789554617976440">"Батарея кубатынын деңгээли белгисиз."</string>
     <string name="accessibility_bluetooth_name" msgid="7300973230214067678">"<xliff:g id="BLUETOOTH">%s</xliff:g> менен туташкан."</string>
     <string name="accessibility_cast_name" msgid="7344437925388773685">"<xliff:g id="CAST">%s</xliff:g> менен туташты."</string>
@@ -261,7 +262,7 @@
     <string name="quick_settings_bluetooth_label" msgid="7018763367142041481">"Bluetooth"</string>
     <string name="quick_settings_bluetooth_detail_empty_text" msgid="5760239584390514322">"Жупташкан түзмөктөр жок"</string>
     <string name="quick_settings_bluetooth_tile_subtitle" msgid="212752719010829550">"Түзмөктү туташтыруу же ажыратуу үчүн таптаңыз"</string>
-    <string name="pair_new_bluetooth_devices" msgid="4601767620843349645">"Жаңы түзмөктү жупташтыруу"</string>
+    <string name="pair_new_bluetooth_devices" msgid="4601767620843349645">"Жаңы түзмөк кошуу"</string>
     <string name="see_all_bluetooth_devices" msgid="1761596816620200433">"Баарын көрүү"</string>
     <string name="turn_on_bluetooth" msgid="5681370462180289071">"Иштетүү"</string>
     <string name="quick_settings_bluetooth_device_connected" msgid="7884777006729260996">"Туташты"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Спутник, байланыш начар"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Спутник, байланыш жакшы"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Спутник, байланыш бар"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"Спутник SOS"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Жумуш профили"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Баарына эле жага бербейт"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"System UI Tuner Android колдонуучу интерфейсин жөнгө салып жана ыңгайлаштыруунун кошумча ыкмаларын сунуштайт. Бул сынамык функциялар кийинки чыгарылыштарда өзгөрүлүп, бузулуп же жоголуп кетиши мүмкүн. Абайлап колдонуңуз."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Кубат баскычынын менюсу"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"<xliff:g id="ID_2">%2$d</xliff:g> ичинен <xliff:g id="ID_1">%1$d</xliff:g>-бет"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Кулпуланган экран"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Бул телефон өчүк болсо да, аны \"Түзмөгүм кайда?\" кызматы аркылуу таба аласыз"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Өчүрүлүүдө…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Тейлөө кадамдарын көрүңүз"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Тейлөө кадамдарын көрүңүз"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Түзмөктү сууруп коюңуз"</string>
@@ -890,7 +895,7 @@
     <string name="auto_data_switch_dialog_negative_button" msgid="2370876875999891444">"Жок, рахмат"</string>
     <string name="auto_data_switch_dialog_positive_button" msgid="8531782041263087564">"Ооба, которулам"</string>
     <string name="touch_filtered_warning" msgid="8119511393338714836">"Уруксат берүү сурамыңыз көрүнбөй калгандыктан, Параметрлер жообуңузду ырастай албай жатат."</string>
-    <string name="slice_permission_title" msgid="3262615140094151017">"<xliff:g id="APP_0">%1$s</xliff:g> колдонмосуна <xliff:g id="APP_2">%2$s</xliff:g> үлгүлөрүн көрсөтүүгө уруксат берилсинби?"</string>
+    <string name="slice_permission_title" msgid="3262615140094151017">"<xliff:g id="APP_0">%1$s</xliff:g> колдонмосуна <xliff:g id="APP_2">%2$s</xliff:g> үлгүлөрүн көрсөтүүгө уруксат бересизби?"</string>
     <string name="slice_permission_text_1" msgid="6675965177075443714">"- <xliff:g id="APP">%1$s</xliff:g> колдонмосунун маалыматын окуйт"</string>
     <string name="slice_permission_text_2" msgid="6758906940360746983">"- <xliff:g id="APP">%1$s</xliff:g> колдонмосунда аракеттерди аткарат"</string>
     <string name="slice_permission_checkbox" msgid="4242888137592298523">"<xliff:g id="APP">%1$s</xliff:g> бардык колдонмолордун үлгүлөрүн көрсөтүүгө уруксат берүү"</string>

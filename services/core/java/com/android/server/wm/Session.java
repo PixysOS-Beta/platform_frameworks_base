@@ -821,9 +821,14 @@ class Session extends IWindowSession.Stub implements IBinder.DeathRecipient {
         if (changed && noSystemOverlayPermission) {
             if (mAlertWindowSurfaces.isEmpty()) {
                 cancelAlertWindowNotification();
+<<<<<<< HEAD
             } else if (mAlertWindowNotification == null) {
                 mAlertWindowNotification = new AlertWindowNotification(mService, mPackageName,
 			    UserHandle.getUserId(mUid));
+=======
+            } else if (mAlertWindowNotification == null && !isSatellitePointingUiPackage()) {
+                mAlertWindowNotification = new AlertWindowNotification(mService, mPackageName);
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
                 if (mShowingAlertWindowNotificationAllowed) {
                     mAlertWindowNotification.post();
                 }
@@ -835,6 +840,16 @@ class Session extends IWindowSession.Stub implements IBinder.DeathRecipient {
             // adjust the importance score for the process.
             setHasOverlayUi(!mAlertWindowSurfaces.isEmpty());
         }
+    }
+
+    // TODO b/349195999 - short term solution to not show the satellite pointing ui notification.
+    private boolean isSatellitePointingUiPackage() {
+        if (mPackageName == null || !mPackageName.equals(mService.mContext.getString(
+            com.android.internal.R.string.config_pointing_ui_package))) {
+            return false;
+        }
+        return ActivityTaskManagerService.checkPermission(
+            android.Manifest.permission.SATELLITE_COMMUNICATION, mPid, mUid) == PERMISSION_GRANTED;
     }
 
     void setShowingAlertWindowNotificationAllowed(boolean allowed) {
@@ -892,6 +907,9 @@ class Session extends IWindowSession.Stub implements IBinder.DeathRecipient {
                 pw.print(" mClientDead="); pw.print(mClientDead);
                 pw.print(" mSurfaceSession="); pw.println(mSurfaceSession);
         pw.print(prefix); pw.print("mPackageName="); pw.println(mPackageName);
+        if (isSatellitePointingUiPackage()) {
+            pw.print(prefix); pw.println("mIsSatellitePointingUiPackage=true");
+        }
     }
 
     @Override

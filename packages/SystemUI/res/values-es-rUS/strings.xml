@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"Tu administrador de TI bloquea las capturas de pantalla"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Editar"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Editar captura de pantalla"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Compartir"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Compartir captura"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Capturar más"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Descartar captura de pantalla"</string>
@@ -268,7 +269,7 @@
     <string name="quick_settings_bluetooth_device_saved" msgid="7549938728928069477">"Guardado"</string>
     <string name="accessibility_quick_settings_bluetooth_device_tap_to_disconnect" msgid="415980329093277342">"desconectar"</string>
     <string name="accessibility_quick_settings_bluetooth_device_tap_to_activate" msgid="3724301751036877403">"activar"</string>
-    <string name="turn_on_bluetooth_auto_tomorrow" msgid="414836329962473906">"Volver a activar automáticamente mañana"</string>
+    <string name="turn_on_bluetooth_auto_tomorrow" msgid="414836329962473906">"Activar automáticamente mañana"</string>
     <string name="turn_on_bluetooth_auto_info" msgid="8831410009251539988">"Las funciones como Quick Share, Encontrar mi dispositivo y la ubicación del dispositivo usan Bluetooth."</string>
     <string name="quick_settings_bluetooth_secondary_label_battery_level" msgid="4182034939479344093">"<xliff:g id="BATTERY_LEVEL_AS_PERCENTAGE">%s</xliff:g> de batería"</string>
     <string name="quick_settings_bluetooth_secondary_label_audio" msgid="780333390310051161">"Audio"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Satélite, conexión inestable"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Satélite, buena conexión"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Satélite, conexión disponible"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"SOS por satélite"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Perfil de trabajo"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Diversión para algunos, pero no para todos"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"El sintonizador de IU del sistema te brinda más formas para editar y personalizar la interfaz de usuario de Android. Estas funciones experimentales pueden cambiar, dejar de funcionar o no incluirse en futuras versiones. Procede con precaución."</string>
@@ -835,8 +837,6 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Menú de encendido"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Página <xliff:g id="ID_1">%1$d</xliff:g> de <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Pantalla de bloqueo"</string>
-    <string name="finder_active" msgid="7907846989716941952">"Puedes ubicar este teléfono con Encontrar mi dispositivo, incluso si está apagado"</string>
-    <string name="shutdown_progress" msgid="5464239146561542178">"Apagando…"</string>
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Ver pasos de mantenimiento"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Ver pasos de mantenimiento"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Desenchufa el dispositivo"</string>
@@ -967,7 +967,7 @@
     <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"Mover arriba a la derecha"</string>
     <string name="accessibility_floating_button_action_move_bottom_left" msgid="8063394111137429725">"Mover abajo a la izquierda"</string>
     <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"Mover abajo a la derecha"</string>
-    <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"Mover fuera de borde y ocultar"</string>
+    <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"Mover al borde y ocultar"</string>
     <string name="accessibility_floating_button_action_move_out_edge_and_show" msgid="8354760891651663326">"Mover fuera de borde y mostrar"</string>
     <string name="accessibility_floating_button_action_remove_menu" msgid="6730432848162552135">"Quitar"</string>
     <string name="accessibility_floating_button_action_double_tap_to_toggle" msgid="7976492639670692037">"activar o desactivar"</string>
@@ -1271,5 +1271,5 @@
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"Retroiluminación del teclado"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"Nivel %1$d de %2$d"</string>
     <string name="home_controls_dream_label" msgid="6567105701292324257">"Controles de la casa"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"Accede a controles de la casa como prot. de pant."</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"Accede rápidamente a controles de la casa como prot. de pantalla"</string>
 </resources>

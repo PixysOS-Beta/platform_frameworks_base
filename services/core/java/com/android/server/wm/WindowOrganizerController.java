@@ -826,9 +826,14 @@ class WindowOrganizerController extends IWindowOrganizerController.Stub
     }
 
     private int applyTaskChanges(Task tr, WindowContainerTransaction.Change c) {
-        int effects = applyChanges(tr, c);
         final SurfaceControl.Transaction t = c.getBoundsChangeTransaction();
+        // Check bounds change transaction at the beginning because it may pause updating window
+        // surface position. Then the following changes won't apply intermediate position.
+        if (t != null) {
+            tr.setMainWindowSizeChangeTransaction(t);
+        }
 
+        int effects = applyChanges(tr, c);
         if ((c.getChangeMask() & WindowContainerTransaction.Change.CHANGE_HIDDEN) != 0) {
             if (tr.setForceHidden(FLAG_FORCE_HIDDEN_FOR_TASK_ORG, c.getHidden())) {
                 effects = TRANSACT_EFFECTS_LIFECYCLE;
@@ -847,10 +852,6 @@ class WindowOrganizerController extends IWindowOrganizerController.Stub
         final int childWindowingMode = c.getActivityWindowingMode();
         if (childWindowingMode > -1) {
             tr.forAllActivities(a -> { a.setWindowingMode(childWindowingMode); });
-        }
-
-        if (t != null) {
-            tr.setMainWindowSizeChangeTransaction(t);
         }
 
         Rect enterPipBounds = c.getEnterPipBounds();
@@ -1872,7 +1873,6 @@ class WindowOrganizerController extends IWindowOrganizerController.Stub
         final int count = tasksToReparent.size();
         for (int i = 0; i < count; ++i) {
             final Task task = tasksToReparent.get(i);
-            final int prevWindowingMode = task.getWindowingMode();
             if (syncId >= 0) {
                 addToSyncSet(syncId, task);
             }
@@ -1885,12 +1885,6 @@ class WindowOrganizerController extends IWindowOrganizerController.Stub
                 task.reparent((Task) newParent,
                         hop.getToTop() ? POSITION_TOP : POSITION_BOTTOM,
                         false /*moveParents*/, "processChildrenTaskReparentHierarchyOp");
-            }
-            // Trim the compatible Recent task (if any) after the Task is reparented and now has
-            // a different windowing mode, in order to prevent redundant Recent tasks after
-            // reparenting.
-            if (prevWindowingMode != task.getWindowingMode()) {
-                mService.mTaskSupervisor.mRecentTasks.removeCompatibleRecentTask(task);
             }
         }
 

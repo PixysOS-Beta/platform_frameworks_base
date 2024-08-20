@@ -662,7 +662,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"ඇඟිලි සලකුණ හඳුනා නොගන්නා ලදි"</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"ඇඟිලි සලකුණ හඳුනා නොගන්නා ලදි"</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"මුහුණ හැඳිනිය නොහැක. ඒ වෙනුවට ඇඟිලි සලකුණ භාවිත ක."</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"මුහුණ හඳුනා නොගැනිණි. ඒ වෙනුවට ඇඟිලි සලකුණ භාවිත කරන්න."</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"ඇඟිලි සලකුණ සත්‍යාපනය කරන ලදී"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"මුහුණ සත්‍යාපනය කරන ලදී"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"මුහුණ සත්‍යාපනය කරන ලදී, කරුණාකර තහවුරු කරන්න ඔබන්න"</string>
@@ -2135,6 +2135,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"දිනචරියා ප්‍රකාර තතු දැනුම්දීම"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"බැටරි සුරැකුම ක්‍රියාත්මකයි"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"බැටරි ආයු කාලය දිගු කිරීම සඳහා බැටරි භාවිතය අඩු කිරීම"</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"බැටරි සුරැකුම ක්‍රියාත්මකයි"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"බැටරි ආයු කාලය දීර්ඝ කිරීමට බැටරි සුරැකුම ක්‍රියාත්මක කර ඇත"</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"බැටරි සුරැකුම"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"බැටරි සුරැකුම ක්‍රියාවිරහිත කර ඇත"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"දුරකථනයට ප්‍රමාණවත් ආරෝපණයක් තිබේ. විශේෂාංග තවදුරටත් සීමා කර නැත."</string>
@@ -2393,4 +2395,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"ඔබට ජංගම හෝ Wi-Fi ජාලයක් නොමැතිව පණිවිඩ යැවීමට සහ ලැබීමට හැක"</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"Messages විවෘත කරන්න"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"එය ක්‍රියා කරන ආකාරය"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"ඇඟිලි සලකුණු අගුලු හැරීම නැවත සකසන්න"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"<xliff:g id="FINGERPRINT">%s</xliff:g> තවදුරටත් හඳුනා ගත නොහැක."</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> සහ <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> තවදුරටත් හඳුනා ගත නොහැක."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"<xliff:g id="FINGERPRINT">%s</xliff:g> තවදුරටත් හඳුනා ගත නොහැක. ඇඟිලි සලකුණු අගුළු හැරීම නැවත පිහිටුවන්න."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g> සහ <xliff:g id="FINGERPRINT_1">%2$s</xliff:g> තවදුරටත් හඳුනා ගත නොහැක. ඇඟිලි සලකුණු අගුළු හැරීම නැවත පිහිටුවන්න."</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"මුහුණෙන් අගුලු හැරීම නැවත සකසන්න"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"ඔබේ මුහුණු ආකෘතිය තවදුරටත් හඳුනා ගත නොහැක. මුහුණෙන් අගුළු හැරීම නැවත පිහිටුවන්න."</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"සකසන්න"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"දැන් නොවේ"</string>
 </resources>

@@ -564,6 +564,10 @@ public class WindowManagerService extends IWindowManager.Stub
     /** Device default insets types shall be excluded from config app sizes. */
     final int mConfigTypes;
 
+    final int mOverrideConfigTypes;
+
+    final int mOverrideDecorTypes;
+
     final boolean mLimitedAlphaCompositing;
     final int mMaxUiWidth;
 
@@ -1199,13 +1203,24 @@ public class WindowManagerService extends IWindowManager.Stub
         final boolean isScreenSizeDecoupledFromStatusBarAndCutout = context.getResources()
                 .getBoolean(R.bool.config_decoupleStatusBarAndDisplayCutoutFromScreenSize)
                 && mFlags.mAllowsScreenSizeDecoupledFromStatusBarAndCutout;
-        if (!isScreenSizeDecoupledFromStatusBarAndCutout) {
+        if (mFlags.mInsetsDecoupledConfiguration) {
+            mDecorTypes = 0;
+            mConfigTypes = 0;
+        } else {
             mDecorTypes = WindowInsets.Type.displayCutout() | WindowInsets.Type.navigationBars();
             mConfigTypes = WindowInsets.Type.displayCutout() | WindowInsets.Type.statusBars()
                     | WindowInsets.Type.navigationBars();
+        }
+        if (isScreenSizeDecoupledFromStatusBarAndCutout && !mFlags.mInsetsDecoupledConfiguration) {
+            // If the global new behavior is not there, but the partial decouple flag is on.
+            mOverrideConfigTypes = 0;
+            mOverrideDecorTypes = 0;
         } else {
-            mDecorTypes = WindowInsets.Type.navigationBars();
-            mConfigTypes = WindowInsets.Type.navigationBars();
+            mOverrideConfigTypes =
+                    WindowInsets.Type.displayCutout() | WindowInsets.Type.statusBars()
+                            | WindowInsets.Type.navigationBars();
+            mOverrideDecorTypes = WindowInsets.Type.displayCutout()
+                    | WindowInsets.Type.navigationBars();
         }
 
         mLetterboxConfiguration = new LetterboxConfiguration(
@@ -2532,9 +2547,6 @@ public class WindowManagerService extends IWindowManager.Stub
             }
             if (displayPolicy.areSystemBarsForcedConsumedLw()) {
                 result |= WindowManagerGlobal.RELAYOUT_RES_CONSUME_ALWAYS_SYSTEM_BARS;
-            }
-            if (!win.isGoneForLayout()) {
-                win.mResizedWhileGone = false;
             }
 
             if (outFrames != null && outMergedConfiguration != null) {
@@ -8042,6 +8054,10 @@ public class WindowManagerService extends IWindowManager.Stub
             }
             boolean allWindowsDrawn = false;
             synchronized (mGlobalLock) {
+                if (mRoot.getDefaultDisplay().mDisplayUpdater.waitForTransition(message)) {
+                    // Use the ready-to-play of transition as the signal.
+                    return;
+                }
                 container.waitForAllWindowsDrawn();
                 mWindowPlacerLocked.requestTraversal();
                 mH.removeMessages(H.WAITING_FOR_DRAWN_TIMEOUT, container);

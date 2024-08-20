@@ -34,7 +34,7 @@
     <string name="status_bar_settings_auto_rotation" msgid="8329080442278431708">"Xirar pantalla automaticamente"</string>
     <string name="usb_device_permission_prompt" msgid="4414719028369181772">"Queres permitir que <xliff:g id="APPLICATION">%1$s</xliff:g> acceda a <xliff:g id="USB_DEVICE">%2$s</xliff:g>?"</string>
     <string name="usb_device_permission_prompt_warn" msgid="2309129784984063656">"Queres permitir que a aplicación <xliff:g id="APPLICATION">%1$s</xliff:g> acceda ao dispositivo (<xliff:g id="USB_DEVICE">%2$s</xliff:g>)?\nEsta aplicación non está autorizada para realizar gravacións, pero podería capturar audio a través deste dispositivo USB."</string>
-    <string name="usb_audio_device_permission_prompt_title" msgid="4221351137250093451">"Permitir que <xliff:g id="APPLICATION">%1$s</xliff:g> acceda a <xliff:g id="USB_DEVICE">%2$s</xliff:g>?"</string>
+    <string name="usb_audio_device_permission_prompt_title" msgid="4221351137250093451">"Queres permitir que a aplicación <xliff:g id="APPLICATION">%1$s</xliff:g> acceda a <xliff:g id="USB_DEVICE">%2$s</xliff:g>?"</string>
     <string name="usb_audio_device_confirm_prompt_title" msgid="8828406516732985696">"Abrir <xliff:g id="APPLICATION">%1$s</xliff:g> para usar <xliff:g id="USB_DEVICE">%2$s</xliff:g>?"</string>
     <string name="usb_audio_device_prompt_warn" msgid="2504972133361130335">"Esta aplicación non está autorizada a realizar gravacións, pero podería capturar audio a través deste dispositivo USB. Ao usar a aplicación <xliff:g id="APPLICATION">%1$s</xliff:g> con este dispositivo, é posible que non se escoiten chamadas, notificacións nin alarmas."</string>
     <string name="usb_audio_device_prompt" msgid="7944987408206252949">"Ao usar a aplicación <xliff:g id="APPLICATION">%1$s</xliff:g> con este dispositivo, é posible que non se escoiten chamadas, notificacións nin alarmas."</string>
@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"O teu administrador de TI bloqueou a opción de facer capturas de pantalla"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Editar"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Editar a captura de pantalla"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Compartir"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Compartir captura de pantalla"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Capturar máis"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Ignorar a captura de pantalla"</string>
@@ -600,7 +601,7 @@
     <string name="wallet_title" msgid="5369767670735827105">"Wallet"</string>
     <string name="wallet_empty_state_label" msgid="7776761245237530394">"Configura un método de pago para comprar de xeito máis rápido e seguro co teléfono"</string>
     <string name="wallet_app_button_label" msgid="7123784239111190992">"Amosar todo"</string>
-    <string name="wallet_secondary_label_no_card" msgid="8488069304491125713">"Tocar para abrir"</string>
+    <string name="wallet_secondary_label_no_card" msgid="8488069304491125713">"Toca para abrir"</string>
     <string name="wallet_secondary_label_updating" msgid="5726130686114928551">"Actualizando"</string>
     <string name="wallet_secondary_label_device_locked" msgid="5175862019125370506">"Desbloquear para usar"</string>
     <string name="wallet_error_generic" msgid="257704570182963611">"Produciuse un problema ao obter as tarxetas. Téntao de novo máis tarde"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Satélite, mala conexión"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Satélite, boa conexión"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Satélite, conexión dispoñible"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"SOS por satélite"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Perfil de traballo"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Diversión só para algúns"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"O configurador da IU do sistema ofréceche formas adicionais de modificar e personalizar a interface de usuario de Android. Estas funcións experimentais poden cambiar, interromperse ou desaparecer en futuras versións. Continúa con precaución."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Menú de acendido"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Páxina <xliff:g id="ID_1">%1$d</xliff:g> de <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Pantalla de bloqueo"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Podes atopar este teléfono (mesmo se está apagado) con Localizar o meu dispositivo"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Apagando…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Ver pasos de mantemento"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Ver pasos de mantemento"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Desconectar o dispositivo"</string>
@@ -963,10 +968,10 @@
     <string name="accessibility_floating_button_hidden_notification_text" msgid="1457021647040915658">"Toca para mostrar o botón Accesibilidade"</string>
     <string name="accessibility_floating_button_undo_message_label_text" msgid="9017658016426242640">"Quitouse o atallo de <xliff:g id="FEATURE_NAME">%s</xliff:g>"</string>
     <string name="accessibility_floating_button_undo_message_number_text" msgid="4909270290725226075">"{count,plural, =1{Quitouse # atallo}other{Quitáronse # atallos}}"</string>
-    <string name="accessibility_floating_button_action_move_top_left" msgid="6253520703618545705">"Mover á parte super. esquerda"</string>
-    <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"Mover á parte superior dereita"</string>
-    <string name="accessibility_floating_button_action_move_bottom_left" msgid="8063394111137429725">"Mover á parte infer. esquerda"</string>
-    <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"Mover á parte inferior dereita"</string>
+    <string name="accessibility_floating_button_action_move_top_left" msgid="6253520703618545705">"Mover arriba á esquerda"</string>
+    <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"Mover arriba á dereita"</string>
+    <string name="accessibility_floating_button_action_move_bottom_left" msgid="8063394111137429725">"Mover abaixo á esquerda"</string>
+    <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"Mover abaixo á dereita"</string>
     <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"Mover ao bordo e ocultar"</string>
     <string name="accessibility_floating_button_action_move_out_edge_and_show" msgid="8354760891651663326">"Mover fóra do bordo e mostrar"</string>
     <string name="accessibility_floating_button_action_remove_menu" msgid="6730432848162552135">"Quitar"</string>
@@ -1271,5 +1276,5 @@
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"Retroiluminación do teclado"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"Nivel %1$d de %2$d"</string>
     <string name="home_controls_dream_label" msgid="6567105701292324257">"Controis domóticos"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"Controis domóticos como protector de pantalla"</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"Usa os controis domóticos como protector de pantalla"</string>
 </resources>

@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"A capacidade de fazer capturas de ecrã foi bloqueada pelo administrador de TI"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Editar"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Editar captura de ecrã"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Partilhar"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Partilhar captura de ecrã"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Capturar mais"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Ignorar captura de ecrã"</string>
@@ -195,7 +196,7 @@
     <string name="face_re_enroll_dialog_title" msgid="6392173708176069994">"Configure o Desbloqueio facial"</string>
     <string name="face_re_enroll_dialog_content" msgid="7353502359464038511">"Para configurar o Desbloqueio facial novamente, o seu modelo de rosto atual vai ser eliminado.\n\nVai ter de configurar novamente esta funcionalidade para desbloquear o telemóvel com o rosto."</string>
     <string name="face_reenroll_failure_dialog_content" msgid="7073947334397236935">"Não foi possível configurar o Desbloqueio facial. Aceda às Definições para tentar novamente."</string>
-    <string name="fingerprint_dialog_touch_sensor" msgid="2817887108047658975">"Toque no sensor de impressões digitais."</string>
+    <string name="fingerprint_dialog_touch_sensor" msgid="2817887108047658975">"Toque no sensor de impressões digitais"</string>
     <string name="fingerprint_dialog_authenticated_confirmation" msgid="1603899612957562862">"Prima o ícone de desbloqueio para continuar"</string>
     <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5542430577183894219">"Rosto não reconhecido. Use a impressão digital."</string>
     <!-- no translation found for keyguard_face_failed_use_fp (7140293906176164263) -->
@@ -588,7 +589,11 @@
     <string name="volume_ringer_hint_vibrate" msgid="6211609047099337509">"vibrar"</string>
     <string name="volume_dialog_title" msgid="6502703403483577940">"Controlos de volume de %s"</string>
     <string name="volume_dialog_ringer_guidance_ring" msgid="9143194270463146858">"As chamadas e as notificações tocam (<xliff:g id="VOLUME_LEVEL">%1$s</xliff:g>)"</string>
+<<<<<<< HEAD
     <string name="media_output_label_title" msgid="872824698593182505">"A ouvir <xliff:g id="LABEL">%s</xliff:g> em"</string>
+=======
+    <string name="media_output_label_title" msgid="872824698593182505">"A ouvir <xliff:g id="LABEL">%s</xliff:g> em:"</string>
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="media_output_title_without_playing" msgid="3825663683169305013">"Áudio ouvido em:"</string>
     <string name="system_ui_tuner" msgid="1471348823289954729">"Sintonizador da interface do sistema"</string>
     <string name="status_bar" msgid="4357390266055077437">"Barra de estado"</string>
@@ -617,6 +622,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Satélite, ligação fraca"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Satélite, boa ligação"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Satélite, ligação disponível"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"Satélite SOS"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Perfil de trabalho"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Diversão para alguns, mas não para todos"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"O Sintonizador da interface do sistema disponibiliza-lhe formas adicionais ajustar e personalizar a interface do utilizador do Android. Estas funcionalidades experimentais podem ser alteradas, deixar de funcionar ou desaparecer em versões futuras. Prossiga com cuidado."</string>
@@ -835,8 +841,6 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Menu ligar/desligar"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Página <xliff:g id="ID_1">%1$d</xliff:g> de <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Ecrã de bloqueio"</string>
-    <string name="finder_active" msgid="7907846989716941952">"Pode localizar este telemóvel com o serviço Localizar o meu dispositivo mesmo quando está desligado"</string>
-    <string name="shutdown_progress" msgid="5464239146561542178">"A encerrar…"</string>
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Veja os passos de manutenção"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Veja os passos de manutenção"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Desligue o dispositivo"</string>
@@ -964,9 +968,9 @@
     <string name="accessibility_floating_button_undo_message_label_text" msgid="9017658016426242640">"Atalho de <xliff:g id="FEATURE_NAME">%s</xliff:g> removido"</string>
     <string name="accessibility_floating_button_undo_message_number_text" msgid="4909270290725226075">"{count,plural, =1{# atalho removido}many{# atalhos removidos}other{# atalhos removidos}}"</string>
     <string name="accessibility_floating_button_action_move_top_left" msgid="6253520703618545705">"Mover p/ parte sup. esquerda"</string>
-    <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"Mover parte superior direita"</string>
+    <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"Mover p/ parte sup. direita"</string>
     <string name="accessibility_floating_button_action_move_bottom_left" msgid="8063394111137429725">"Mover p/ parte infer. esquerda"</string>
-    <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"Mover parte inferior direita"</string>
+    <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"Mover p/ parte infer. direita"</string>
     <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"Mover p/ extremidade e ocultar"</string>
     <string name="accessibility_floating_button_action_move_out_edge_and_show" msgid="8354760891651663326">"Retirar extremidade e mostrar"</string>
     <string name="accessibility_floating_button_action_remove_menu" msgid="6730432848162552135">"Remover"</string>
@@ -1271,5 +1275,5 @@
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"Luz do teclado"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"Nível %1$d de %2$d"</string>
     <string name="home_controls_dream_label" msgid="6567105701292324257">"Controlos domésticos"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"Aceda rapid. aos contr. domést. como prot. de ecrã"</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"Use controlos domésticos como proteção de ecrã"</string>
 </resources>

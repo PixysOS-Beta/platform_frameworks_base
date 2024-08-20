@@ -11225,12 +11225,28 @@ public final class Settings {
                 "biometric_debug_enabled";
 
         /**
-         * Whether or not virtual sensors are enabled.
+         * Whether or not both fingerprint and face virtual sensors are enabled.
          * @hide
          */
         @TestApi
         @Readable
         public static final String BIOMETRIC_VIRTUAL_ENABLED = "biometric_virtual_enabled";
+
+        /**
+         * Whether or not fingerprint virtual sensors are enabled.
+         * @hide
+         */
+        @FlaggedApi("com.android.server.biometrics.face_vhal_feature")
+        public static final String BIOMETRIC_FINGERPRINT_VIRTUAL_ENABLED =
+                "biometric_fingerprint_virtual_enabled";
+
+        /**
+         * Whether or not face virtual sensors are enabled.
+         * @hide
+         */
+        @FlaggedApi("com.android.server.biometrics.face_vhal_feature")
+        public static final String BIOMETRIC_FACE_VIRTUAL_ENABLED =
+                "biometric_face_virtual_enabled";
 
         /**
          * Whether or not biometric is allowed on Keyguard.
@@ -11384,21 +11400,12 @@ public final class Settings {
                 "assist_long_press_home_enabled";
 
         /**
-         * Whether press and hold on nav handle can trigger search.
+         * Whether all entrypoints can trigger search. Replaces individual settings.
          *
          * @hide
          */
-        public static final String SEARCH_PRESS_HOLD_NAV_HANDLE_ENABLED =
-                "search_press_hold_nav_handle_enabled";
-
-        /**
-         * Whether long-pressing on the home button can trigger search.
-         *
-         * @hide
-         */
-        public static final String SEARCH_LONG_PRESS_HOME_ENABLED =
-                "search_long_press_home_enabled";
-
+        public static final String SEARCH_ALL_ENTRYPOINTS_ENABLED =
+                "search_all_entrypoints_enabled";
 
         /**
          * Whether or not the accessibility data streaming is enbled for the

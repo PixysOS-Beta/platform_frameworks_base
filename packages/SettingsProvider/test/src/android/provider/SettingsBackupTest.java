@@ -848,6 +848,8 @@ public class SettingsBackupTest {
                         Settings.Secure.BIOMETRIC_APP_ENABLED,
                         Settings.Secure.BIOMETRIC_KEYGUARD_ENABLED,
                         Settings.Secure.BIOMETRIC_VIRTUAL_ENABLED,
+                        Settings.Secure.BIOMETRIC_FINGERPRINT_VIRTUAL_ENABLED,
+                        Settings.Secure.BIOMETRIC_FACE_VIRTUAL_ENABLED,
                         Settings.Secure.BLUETOOTH_ADDR_VALID,
                         Settings.Secure.BLUETOOTH_ADDRESS,
                         Settings.Secure.BLUETOOTH_NAME,
@@ -905,6 +907,7 @@ public class SettingsBackupTest {
                         Settings.System.APPEND_FOR_LAST_AUDIBLE, // suffix deprecated since API 2
                         Settings.System.EGG_MODE, // I am the lolrus
                         Settings.System.END_BUTTON_BEHAVIOR, // bug?
+                        Settings.System.DEFAULT_DEVICE_FONT_SCALE, // Non configurable
                         Settings.System
                                 .HIDE_ROTATION_LOCK_TOGGLE_FOR_ACCESSIBILITY,
                         // candidate for backup?

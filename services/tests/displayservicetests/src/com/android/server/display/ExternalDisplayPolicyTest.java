@@ -317,7 +317,12 @@ public class ExternalDisplayPolicyTest {
                 mDisplayEventCaptor.capture());
         assertThat(mLogicalDisplayCaptor.getValue()).isEqualTo(mMockedLogicalDisplay);
         assertThat(mDisplayEventCaptor.getValue()).isEqualTo(EVENT_DISPLAY_CONNECTED);
+<<<<<<< HEAD
         verify(mMockedLogicalDisplay).setEnabledLocked(false);
+=======
+        verify(mMockedLogicalDisplayMapper).setEnabledLocked(eq(mMockedLogicalDisplay),
+                eq(false));
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
         clearInvocations(mMockedLogicalDisplayMapper);
         clearInvocations(mMockedLogicalDisplay);
     }

@@ -16,7 +16,6 @@
 
 package com.android.systemui.qs.tiles.dialog.bluetooth
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -57,7 +56,6 @@ import kotlinx.coroutines.withContext
 class BluetoothTileDialogDelegate
 @AssistedInject
 internal constructor(
-    @Assisted private val context: Context,
     @Assisted private val initialUiProperties: BluetoothTileDialogViewModel.UiProperties,
     @Assisted private val cachedContentHeight: Int,
     @Assisted private val bluetoothToggleInitialValue: Boolean,
@@ -68,10 +66,7 @@ internal constructor(
     private val uiEventLogger: UiEventLogger,
     private val logger: BluetoothTileDialogLogger,
     private val systemuiDialogFactory: SystemUIDialog.Factory,
-    mainLayoutInflater: LayoutInflater,
 ) : SystemUIDialog.Delegate {
-
-    private val layoutInflater = mainLayoutInflater.cloneInContext(context)
 
     private val mutableBluetoothStateToggle: MutableStateFlow<Boolean> =
         MutableStateFlow(bluetoothToggleInitialValue)
@@ -101,7 +96,6 @@ internal constructor(
     @AssistedFactory
     internal interface Factory {
         fun create(
-            context: Context,
             initialUiProperties: BluetoothTileDialogViewModel.UiProperties,
             cachedContentHeight: Int,
             bluetoothEnabled: Boolean,
@@ -111,16 +105,19 @@ internal constructor(
     }
 
     override fun createDialog(): SystemUIDialog {
-        val dialog = systemuiDialogFactory.create(this, context)
-
-        return dialog
+        return systemuiDialogFactory.create(this)
     }
 
     override fun onCreate(dialog: SystemUIDialog, savedInstanceState: Bundle?) {
         SystemUIDialog.registerDismissListener(dialog, dismissListener)
         uiEventLogger.log(BluetoothTileDialogUiEvent.BLUETOOTH_TILE_DIALOG_SHOWN)
+        val context = dialog.context
 
+<<<<<<< HEAD
         LayoutInflater.from(dialog.context).inflate(R.layout.bluetooth_tile_dialog, null).apply {
+=======
+        LayoutInflater.from(context).inflate(R.layout.bluetooth_tile_dialog, null).apply {
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
             accessibilityPaneTitle = context.getText(R.string.accessibility_desc_quick_settings)
             dialog.setContentView(this)
         }
@@ -200,7 +197,7 @@ internal constructor(
             setEnabled(true)
             alpha = ENABLED_ALPHA
         }
-        getSubtitleTextView(dialog).text = context.getString(uiProperties.subTitleResId)
+        getSubtitleTextView(dialog).text = dialog.context.getString(uiProperties.subTitleResId)
         getAutoOnToggleView(dialog).visibility = uiProperties.autoOnToggleVisibility
     }
 
@@ -278,7 +275,7 @@ internal constructor(
 
     private fun setupRecyclerView(dialog: SystemUIDialog) {
         getDeviceListView(dialog).apply {
-            layoutManager = LinearLayoutManager(context)
+            layoutManager = LinearLayoutManager(dialog.context)
             adapter = deviceItemAdapter
         }
     }
@@ -333,7 +330,9 @@ internal constructor(
         private val asyncListDiffer = AsyncListDiffer(this, diffUtilCallback)
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeviceItemViewHolder {
-            val view = layoutInflater.inflate(R.layout.bluetooth_device_item, parent, false)
+            val view =
+                LayoutInflater.from(parent.context)
+                    .inflate(R.layout.bluetooth_device_item, parent, false)
             return DeviceItemViewHolder(view)
         }
 

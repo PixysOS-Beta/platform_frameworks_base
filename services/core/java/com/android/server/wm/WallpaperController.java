@@ -61,6 +61,7 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.protolog.common.ProtoLog;
 import com.android.internal.util.ToBooleanFunction;
 import com.android.server.wallpaper.WallpaperCropper.WallpaperCropUtils;
+import com.android.window.flags.Flags;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -166,7 +167,11 @@ class WallpaperController {
                             || (w.mActivityRecord != null && !w.mActivityRecord.fillsParent());
                 }
             } else if (w.hasWallpaper() && mService.mPolicy.isKeyguardHostWindow(w.mAttrs)
+<<<<<<< HEAD
                     && w.mTransitionController.isTransitionOnDisplay(mDisplayContent)) {
+=======
+                    && w.mTransitionController.hasTransientLaunch(mDisplayContent)) {
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
                 // If we have no candidates at all, notification shade is allowed to be the target
                 // of last resort even if it has not been made visible yet.
                 if (DEBUG_WALLPAPER) Slog.v(TAG, "Found keyguard as wallpaper target: " + w);
@@ -753,10 +758,19 @@ class WallpaperController {
 
     void collectTopWallpapers(Transition transition) {
         if (mFindResults.hasTopShowWhenLockedWallpaper()) {
-            transition.collect(mFindResults.mTopWallpaper.mTopShowWhenLockedWallpaper);
+            if (Flags.ensureWallpaperInTransitions()) {
+                transition.collect(mFindResults.mTopWallpaper.mTopShowWhenLockedWallpaper.mToken);
+            } else {
+                transition.collect(mFindResults.mTopWallpaper.mTopShowWhenLockedWallpaper);
+            }
+
         }
         if (mFindResults.hasTopHideWhenLockedWallpaper()) {
-            transition.collect(mFindResults.mTopWallpaper.mTopHideWhenLockedWallpaper);
+            if (Flags.ensureWallpaperInTransitions()) {
+                transition.collect(mFindResults.mTopWallpaper.mTopHideWhenLockedWallpaper.mToken);
+            } else {
+                transition.collect(mFindResults.mTopWallpaper.mTopHideWhenLockedWallpaper);
+            }
         }
     }
 

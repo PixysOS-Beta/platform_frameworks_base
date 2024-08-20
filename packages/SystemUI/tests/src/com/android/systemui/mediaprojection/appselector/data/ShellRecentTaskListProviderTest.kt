@@ -1,6 +1,7 @@
 package com.android.systemui.mediaprojection.appselector.data
 
 import android.app.ActivityManager.RecentTaskInfo
+import android.graphics.Rect
 import android.testing.AndroidTestingRunner
 import androidx.test.filters.SmallTest
 import com.android.systemui.SysuiTestCase
@@ -8,8 +9,10 @@ import com.android.systemui.settings.UserTracker
 import com.android.systemui.util.mockito.any
 import com.android.systemui.util.mockito.mock
 import com.android.systemui.util.mockito.whenever
+import com.android.wm.shell.common.split.SplitScreenConstants
 import com.android.wm.shell.recents.RecentTasks
 import com.android.wm.shell.util.GroupedRecentTaskInfo
+import com.android.wm.shell.util.SplitBounds
 import com.google.common.truth.Truth.assertThat
 import java.util.Optional
 import java.util.function.Consumer
@@ -90,6 +93,20 @@ class ShellRecentTaskListProviderTest : SysuiTestCase() {
     }
 
     @Test
+<<<<<<< HEAD
+=======
+    fun loadRecentTasks_singleTaskPair_returnsTasksAsForeground() {
+        givenRecentTasks(
+            createTaskPair(taskId1 = 2, taskId2 = 3, isVisible = true),
+        )
+
+        val result = runBlocking { recentTaskListProvider.loadRecentTasks() }
+
+        assertThat(result[0].isForegroundTask).isTrue()
+    }
+
+    @Test
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     fun loadRecentTasks_multipleTasks_returnsSecondVisibleTaskAsForegroundTask() {
         givenRecentTasks(
             createSingleTask(taskId = 1),
@@ -133,6 +150,24 @@ class ShellRecentTaskListProviderTest : SysuiTestCase() {
     }
 
     @Test
+<<<<<<< HEAD
+=======
+    fun loadRecentTasks_firstTaskIsGroupedAndVisible_marksBothGroupedTasksAsForeground() {
+        givenRecentTasks(
+            createTaskPair(taskId1 = 1, taskId2 = 2, isVisible = true),
+            createSingleTask(taskId = 3),
+            createSingleTask(taskId = 4),
+        )
+
+        val result = runBlocking { recentTaskListProvider.loadRecentTasks() }
+
+        assertThat(result.map { it.isForegroundTask })
+                .containsExactly(true, true, false, false)
+                .inOrder()
+    }
+
+    @Test
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     fun loadRecentTasks_secondTaskIsGroupedAndInvisible_marksBothGroupedTasksAsNotForeground() {
         givenRecentTasks(
             createSingleTask(taskId = 1),
@@ -147,6 +182,24 @@ class ShellRecentTaskListProviderTest : SysuiTestCase() {
             .inOrder()
     }
 
+<<<<<<< HEAD
+=======
+    @Test
+    fun loadRecentTasks_firstTaskIsGroupedAndInvisible_marksBothGroupedTasksAsNotForeground() {
+        givenRecentTasks(
+            createTaskPair(taskId1 = 1, taskId2 = 2, isVisible = false),
+            createSingleTask(taskId = 3),
+            createSingleTask(taskId = 4),
+        )
+
+        val result = runBlocking { recentTaskListProvider.loadRecentTasks() }
+
+        assertThat(result.map { it.isForegroundTask })
+                .containsExactly(false, false, false, false)
+                .inOrder()
+    }
+
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     @Suppress("UNCHECKED_CAST")
     private fun givenRecentTasks(vararg tasks: GroupedRecentTaskInfo) {
         whenever(recentTasks.getRecentTasks(any(), any(), any(), any(), any())).thenAnswer {
@@ -177,7 +230,11 @@ class ShellRecentTaskListProviderTest : SysuiTestCase() {
         GroupedRecentTaskInfo.forSplitTasks(
             createTaskInfo(taskId1, isVisible),
             createTaskInfo(taskId2, isVisible),
+<<<<<<< HEAD
             null
+=======
+            SplitBounds(Rect(), Rect(), taskId1, taskId2, SplitScreenConstants.SNAP_TO_50_50)
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
         )
 
     private fun createTaskInfo(taskId: Int, isVisible: Boolean = false) =

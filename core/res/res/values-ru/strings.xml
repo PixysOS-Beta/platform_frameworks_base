@@ -653,7 +653,7 @@
     <string name="fingerprint_acquired_insufficient" msgid="2410176550915730974">"Отпечаток пальца не распознан. Повторите попытку."</string>
     <string name="fingerprint_acquired_imager_dirty" msgid="1770676120848224250">"Очистите сканер отпечатков пальцев и повторите попытку."</string>
     <string name="fingerprint_acquired_imager_dirty_alt" msgid="9169582140486372897">"Очистите сканер и повторите попытку."</string>
-    <string name="fingerprint_acquired_too_fast" msgid="1628459767349116104">"Плотно прижмите палец к сканеру."</string>
+    <string name="fingerprint_acquired_too_fast" msgid="1628459767349116104">"Плотно прижмите палец к сканеру"</string>
     <string name="fingerprint_acquired_too_slow" msgid="6683510291554497580">"Вы перемещали палец слишком медленно. Повторите попытку."</string>
     <string name="fingerprint_acquired_already_enrolled" msgid="2285166003936206785">"Попробуйте сохранить отпечаток другого пальца."</string>
     <string name="fingerprint_acquired_too_bright" msgid="3863560181670915607">"Слишком светло."</string>
@@ -664,7 +664,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"Отпечаток не распознан."</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"Отпечаток не распознан."</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"Не удалось распознать лицо. Используйте отпечаток."</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"Лицо не распознано. Сканируйте отпечаток пальца."</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"Отпечаток пальца проверен"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"Лицо распознано"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"Лицо распознано, нажмите кнопку \"Подтвердить\""</string>
@@ -830,7 +830,7 @@
     <string name="policylab_limitPassword" msgid="4851829918814422199">"Настройка правил для паролей"</string>
     <string name="policydesc_limitPassword" msgid="4105491021115793793">"Контролировать длину и символы при вводе пароля и PIN-кода."</string>
     <string name="policylab_watchLogin" msgid="7599669460083719504">"Отслеживание попыток разблокировать экран"</string>
-    <string name="policydesc_watchLogin" product="tablet" msgid="2388436408621909298">"Отслеживает попытки ввода пароля при разблокировке экрана и блокирует планшетный ПК или удаляет с него все данные, если было сделано слишком много таких попыток."</string>
+    <string name="policydesc_watchLogin" product="tablet" msgid="2388436408621909298">"Отслеживать попытки ввода пароля при разблокировке экрана и блокировать планшет или удалять с него все данные, если было сделано слишком много таких попыток."</string>
     <string name="policydesc_watchLogin" product="tv" msgid="2140588224468517507">"Блокировать устройство Android TV или удалять с него все ваши данные при слишком большом количестве неудачных попыток ввести пароль для разблокировки экрана."</string>
     <string name="policydesc_watchLogin" product="automotive" msgid="7011438994051251521">"Блокировать информационно-развлекательную систему или удалять из нее все данные, если совершено слишком много неудачных попыток ввести пароль для разблокировки экрана."</string>
     <string name="policydesc_watchLogin" product="default" msgid="4885030206253600299">"Отслеживать попытки ввода пароля при разблокировке экрана и блокировать телефон или удалять с него все данные, если было сделано слишком много таких попыток."</string>
@@ -843,7 +843,7 @@
     <string name="policylab_forceLock" msgid="7360335502968476434">"Блокировка экрана"</string>
     <string name="policydesc_forceLock" msgid="1008844760853899693">"Управлять способом и временем блокировки экрана."</string>
     <string name="policylab_wipeData" msgid="1359485247727537311">"Удаление всех данных"</string>
-    <string name="policydesc_wipeData" product="tablet" msgid="7245372676261947507">"Удалять все данные на планшетном ПК без предупреждения путем сброса настроек."</string>
+    <string name="policydesc_wipeData" product="tablet" msgid="7245372676261947507">"Удалять все данные на планшете без предупреждения путем сброса настроек."</string>
     <string name="policydesc_wipeData" product="tv" msgid="513862488950801261">"Удалять данные с устройства Android TV без предупреждения, выполняя восстановление заводских настроек."</string>
     <string name="policydesc_wipeData" product="automotive" msgid="660804547737323300">"Сбрасывать настройки без предупреждения, таким образом удаляя все данные из информационно-развлекательной системы."</string>
     <string name="policydesc_wipeData" product="default" msgid="8036084184768379022">"Удалять все данные на телефоне без предупреждения путем сброса настроек."</string>
@@ -1892,7 +1892,7 @@
     <string name="managed_profile_label_badge_2" msgid="5673187309555352550">"Задача 2: <xliff:g id="LABEL">%1$s</xliff:g>"</string>
     <string name="managed_profile_label_badge_3" msgid="6882151970556391957">"Задача 3: <xliff:g id="LABEL">%1$s</xliff:g>"</string>
     <string name="clone_profile_label_badge" msgid="1871997694718793964">"Клонировать <xliff:g id="LABEL">%1$s</xliff:g>"</string>
-    <string name="private_profile_label_badge" msgid="1712086003787839183">"<xliff:g id="LABEL">%1$s</xliff:g> (личный профиль)"</string>
+    <string name="private_profile_label_badge" msgid="1712086003787839183">"<xliff:g id="LABEL">%1$s</xliff:g> (частный профиль)"</string>
     <string name="lock_to_app_unlock_pin" msgid="3890940811866290782">"Запрашивать PIN-код"</string>
     <string name="lock_to_app_unlock_pattern" msgid="2694204070499712503">"Запрашивать графический ключ"</string>
     <string name="lock_to_app_unlock_password" msgid="9126722403506560473">"Запрашивать пароль"</string>
@@ -1990,7 +1990,7 @@
     <string name="work_mode_emergency_call_button" msgid="6818855962881612322">"Экстренный вызов"</string>
     <string name="set_up_screen_lock_title" msgid="8346083801616474030">"Настройте блокировку экрана"</string>
     <string name="set_up_screen_lock_action_label" msgid="2687634803649209367">"Настроить блокировку экрана"</string>
-    <string name="private_space_set_up_screen_lock_message" msgid="1109956797005149814">"Чтобы использовать личное пространство, настройте блокировку экрана на этом устройстве."</string>
+    <string name="private_space_set_up_screen_lock_message" msgid="1109956797005149814">"Чтобы использовать частное пространство, настройте блокировку экрана на этом устройстве."</string>
     <string name="app_blocked_title" msgid="7353262160455028160">"Приложение недоступно"</string>
     <string name="app_blocked_message" msgid="542972921087873023">"Приложение \"<xliff:g id="APP_NAME">%1$s</xliff:g>\" сейчас недоступно."</string>
     <string name="app_streaming_blocked_title" msgid="6090945835898766139">"Недоступно: <xliff:g id="ACTIVITY">%1$s</xliff:g>"</string>
@@ -2137,6 +2137,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"Уведомление о батарее"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"Включен режим энергосбережения"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"Экономия заряда продлит время работы от батареи."</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"Включен режим энергосбережения"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"Это нужно, чтобы продлить время работы от батареи."</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"Режим энергосбережения"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"Режим энергосбережения отключен"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"Телефон заряжен достаточно. Функции больше не ограничены."</string>
@@ -2191,7 +2193,7 @@
     <string name="conversation_title_fallback_one_to_one" msgid="1980753619726908614">"Чат"</string>
     <string name="conversation_title_fallback_group_chat" msgid="456073374993104303">"Групповой чат"</string>
     <string name="unread_convo_overflow" msgid="920517615597353833">"<xliff:g id="MAX_UNREAD_COUNT">%1$d</xliff:g>+"</string>
-    <string name="resolver_personal_tab" msgid="2051260504014442073">"Личное"</string>
+    <string name="resolver_personal_tab" msgid="2051260504014442073">"Личный"</string>
     <string name="resolver_work_tab" msgid="2690019516263167035">"Рабочее"</string>
     <string name="resolver_personal_tab_accessibility" msgid="5739524949153091224">"Просмотр личных данных"</string>
     <string name="resolver_work_tab_accessibility" msgid="4753168230363802734">"Просмотр рабочих данных"</string>
@@ -2383,7 +2385,7 @@
     <string name="keyboard_layout_notification_more_than_three_selected_message" msgid="1581834181578206937">"Настроены раскладки клавиатуры для яз.: <xliff:g id="LAYOUT_1">%1$s</xliff:g>, <xliff:g id="LAYOUT_2">%2$s</xliff:g>, <xliff:g id="LAYOUT_3">%3$s</xliff:g> и др. Нажмите, чтобы изменить."</string>
     <string name="keyboard_layout_notification_multiple_selected_title" msgid="5242444914367024499">"Физические клавиатуры настроены"</string>
     <string name="keyboard_layout_notification_multiple_selected_message" msgid="6576533454124419202">"Нажмите, чтобы посмотреть подключенные клавиатуры."</string>
-    <string name="profile_label_private" msgid="6463418670715290696">"Личный"</string>
+    <string name="profile_label_private" msgid="6463418670715290696">"Частный"</string>
     <string name="profile_label_clone" msgid="769106052210954285">"Клон"</string>
     <string name="profile_label_work" msgid="3495359133038584618">"Рабочий"</string>
     <string name="profile_label_work_2" msgid="4691533661598632135">"Рабочий 2"</string>
@@ -2395,4 +2397,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"Вы можете отправлять и получать сообщения без доступа к мобильной сети или Wi-Fi."</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"Открыть Сообщения"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"Узнать принцип работы"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"Настройте разблокировку по отпечатку пальца заново"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"Отпечаток \"<xliff:g id="FINGERPRINT">%s</xliff:g>\" больше нельзя распознать."</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"Отпечатки \"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g>\" и \"<xliff:g id="FINGERPRINT_1">%2$s</xliff:g>\" больше нельзя распознать."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"Отпечаток \"<xliff:g id="FINGERPRINT">%s</xliff:g>\" больше нельзя распознать. Настройте разблокировку по отпечатку пальца снова."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"Отпечатки \"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g>\" и \"<xliff:g id="FINGERPRINT_1">%2$s</xliff:g>\" больше нельзя распознать. Настройте разблокировку по отпечатку пальца снова."</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"Настройте фейсконтроль заново"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"Вашу модель лица больше нельзя распознать. Настройте фейсконтроль снова."</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"Настроить"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"Не сейчас"</string>
 </resources>

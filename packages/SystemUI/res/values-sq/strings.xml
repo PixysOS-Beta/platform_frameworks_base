@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"Shkrepja e pamjeve të ekranit është bllokuar nga administratori i teknologjisë së informacionit"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Modifiko"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Modifiko pamjen e ekranit"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Ndaj"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Ndaj pamjen e ekranit"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Regjistro më shumë"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Hiq pamjen e ekranit"</string>
@@ -268,7 +269,7 @@
     <string name="quick_settings_bluetooth_device_saved" msgid="7549938728928069477">"Ruajtur"</string>
     <string name="accessibility_quick_settings_bluetooth_device_tap_to_disconnect" msgid="415980329093277342">"shkëput"</string>
     <string name="accessibility_quick_settings_bluetooth_device_tap_to_activate" msgid="3724301751036877403">"aktivizo"</string>
-    <string name="turn_on_bluetooth_auto_tomorrow" msgid="414836329962473906">"Aktivizoje automatikisht nesër"</string>
+    <string name="turn_on_bluetooth_auto_tomorrow" msgid="414836329962473906">"Aktivizoje automatikisht sërish nesër"</string>
     <string name="turn_on_bluetooth_auto_info" msgid="8831410009251539988">"Veçoritë si \"Ndarja e shpejtë\", \"Gjej pajisjen time\" dhe vendndodhja e pajisjes përdorin Bluetooth-in"</string>
     <string name="quick_settings_bluetooth_secondary_label_battery_level" msgid="4182034939479344093">"<xliff:g id="BATTERY_LEVEL_AS_PERCENTAGE">%s</xliff:g> bateri"</string>
     <string name="quick_settings_bluetooth_secondary_label_audio" msgid="780333390310051161">"Audio"</string>
@@ -588,8 +589,8 @@
     <string name="volume_ringer_hint_vibrate" msgid="6211609047099337509">"lësho dridhje"</string>
     <string name="volume_dialog_title" msgid="6502703403483577940">"Kontrollet e volumit %s"</string>
     <string name="volume_dialog_ringer_guidance_ring" msgid="9143194270463146858">"Do të bjerë zilja për telefonatat dhe njoftimet (<xliff:g id="VOLUME_LEVEL">%1$s</xliff:g>)"</string>
-    <string name="media_output_label_title" msgid="872824698593182505">"Po luhet <xliff:g id="LABEL">%s</xliff:g> në"</string>
-    <string name="media_output_title_without_playing" msgid="3825663683169305013">"Do të luhet audio në"</string>
+    <string name="media_output_label_title" msgid="872824698593182505">"Po luhet <xliff:g id="LABEL">%s</xliff:g> te"</string>
+    <string name="media_output_title_without_playing" msgid="3825663683169305013">"Do të luhet audio te"</string>
     <string name="system_ui_tuner" msgid="1471348823289954729">"Sintonizuesi i Sistemit të Ndërfaqes së Përdoruesit"</string>
     <string name="status_bar" msgid="4357390266055077437">"Shiriti i statusit"</string>
     <string name="demo_mode" msgid="263484519766901593">"Modaliteti i demonstrimit i ndërfaqes së përdoruesit të sistemit"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Sateliti. Lidhje e dobët"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Sateliti. Lidhje e mirë"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Sateliti. Ofrohet lidhje"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"SOS satelitor"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Profili i punës"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Argëtim për disa, por jo për të gjithë!"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"Sintonizuesi i Sistemit të Ndërfaqes së Përdoruesit të jep mënyra shtesë për të tërhequr dhe personalizuar ndërfaqen Android të përdoruesit. Këto funksione eksperimentale mund të ndryshojnë, prishen ose zhduken në versionet e ardhshme. Vazhdo me kujdes."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Menyja e energjisë"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Faqja <xliff:g id="ID_1">%1$d</xliff:g> nga <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Ekrani i kyçjes"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Mund ta gjesh këtë telefon me \"Gjej pajisjen time\" edhe kur është i fikur"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Po fiket…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Shiko hapat për kujdesin"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Shiko hapat për kujdesin"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Shkëpute pajisjen"</string>

@@ -83,6 +83,9 @@ oneway interface ISatellite {
      *
      * @param enableSatellite True to enable the satellite modem and false to disable.
      * @param enableDemoMode True to enable demo mode and false to disable.
+     * @param isEmergency To specify the satellite is enabled for emergency session and false for
+     * non emergency session. Note: it is possible that a emergency session started get converted
+     * to a non emergency session and vice versa.
      * @param resultCallback The callback to receive the error code result of the operation.
      *
      * Valid result codes returned:
@@ -96,7 +99,7 @@ oneway interface ISatellite {
      *   SatelliteResult:SATELLITE_RESULT_NO_RESOURCES
      */
     void requestSatelliteEnabled(in boolean enableSatellite, in boolean enableDemoMode,
-            in IIntegerConsumer resultCallback);
+            in boolean isEmergency, in IIntegerConsumer resultCallback);
 
     /**
      * Request to get whether the satellite modem is enabled.
@@ -345,28 +348,6 @@ oneway interface ISatellite {
      */
     void requestSatelliteModemState(in IIntegerConsumer resultCallback,
             in IIntegerConsumer callback);
-
-    /**
-     * Request to get whether satellite communication is allowed for the current location.
-     *
-     * @param resultCallback The callback to receive the error code result of the operation.
-     *                       This must only be sent when the result is not
-     *                       SatelliteResult#SATELLITE_RESULT_SUCCESS.
-     * @param callback If the result is SatelliteResult#SATELLITE_RESULT_SUCCESS, the callback to
-     *                 receive whether satellite communication is allowed for the current location.
-     *
-     * Valid result codes returned:
-     *   SatelliteResult:SATELLITE_RESULT_SUCCESS
-     *   SatelliteResult:SATELLITE_RESULT_SERVICE_ERROR
-     *   SatelliteResult:SATELLITE_RESULT_MODEM_ERROR
-     *   SatelliteResult:SATELLITE_RESULT_INVALID_MODEM_STATE
-     *   SatelliteResult:SATELLITE_RESULT_INVALID_ARGUMENTS
-     *   SatelliteResult:SATELLITE_RESULT_RADIO_NOT_AVAILABLE
-     *   SatelliteResult:SATELLITE_RESULT_REQUEST_NOT_SUPPORTED
-     *   SatelliteResult:SATELLITE_RESULT_NO_RESOURCES
-     */
-    void requestIsSatelliteCommunicationAllowedForCurrentLocation(
-            in IIntegerConsumer resultCallback, in IBooleanConsumer callback);
 
     /**
      * Request to get the time after which the satellite will be visible. This is an int

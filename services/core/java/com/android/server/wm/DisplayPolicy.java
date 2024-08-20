@@ -803,6 +803,11 @@ public class DisplayPolicy {
         return mLidState;
     }
 
+    private void onDisplaySwitchFinished() {
+        mDisplayContent.mWallpaperController.onDisplaySwitchFinished();
+        mDisplayContent.mDisplayUpdater.onDisplaySwitching(false);
+    }
+
     public void setAwake(boolean awake) {
         synchronized (mLock) {
             if (awake == mAwake) {
@@ -821,7 +826,7 @@ public class DisplayPolicy {
             mService.mAtmService.mKeyguardController.updateDeferTransitionForAod(
                     mAwake /* waiting */);
             if (!awake) {
-                mDisplayContent.mWallpaperController.onDisplaySwitchFinished();
+                onDisplaySwitchFinished();
             }
         }
     }
@@ -890,7 +895,7 @@ public class DisplayPolicy {
 
     /** It is called after {@link #finishScreenTurningOn}. This runs on PowerManager's thread. */
     public void screenTurnedOn() {
-        mDisplayContent.mWallpaperController.onDisplaySwitchFinished();
+        onDisplaySwitchFinished();
     }
 
     public void screenTurnedOff() {
@@ -1939,6 +1944,16 @@ public class DisplayPolicy {
              */
             final Rect mConfigInsets = new Rect();
 
+            /**
+             * Override value of mConfigInsets for app compatibility purpose.
+             */
+            final Rect mOverrideConfigInsets = new Rect();
+
+            /**
+             * Override value of mNonDecorInsets for app compatibility purpose.
+             */
+            final Rect mOverrideNonDecorInsets = new Rect();
+
             /** The display frame available after excluding {@link #mNonDecorInsets}. */
             final Rect mNonDecorFrame = new Rect();
 
@@ -1948,6 +1963,16 @@ public class DisplayPolicy {
              * to account for more transient decoration like a status bar.
              */
             final Rect mConfigFrame = new Rect();
+
+            /**
+             * Override value of mConfigFrame for app compatibility purpose.
+             */
+            final Rect mOverrideConfigFrame = new Rect();
+
+            /**
+             * Override value of mNonDecorFrame for app compatibility purpose.
+             */
+            final Rect mOverrideNonDecorFrame = new Rect();
 
             private boolean mNeedUpdate = true;
 
@@ -1959,15 +1984,35 @@ public class DisplayPolicy {
                 final Rect displayFrame = insetsState.getDisplayFrame();
                 final Insets decor = insetsState.calculateInsets(displayFrame,
                         dc.mWmService.mDecorTypes, true /* ignoreVisibility */);
-                final Insets configInsets = insetsState.calculateInsets(displayFrame,
-                        dc.mWmService.mConfigTypes, true /* ignoreVisibility */);
+                final Insets configInsets = dc.mWmService.mConfigTypes == dc.mWmService.mDecorTypes
+                        ? decor
+                        : insetsState.calculateInsets(displayFrame, dc.mWmService.mConfigTypes,
+                                true /* ignoreVisibility */);
+                final Insets overrideConfigInsets = dc.mWmService.mConfigTypes
+                        == dc.mWmService.mOverrideConfigTypes
+                        ? configInsets
+                        : insetsState.calculateInsets(displayFrame,
+                                dc.mWmService.mOverrideConfigTypes, true /* ignoreVisibility */);
+                final Insets overrideDecorInsets = dc.mWmService.mDecorTypes
+                        == dc.mWmService.mOverrideDecorTypes
+                        ? decor
+                        : insetsState.calculateInsets(displayFrame,
+                                dc.mWmService.mOverrideDecorTypes, true /* ignoreVisibility */);
                 mNonDecorInsets.set(decor.left, decor.top, decor.right, decor.bottom);
                 mConfigInsets.set(configInsets.left, configInsets.top, configInsets.right,
                         configInsets.bottom);
+                mOverrideConfigInsets.set(overrideConfigInsets.left, overrideConfigInsets.top,
+                        overrideConfigInsets.right, overrideConfigInsets.bottom);
+                mOverrideNonDecorInsets.set(overrideDecorInsets.left, overrideDecorInsets.top,
+                        overrideDecorInsets.right, overrideDecorInsets.bottom);
                 mNonDecorFrame.set(displayFrame);
                 mNonDecorFrame.inset(mNonDecorInsets);
                 mConfigFrame.set(displayFrame);
                 mConfigFrame.inset(mConfigInsets);
+                mOverrideConfigFrame.set(displayFrame);
+                mOverrideConfigFrame.inset(mOverrideConfigInsets);
+                mOverrideNonDecorFrame.set(displayFrame);
+                mOverrideNonDecorFrame.inset(mOverrideNonDecorInsets);
                 mNeedUpdate = false;
                 return insetsState;
             }
@@ -1975,8 +2020,12 @@ public class DisplayPolicy {
             void set(Info other) {
                 mNonDecorInsets.set(other.mNonDecorInsets);
                 mConfigInsets.set(other.mConfigInsets);
+                mOverrideConfigInsets.set(other.mOverrideConfigInsets);
+                mOverrideNonDecorInsets.set(other.mOverrideNonDecorInsets);
                 mNonDecorFrame.set(other.mNonDecorFrame);
                 mConfigFrame.set(other.mConfigFrame);
+                mOverrideConfigFrame.set(other.mOverrideConfigFrame);
+                mOverrideNonDecorFrame.set(other.mOverrideNonDecorFrame);
                 mNeedUpdate = false;
             }
 
@@ -2088,7 +2137,8 @@ public class DisplayPolicy {
         final DecorInsets.Info newInfo = mDecorInsets.mTmpInfo;
         final InsetsState newInsetsState = newInfo.update(mDisplayContent, rotation, dw, dh);
         final DecorInsets.Info currentInfo = getDecorInsetsInfo(rotation, dw, dh);
-        if (newInfo.mConfigFrame.equals(currentInfo.mConfigFrame)) {
+        if (newInfo.mConfigFrame.equals(currentInfo.mConfigFrame)
+                && newInfo.mOverrideConfigFrame.equals(currentInfo.mOverrideConfigFrame)) {
             // Even if the config frame is not changed in current rotation, it may change the
             // insets in other rotations if the frame of insets source is changed.
             final InsetsState currentInsetsState = mDisplayContent.mDisplayFrames.mInsetsState;
@@ -2171,6 +2221,11 @@ public class DisplayPolicy {
         }
         mCachedDecorInsets.mPreserveId =
                 mDisplayContent.mTransitionController.getCollectingTransitionId();
+    }
+
+    /** If this is called, expect that there will be an onDisplayChanged about unique id. */
+    public void onDisplaySwitchStart() {
+        mDisplayContent.mDisplayUpdater.onDisplaySwitching(true);
     }
 
     @NavigationBarPosition

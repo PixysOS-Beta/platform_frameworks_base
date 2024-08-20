@@ -664,7 +664,7 @@
   </string-array>
     <string name="fingerprint_error_not_match" msgid="4599441812893438961">"Адбітак пальца не распазнаны"</string>
     <string name="fingerprint_udfps_error_not_match" msgid="8236930793223158856">"Адбітак пальца не распазнаны"</string>
-    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="6226091888364083421">"Твар не распазнаны. Скарыстайце адбітак пальца."</string>
+    <string name="fingerprint_dialog_use_fingerprint_instead" msgid="5590293588784953188">"Твар не распазнаны. Выкарыстайце адбітак пальца."</string>
     <string name="fingerprint_authenticated" msgid="2024862866860283100">"Адбітак пальца распазнаны"</string>
     <string name="face_authenticated_no_confirmation_required" msgid="8867889115112348167">"Твар распазнаны"</string>
     <string name="face_authenticated_confirmation_required" msgid="6872632732508013755">"Твар распазнаны. Націсніце, каб пацвердзіць"</string>
@@ -830,7 +830,7 @@
     <string name="policylab_limitPassword" msgid="4851829918814422199">"Устанавіць правілы паролю"</string>
     <string name="policydesc_limitPassword" msgid="4105491021115793793">"Кіраваць даўжынёй і сімваламі, дазволенымі пры ўводзе пароляў і PIN-кодаў блакіроўкі экрана."</string>
     <string name="policylab_watchLogin" msgid="7599669460083719504">"Сачыць за спробамі разблакіроўкі экрана"</string>
-    <string name="policydesc_watchLogin" product="tablet" msgid="2388436408621909298">"Сачыць за колькасцю няправільных набраных пароляў падчас разблакоўкі экрана і блакаваць планшэт або сціраць усе дадзеныя на ім, калі няправільны пароль набраны занадта шмат разоў."</string>
+    <string name="policydesc_watchLogin" product="tablet" msgid="2388436408621909298">"Сачыць за колькасцю няправільна набраных пароляў падчас разблакоўкі экрана і блакіраваць планшэт або сціраць усе даныя на ім, калі няправільны пароль набраны занадта шмат разоў."</string>
     <string name="policydesc_watchLogin" product="tv" msgid="2140588224468517507">"Сачыць за колькасцю няправільна набраных пароляў падчас разблакіроўкі экрана і заблакіраваць прыладу Android TV або сцерці ўсе даныя на прыладзе, калі няправільны пароль набраны занадта шмат разоў."</string>
     <string name="policydesc_watchLogin" product="automotive" msgid="7011438994051251521">"Падчас разблакіроўкі экрана сачыць за колькасцю няправільна набраных пароляў і, калі няправільны пароль набраны занадта шмат разоў, заблакіраваць інфармацыйна-забаўляльную сістэму ці сцерці ў ёй усе даныя."</string>
     <string name="policydesc_watchLogin" product="default" msgid="4885030206253600299">"Сачыць за колькасцю няправільна набраных пароляў падчас разблакіроўкі экрана і блакіраваць тэлефон або сціраць усе даныя на ім, калі набрана занадта шмат няправільных пароляў."</string>
@@ -2137,6 +2137,8 @@
     <string name="dynamic_mode_notification_channel_name" msgid="2986926422100223328">"Апавяшчэнне з інфармацыяй пра ўсталяваны рэжым"</string>
     <string name="dynamic_mode_notification_title" msgid="1388718452788985481">"Рэжым энергазберажэння ўключаны"</string>
     <string name="dynamic_mode_notification_summary" msgid="1639031262484979689">"Абмежаванне выкарыстання зараду для падаўжэння часу працы ад акумулятара"</string>
+    <string name="dynamic_mode_notification_title_v2" msgid="5072385242078021152">"Рэжым энергазберажэння ўключаны"</string>
+    <string name="dynamic_mode_notification_summary_v2" msgid="2142444344663147938">"Каб падоўжыць час працы ад акумулятара, уключаны рэжым энергазберажэння"</string>
     <string name="battery_saver_notification_channel_name" msgid="3918243458067916913">"Рэжым энергазберажэння"</string>
     <string name="battery_saver_off_notification_title" msgid="7637255960468032515">"Рэжым эканоміі зараду выключаны"</string>
     <string name="battery_saver_charged_notification_summary" product="default" msgid="5544457317418624367">"У тэлефона дастатковы ўзровень зараду. Функцыі больш не абмежаваны."</string>
@@ -2395,4 +2397,13 @@
     <string name="satellite_notification_summary" msgid="5207364139430767162">"Вы можаце адпраўляць і атрымліваць паведамленні без доступу да мабільнай сеткі або Wi-Fi"</string>
     <string name="satellite_notification_open_message" msgid="4149234979688273729">"Адкрыць Паведамленні"</string>
     <string name="satellite_notification_how_it_works" msgid="3132069321977520519">"Як гэта працуе"</string>
+    <string name="fingerprint_dangling_notification_title" msgid="7362075195588639989">"Наладзіць разблакіроўку адбіткам пальца паўторна"</string>
+    <string name="fingerprint_dangling_notification_msg_1" msgid="5851784577768803510">"Адбітак пальца \"<xliff:g id="FINGERPRINT">%s</xliff:g>\" больш не можа быць распазнаны."</string>
+    <string name="fingerprint_dangling_notification_msg_2" msgid="7925203589860744456">"Адбіткі пальцаў \"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g>\" і \"<xliff:g id="FINGERPRINT_1">%2$s</xliff:g>\" больш не могуць быць распазнаны."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_1" msgid="1824812666549916586">"Адбітак пальца \"<xliff:g id="FINGERPRINT">%s</xliff:g>\" больш не можа быць распазнаны. Паўторна наладзьце разблакіроўку адбіткам пальца."</string>
+    <string name="fingerprint_dangling_notification_msg_all_deleted_2" msgid="5974657382960155099">"Адбіткі пальцаў \"<xliff:g id="FINGERPRINT_0">%1$s</xliff:g>\" і \"<xliff:g id="FINGERPRINT_1">%2$s</xliff:g>\" больш не могуць быць распазнаны. Паўторна наладзьце разблакіроўку адбіткам пальца."</string>
+    <string name="face_dangling_notification_title" msgid="947852541060975473">"Паўторна наладзьце распазнаванне твару"</string>
+    <string name="face_dangling_notification_msg" msgid="746235263598985384">"Мадэль твару больш не можа быць распазнана. Паўторна наладзьце распазнаванне твару."</string>
+    <string name="biometric_dangling_notification_action_set_up" msgid="8246885009807817961">"Наладзіць"</string>
+    <string name="biometric_dangling_notification_action_not_now" msgid="8095249216864443491">"Не зараз"</string>
 </resources>

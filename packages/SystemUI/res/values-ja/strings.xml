@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"スクリーンショットの撮影は IT 管理者によってブロックされています。"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"編集"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"スクリーンショットを編集します"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"共有"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"スクリーンショットを共有"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"キャプチャ範囲を拡大"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"スクリーンショットを閉じます"</string>
@@ -168,7 +169,7 @@
     <string name="biometric_dialog_wrong_pin" msgid="1878539073972762803">"PIN が正しくありません"</string>
     <string name="biometric_dialog_wrong_pattern" msgid="8954812279840889029">"パターンが正しくありません"</string>
     <string name="biometric_dialog_wrong_password" msgid="69477929306843790">"パスワードが正しくありません"</string>
-    <string name="biometric_dialog_credential_too_many_attempts" msgid="3083141271737748716">"間違えた回数が上限を超えました。\n<xliff:g id="NUMBER">%d</xliff:g> 秒後にもう一度お試しください。"</string>
+    <string name="biometric_dialog_credential_too_many_attempts" msgid="3083141271737748716">"試行回数が上限に達しました。\n<xliff:g id="NUMBER">%d</xliff:g> 秒後にもう一度お試しください。"</string>
     <string name="work_challenge_emergency_button_text" msgid="8946588434515599288">"緊急通報"</string>
     <string name="biometric_dialog_credential_attempts_before_wipe" msgid="6751859711975516999">"もう一度お試しください。入力回数: <xliff:g id="ATTEMPTS_0">%1$d</xliff:g>/<xliff:g id="MAX_ATTEMPTS">%2$d</xliff:g> 回"</string>
     <string name="biometric_dialog_last_attempt_before_wipe_dialog_title" msgid="2874250099278693477">"データが削除されます"</string>
@@ -265,7 +266,7 @@
     <string name="see_all_bluetooth_devices" msgid="1761596816620200433">"すべて表示"</string>
     <string name="turn_on_bluetooth" msgid="5681370462180289071">"Bluetooth を使用"</string>
     <string name="quick_settings_bluetooth_device_connected" msgid="7884777006729260996">"接続しました"</string>
-    <string name="quick_settings_bluetooth_device_saved" msgid="7549938728928069477">"保存しました"</string>
+    <string name="quick_settings_bluetooth_device_saved" msgid="7549938728928069477">"保存済み"</string>
     <string name="accessibility_quick_settings_bluetooth_device_tap_to_disconnect" msgid="415980329093277342">"接続を解除"</string>
     <string name="accessibility_quick_settings_bluetooth_device_tap_to_activate" msgid="3724301751036877403">"有効化"</string>
     <string name="turn_on_bluetooth_auto_tomorrow" msgid="414836329962473906">"明日自動的に ON に戻す"</string>
@@ -562,7 +563,7 @@
     <string name="screen_pinning_negative" msgid="6882816864569211666">"いいえ"</string>
     <string name="screen_pinning_start" msgid="7483998671383371313">"アプリを固定しました"</string>
     <string name="screen_pinning_exit" msgid="4553787518387346893">"アプリの固定を解除しました"</string>
-    <string name="stream_voice_call" msgid="7468348170702375660">"発信"</string>
+    <string name="stream_voice_call" msgid="7468348170702375660">"通話"</string>
     <string name="stream_system" msgid="7663148785370565134">"システム"</string>
     <string name="stream_ring" msgid="7550670036738697526">"着信音"</string>
     <string name="stream_music" msgid="2188224742361847580">"メディア"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"衛生、接続不安定"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"衛生、接続状態良好"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"衛生、接続利用可能"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"衛星 SOS"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"仕事用プロファイル"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"一部の方のみお楽しみいただける限定公開ツール"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"システムUI調整ツールでは、Androidユーザーインターフェースの調整やカスタマイズを行えます。これらの試験運用機能は今後のリリースで変更となったり、中止となったり、削除されたりする可能性がありますのでご注意ください。"</string>
@@ -835,8 +837,6 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"電源ボタン メニュー"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"ページ <xliff:g id="ID_1">%1$d</xliff:g>/<xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"ロック画面"</string>
-    <string name="finder_active" msgid="7907846989716941952">"「デバイスを探す」を使うと、電源が OFF の状態でもこのスマートフォンの現在地を確認できます"</string>
-    <string name="shutdown_progress" msgid="5464239146561542178">"シャットダウン中…"</string>
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"取り扱いに関する手順をご覧ください"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"取り扱いに関する手順をご覧ください"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"デバイスを電源から外します"</string>
@@ -1271,5 +1271,5 @@
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"キーボード バックライト"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"レベル %1$d/%2$d"</string>
     <string name="home_controls_dream_label" msgid="6567105701292324257">"ホーム コントロール"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"ホーム コントロールにスクリーンセーバーとしてすばやくアクセス"</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"ホーム コントロールにスクリーンセーバーからすばやくアクセス"</string>
 </resources>

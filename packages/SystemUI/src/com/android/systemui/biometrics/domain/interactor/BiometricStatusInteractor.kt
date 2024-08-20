@@ -17,13 +17,16 @@
 package com.android.systemui.biometrics.domain.interactor
 
 import android.app.ActivityTaskManager
+import android.util.Log
 import com.android.systemui.biometrics.data.repository.BiometricStatusRepository
 import com.android.systemui.biometrics.shared.model.AuthenticationReason
 import com.android.systemui.biometrics.shared.model.AuthenticationReason.SettingsOperations
 import com.android.systemui.keyguard.shared.model.FingerprintAuthenticationStatus
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 /** Encapsulates business logic for interacting with biometric authentication state. */
 interface BiometricStatusInteractor {
@@ -45,14 +48,16 @@ constructor(
 ) : BiometricStatusInteractor {
 
     override val sfpsAuthenticationReason: Flow<AuthenticationReason> =
-        biometricStatusRepository.fingerprintAuthenticationReason.map { reason: AuthenticationReason
-            ->
-            if (reason.isReasonToAlwaysUpdateSfpsOverlay(activityTaskManager)) {
-                reason
-            } else {
-                AuthenticationReason.NotRunning
+        biometricStatusRepository.fingerprintAuthenticationReason
+            .map { reason: AuthenticationReason ->
+                if (reason.isReasonToAlwaysUpdateSfpsOverlay(activityTaskManager)) {
+                    reason
+                } else {
+                    AuthenticationReason.NotRunning
+                }
             }
-        }
+            .distinctUntilChanged()
+            .onEach { Log.d(TAG, "sfpsAuthenticationReason updated: $it") }
 
     override val fingerprintAcquiredStatus: Flow<FingerprintAuthenticationStatus> =
         biometricStatusRepository.fingerprintAcquiredStatus

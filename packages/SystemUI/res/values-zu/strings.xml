@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"Ukuthatha isithombe-skrini kuvinjwe umlawuli wakho we-IT"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Hlela"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Hlela isithombe-skrini"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Yabelana"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Yabelana ngesithombe-skrini"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Thwebula okuningi"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Cashisa isithombe-skrini"</string>
@@ -263,7 +264,7 @@
     <string name="quick_settings_bluetooth_tile_subtitle" msgid="212752719010829550">"Thepha ukuze uxhumae noma ungaxhumi idivaysi"</string>
     <string name="pair_new_bluetooth_devices" msgid="4601767620843349645">"Bhangqa idivayisi entsha"</string>
     <string name="see_all_bluetooth_devices" msgid="1761596816620200433">"Buka konke"</string>
-    <string name="turn_on_bluetooth" msgid="5681370462180289071">"Sebenzisa i-Bluetooth"</string>
+    <string name="turn_on_bluetooth" msgid="5681370462180289071">"Sebenzisa iBluetooth"</string>
     <string name="quick_settings_bluetooth_device_connected" msgid="7884777006729260996">"Ixhunyiwe"</string>
     <string name="quick_settings_bluetooth_device_saved" msgid="7549938728928069477">"Ilondoloziwe"</string>
     <string name="accessibility_quick_settings_bluetooth_device_tap_to_disconnect" msgid="415980329093277342">"nqamula"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Isathelayithi, uxhumano olungalungile"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Isethelayithi, uxhumano oluhle"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Isethelayithi, uxhumano luyatholakala"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"Isethelayithi yokuxhumana ngezimo eziphuthumayo"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Iphrofayela yomsebenzi"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Kuyajabulisa kwabanye kodwa hhayi bonke"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"Isishuni se-UI sesistimu sikunika izindlela ezingeziwe zokuhlobisa nokwenza ngezifiso isixhumanisi sokubona se-Android. Lezi zici zesilingo zingashintsha, zephuke, noma zinyamalale ekukhishweni kwangakusasa. Qhubeka ngokuqaphela."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Imenyu yamandla"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Ikhasi <xliff:g id="ID_1">%1$d</xliff:g> kwangu-<xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Khiya isikrini"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Ungabeka le foni ngokuthi Thola Ifoni Yami ngisho noma ivaliwe"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Iyacisha…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Bona izinyathelo zokunakekelwa"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Bona izinyathelo zokunakekelwa"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Khipha idivayisi yakho"</string>
@@ -963,11 +968,11 @@
     <string name="accessibility_floating_button_hidden_notification_text" msgid="1457021647040915658">"Thepha ukuze ubonise inkinobho yokufinyeleleka."</string>
     <string name="accessibility_floating_button_undo_message_label_text" msgid="9017658016426242640">"Isinqamuleli se-<xliff:g id="FEATURE_NAME">%s</xliff:g> sisusiwe"</string>
     <string name="accessibility_floating_button_undo_message_number_text" msgid="4909270290725226075">"{count,plural, =1{Isinqamuleli esingu-# sisusiwe}one{Izinqamuleli ezingu-# zisusiwe}other{Izinqamuleli ezingu-# zisusiwe}}"</string>
-    <string name="accessibility_floating_button_action_move_top_left" msgid="6253520703618545705">"Hamba phezulu kwesokunxele"</string>
+    <string name="accessibility_floating_button_action_move_top_left" msgid="6253520703618545705">"Hambisa phezulu kwesokunxele"</string>
     <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"Hamba phezulu ngakwesokudla"</string>
-    <string name="accessibility_floating_button_action_move_bottom_left" msgid="8063394111137429725">"Hamba phansi ngakwesokunxele"</string>
-    <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"Hamba phansi ngakwesokudla"</string>
-    <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"Hamba onqenqemeni ufihle"</string>
+    <string name="accessibility_floating_button_action_move_bottom_left" msgid="8063394111137429725">"Hambisa phansi ngakwesokunxele"</string>
+    <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"Hambisa phansi ngakwesokudla"</string>
+    <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"Hambisa onqenqemeni ufihle"</string>
     <string name="accessibility_floating_button_action_move_out_edge_and_show" msgid="8354760891651663326">"Phuma onqenqemeni ubonise"</string>
     <string name="accessibility_floating_button_action_remove_menu" msgid="6730432848162552135">"Susa"</string>
     <string name="accessibility_floating_button_action_double_tap_to_toggle" msgid="7976492639670692037">"guqula"</string>

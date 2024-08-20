@@ -507,6 +507,18 @@ public class DefaultTransitionHandler implements Transitions.TransitionHandler {
                 final Point animRelOffset = new Point(
                         change.getEndAbsBounds().left - animRoot.getOffset().x,
                         change.getEndAbsBounds().top - animRoot.getOffset().y);
+<<<<<<< HEAD
+=======
+
+                if (change.getActivityComponent() != null) {
+                    // For appcompat letterbox: we intentionally report the task-bounds so that we
+                    // can animate as-if letterboxes are "part of" the activity. This means we can't
+                    // always rely solely on endAbsBounds and need to also max with endRelOffset.
+                    animRelOffset.x = Math.max(animRelOffset.x, change.getEndRelOffset().x);
+                    animRelOffset.y = Math.max(animRelOffset.y, change.getEndRelOffset().y);
+                }
+
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
                 if (change.getActivityComponent() != null && !isActivityLevel) {
                     // At this point, this is an independent activity change in a non-activity
                     // transition. This means that an activity transition got erroneously combined

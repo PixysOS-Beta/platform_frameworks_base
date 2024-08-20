@@ -90,11 +90,11 @@ public class SatelliteImplBase extends SatelliteService {
 
         @Override
         public void requestSatelliteEnabled(boolean enableSatellite, boolean enableDemoMode,
-                IIntegerConsumer resultCallback) throws RemoteException {
+                boolean isEmergency, IIntegerConsumer resultCallback) throws RemoteException {
             executeMethodAsync(
                     () -> SatelliteImplBase.this
                             .requestSatelliteEnabled(
-                                    enableSatellite, enableDemoMode, resultCallback),
+                                    enableSatellite, enableDemoMode, isEmergency, resultCallback),
                     "requestSatelliteEnabled");
         }
 
@@ -191,17 +191,6 @@ public class SatelliteImplBase extends SatelliteService {
                     () -> SatelliteImplBase.this
                             .requestSatelliteModemState(resultCallback, callback),
                     "requestSatelliteModemState");
-        }
-
-        @Override
-        public void requestIsSatelliteCommunicationAllowedForCurrentLocation(
-                IIntegerConsumer resultCallback, IBooleanConsumer callback)
-                throws RemoteException {
-            executeMethodAsync(
-                    () -> SatelliteImplBase.this
-                            .requestIsSatelliteCommunicationAllowedForCurrentLocation(
-                                    resultCallback, callback),
-                    "requestIsCommunicationAllowedForCurrentLocation");
         }
 
         @Override
@@ -348,6 +337,9 @@ public class SatelliteImplBase extends SatelliteService {
      *
      * @param enableSatellite True to enable the satellite modem and false to disable.
      * @param enableDemoMode True to enable demo mode and false to disable.
+     * @param isEmergency To specify the satellite is enabled for emergency session and false for
+     * non emergency session. Note: it is possible that a emergency session started get converted
+     * to a non emergency session and vice versa.
      * @param resultCallback The callback to receive the error code result of the operation.
      *
      * Valid result codes returned:
@@ -361,7 +353,7 @@ public class SatelliteImplBase extends SatelliteService {
      *   SatelliteResult:SATELLITE_RESULT_NO_RESOURCES
      */
     public void requestSatelliteEnabled(boolean enableSatellite, boolean enableDemoMode,
-            @NonNull IIntegerConsumer resultCallback) {
+            boolean isEmergency, @NonNull IIntegerConsumer resultCallback) {
         // stub implementation
     }
 
@@ -634,30 +626,6 @@ public class SatelliteImplBase extends SatelliteService {
      */
     public void requestSatelliteModemState(@NonNull IIntegerConsumer resultCallback,
             @NonNull IIntegerConsumer callback) {
-        // stub implementation
-    }
-
-    /**
-     * Request to get whether satellite communication is allowed for the current location.
-     *
-     * @param resultCallback The callback to receive the error code result of the operation.
-     *                       This must only be sent when the result is not
-     *                       SatelliteResult#SATELLITE_RESULT_SUCCESS.
-     * @param callback If the result is SatelliteResult#SATELLITE_RESULT_SUCCESS, the callback to
-     *                 receive whether satellite communication is allowed for the current location.
-     *
-     * Valid result codes returned:
-     *   SatelliteResult:SATELLITE_RESULT_SUCCESS
-     *   SatelliteResult:SATELLITE_RESULT_SERVICE_ERROR
-     *   SatelliteResult:SATELLITE_RESULT_MODEM_ERROR
-     *   SatelliteResult:SATELLITE_RESULT_INVALID_MODEM_STATE
-     *   SatelliteResult:SATELLITE_RESULT_INVALID_ARGUMENTS
-     *   SatelliteResult:SATELLITE_RESULT_RADIO_NOT_AVAILABLE
-     *   SatelliteResult:SATELLITE_RESULT_REQUEST_NOT_SUPPORTED
-     *   SatelliteResult:SATELLITE_RESULT_NO_RESOURCES
-     */
-    public void requestIsSatelliteCommunicationAllowedForCurrentLocation(
-            @NonNull IIntegerConsumer resultCallback, @NonNull IBooleanConsumer callback) {
         // stub implementation
     }
 

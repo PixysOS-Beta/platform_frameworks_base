@@ -25,7 +25,6 @@ import android.os.Process.myUserHandle
 import android.os.RemoteException
 import android.os.UserHandle
 import android.util.Log
-import android.util.Pair
 import android.view.IRemoteAnimationFinishedCallback
 import android.view.IRemoteAnimationRunner
 import android.view.RemoteAnimationAdapter
@@ -67,20 +66,22 @@ constructor(
      */
     fun launchIntentAsync(
         intent: Intent,
-        transition: Pair<ActivityOptions, ExitTransitionCoordinator>?,
         user: UserHandle,
         overrideTransition: Boolean,
+        options: ActivityOptions?,
+        transitionCoordinator: ExitTransitionCoordinator?,
     ) {
         applicationScope.launch("$TAG#launchIntentAsync") {
-            launchIntent(intent, transition, user, overrideTransition)
+            launchIntent(intent, user, overrideTransition, options, transitionCoordinator)
         }
     }
 
     suspend fun launchIntent(
         intent: Intent,
-        transition: Pair<ActivityOptions, ExitTransitionCoordinator>?,
         user: UserHandle,
         overrideTransition: Boolean,
+        options: ActivityOptions?,
+        transitionCoordinator: ExitTransitionCoordinator?,
     ) {
         if (screenshotActionDismissSystemWindows()) {
             keyguardController.dismiss()
@@ -90,14 +91,19 @@ constructor(
         } else {
             dismissKeyguard()
         }
-        transition?.second?.startExit()
+
+        var transitionOptions: ActivityOptions? = null
+        if (transitionCoordinator?.decor?.isAttachedToWindow == true) {
+            transitionCoordinator.startExit()
+            transitionOptions = options
+        }
 
         if (user == myUserHandle()) {
             withContext(mainDispatcher) {
-                context.startActivity(intent, transition?.first?.toBundle())
+                context.startActivity(intent, transitionOptions?.toBundle())
             }
         } else {
-            launchCrossProfileIntent(user, intent, transition?.first?.toBundle())
+            launchCrossProfileIntent(user, intent, transitionOptions?.toBundle())
         }
 
         if (overrideTransition) {

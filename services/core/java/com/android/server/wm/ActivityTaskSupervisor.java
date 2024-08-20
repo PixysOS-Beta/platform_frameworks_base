@@ -58,6 +58,7 @@ import static com.android.server.wm.ActivityRecord.State.PAUSED;
 import static com.android.server.wm.ActivityRecord.State.PAUSING;
 import static com.android.server.wm.ActivityRecord.State.RESTARTING_PROCESS;
 import static com.android.server.wm.ActivityRecord.State.RESUMED;
+import static com.android.server.wm.ActivityRecord.State.STOPPING;
 import static com.android.server.wm.ActivityTaskManagerDebugConfig.DEBUG_ALL;
 import static com.android.server.wm.ActivityTaskManagerDebugConfig.DEBUG_CLEANUP;
 import static com.android.server.wm.ActivityTaskManagerDebugConfig.DEBUG_IDLE;
@@ -105,6 +106,7 @@ import android.app.servertransaction.ActivityLifecycleItem;
 import android.app.servertransaction.LaunchActivityItem;
 import android.app.servertransaction.PauseActivityItem;
 import android.app.servertransaction.ResumeActivityItem;
+import android.app.servertransaction.StopActivityItem;
 import android.companion.virtual.VirtualDeviceManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -947,8 +949,10 @@ public class ActivityTaskSupervisor implements RecentTasks.Callbacks {
                 if (andResume) {
                     lifecycleItem = ResumeActivityItem.obtain(r.token, isTransitionForward,
                             r.shouldSendCompatFakeFocus());
-                } else {
+                } else if (r.isVisibleRequested()) {
                     lifecycleItem = PauseActivityItem.obtain(r.token);
+                } else {
+                    lifecycleItem = StopActivityItem.obtain(r.token, 0 /* configChanges */);
                 }
 
                 // Schedule transaction.
@@ -1015,7 +1019,7 @@ public class ActivityTaskSupervisor implements RecentTasks.Callbacks {
             // As part of the process of launching, ActivityThread also performs
             // a resume.
             rootTask.minimalResumeActivityLocked(r);
-        } else {
+        } else if (r.isVisibleRequested()) {
             // This activity is not starting in the resumed state... which should look like we asked
             // it to pause+stop (but remain visible), and it has done so and reported back the
             // current icicle and other state.
@@ -1023,6 +1027,9 @@ public class ActivityTaskSupervisor implements RecentTasks.Callbacks {
                     + "(starting in paused state)", r);
             r.setState(PAUSED, "realStartActivityLocked");
             mRootWindowContainer.executeAppTransitionForAllDisplay();
+        } else {
+            // This activity is starting while invisible, so it should be stopped.
+            r.setState(STOPPING, "realStartActivityLocked");
         }
         // Perform OOM scoring after the activity state is set, so the process can be updated with
         // the latest state.
@@ -1508,7 +1515,10 @@ public class ActivityTaskSupervisor implements RecentTasks.Callbacks {
         }
 
         try {
-            if ((flags & ActivityManager.MOVE_TASK_NO_USER_ACTION) == 0) {
+            // We allow enter PiP for previous front task if not requested otherwise via options.
+            boolean shouldCauseEnterPip = options == null
+                    || !options.disallowEnterPictureInPictureWhileLaunching();
+            if ((flags & ActivityManager.MOVE_TASK_NO_USER_ACTION) == 0 && shouldCauseEnterPip) {
                 mUserLeaving = true;
             }
 
@@ -1685,7 +1695,16 @@ public class ActivityTaskSupervisor implements RecentTasks.Callbacks {
             // Prevent recursion.
             return;
         }
-        task.mTransitionController.requestCloseTransitionIfNeeded(task);
+        final Transition transit = task.mTransitionController.requestCloseTransitionIfNeeded(task);
+        if (transit != null && !task.mTransitionController.useFullReadyTracking()) {
+            // If a transition was created here, it means this is an isolated removeTask. It's
+            // possible for there to be no consequent operations (eg. this is a multiwindow task
+            // closing so nothing becomes visible in response) so we must "touch" the old ready
+            // tracker so that it doesn't get stuck. However, since the old ready tracker
+            // doesn't support multiple conditions, we have to touch it here at the beginning
+            // before anything that may need it to wait (setReady(false)).
+            transit.setReady(task, true);
+        }
         // Consume the stopping activities immediately so activity manager won't skip killing
         // the process because it is still foreground state, i.e. RESUMED -> PAUSING set from
         // removeActivities -> finishIfPossible.

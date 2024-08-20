@@ -97,6 +97,7 @@ import com.android.systemui.broadcast.BroadcastDispatcher;
 import com.android.systemui.dagger.SysUISingleton;
 import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
+import com.android.systemui.deviceentry.domain.interactor.BiometricMessageInteractor;
 import com.android.systemui.dock.DockManager;
 import com.android.systemui.flags.FeatureFlags;
 import com.android.systemui.keyguard.KeyguardIndication;
@@ -121,7 +122,6 @@ import com.android.systemui.util.wakelock.WakeLock;
 
 import java.io.PrintWriter;
 import java.text.NumberFormat;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -185,6 +185,7 @@ public class KeyguardIndicationController {
     private BroadcastReceiver mBroadcastReceiver;
     private StatusBarKeyguardViewManager mStatusBarKeyguardViewManager;
     private KeyguardInteractor mKeyguardInteractor;
+    private final BiometricMessageInteractor mBiometricMessageInteractor;
     private String mPersistentUnlockMessage;
     private String mAlignmentIndication;
     private boolean mForceIsDismissible;
@@ -198,22 +199,22 @@ public class KeyguardIndicationController {
     private boolean mOrganizationOwnedDevice;
 
     // these all assume the device is plugged in (wired/wireless/docked) AND chargingOrFull:
-    private boolean mPowerPluggedIn;
-    private boolean mPowerPluggedInWired;
-    private boolean mPowerPluggedInWireless;
-    private boolean mPowerPluggedInDock;
+    protected boolean mPowerPluggedIn;
+    protected boolean mPowerPluggedInWired;
+    protected boolean mPowerPluggedInWireless;
+    protected boolean mPowerPluggedInDock;
 
     private boolean mPowerCharged;
     private boolean mBatteryDefender;
     private boolean mEnableBatteryDefender;
     private boolean mIncompatibleCharger;
-    private int mChargingSpeed;
+    protected int mChargingSpeed;
     private int mChargingWattage;
     private int mBatteryLevel;
     private boolean mBatteryPresent = true;
-    private long mChargingTimeRemaining;
+    protected long mChargingTimeRemaining;
     private Pair<String, BiometricSourceType> mBiometricErrorMessageToShowOnScreenOn;
-    private final Set<Integer> mCoExFaceAcquisitionMsgIdsToShow;
+    private Set<Integer> mCoExFaceAcquisitionMsgIdsToShow;
     private final FaceHelpMessageDeferral mFaceAcquiredMessageDeferral;
     private boolean mInited;
 
@@ -232,6 +233,10 @@ public class KeyguardIndicationController {
                 mIsActiveDreamLockscreenHosted = isLockscreenHosted;
                 updateDeviceEntryIndication(false);
             };
+    @VisibleForTesting
+    final Consumer<Set<Integer>> mCoExAcquisitionMsgIdsToShowCallback =
+            (Set<Integer> coExFaceAcquisitionMsgIdsToShow) -> mCoExFaceAcquisitionMsgIdsToShow =
+                    coExFaceAcquisitionMsgIdsToShow;
     private final ScreenLifecycle.Observer mScreenObserver = new ScreenLifecycle.Observer() {
         @Override
         public void onScreenTurnedOn() {
@@ -300,7 +305,8 @@ public class KeyguardIndicationController {
             BouncerMessageInteractor bouncerMessageInteractor,
             FeatureFlags flags,
             IndicationHelper indicationHelper,
-            KeyguardInteractor keyguardInteractor
+            KeyguardInteractor keyguardInteractor,
+            BiometricMessageInteractor biometricMessageInteractor
     ) {
         mContext = context;
         mBroadcastDispatcher = broadcastDispatcher;
@@ -329,14 +335,9 @@ public class KeyguardIndicationController {
         mFeatureFlags = flags;
         mIndicationHelper = indicationHelper;
         mKeyguardInteractor = keyguardInteractor;
+        mBiometricMessageInteractor = biometricMessageInteractor;
 
         mFaceAcquiredMessageDeferral = faceHelpMessageDeferral.create();
-        mCoExFaceAcquisitionMsgIdsToShow = new HashSet<>();
-        int[] msgIds = context.getResources().getIntArray(
-                com.android.systemui.res.R.array.config_face_help_msgs_when_fingerprint_enrolled);
-        for (int msgId : msgIds) {
-            mCoExFaceAcquisitionMsgIdsToShow.add(msgId);
-        }
 
         mHandler = new Handler(mainLooper) {
             @Override
@@ -393,7 +394,7 @@ public class KeyguardIndicationController {
         }
         mTopIndicationView = indicationArea.findViewById(R.id.keyguard_indication_text);
         mLockScreenIndicationView = indicationArea.findViewById(
-            R.id.keyguard_indication_text_bottom);
+                R.id.keyguard_indication_text_bottom);
         mInitialTextColorState = mTopIndicationView != null
                 ? mTopIndicationView.getTextColors() : ColorStateList.valueOf(Color.WHITE);
         if (mRotateTextViewController != null) {
@@ -425,6 +426,10 @@ public class KeyguardIndicationController {
             collectFlow(mIndicationArea, mKeyguardInteractor.isActiveDreamLockscreenHosted(),
                     mIsActiveDreamLockscreenHostedCallback);
         }
+
+        collectFlow(mIndicationArea,
+                mBiometricMessageInteractor.getCoExFaceAcquisitionMsgIdsToShow(),
+                mCoExAcquisitionMsgIdsToShowCallback);
     }
 
     /**
@@ -1105,20 +1110,24 @@ public class KeyguardIndicationController {
      * Assumption: device is charging
      */
     protected String computePowerIndication() {
-        int chargingId;
         if (mBatteryDefender) {
-            chargingId = R.string.keyguard_plugged_in_charging_limited;
             String percentage = NumberFormat.getPercentInstance().format(mBatteryLevel / 100f);
-            return mContext.getResources().getString(chargingId, percentage);
+            return mContext.getResources().getString(
+                    R.string.keyguard_plugged_in_charging_limited, percentage);
         } else if (mPowerPluggedIn && mIncompatibleCharger) {
-            chargingId = R.string.keyguard_plugged_in_incompatible_charger;
             String percentage = NumberFormat.getPercentInstance().format(mBatteryLevel / 100f);
-            return mContext.getResources().getString(chargingId, percentage);
+            return mContext.getResources().getString(
+                    R.string.keyguard_plugged_in_incompatible_charger, percentage);
         } else if (mPowerCharged) {
             return mContext.getResources().getString(R.string.keyguard_charged);
         }
 
+        return computePowerChargingStringIndication();
+    }
+
+    protected String computePowerChargingStringIndication() {
         final boolean hasChargingTime = mChargingTimeRemaining > 0;
+        int chargingId;
         if (mPowerPluggedInWired) {
             switch (mChargingSpeed) {
                 case BatteryStatus.CHARGING_FAST:

@@ -16,6 +16,7 @@
 
 package com.android.systemui.qs.tiles;
 
+import static com.android.settingslib.satellite.SatelliteDialogUtils.TYPE_IS_BLUETOOTH;
 import static com.android.systemui.util.PluralMessageFormaterKt.icuMessageFormat;
 
 import android.annotation.Nullable;
@@ -34,11 +35,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Switch;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
 import com.android.settingslib.Utils;
 import com.android.settingslib.bluetooth.BluetoothUtils;
 import com.android.settingslib.bluetooth.CachedBluetoothDevice;
+import com.android.settingslib.satellite.SatelliteDialogUtils;
 import com.android.systemui.dagger.qualifiers.Background;
 import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.flags.FeatureFlags;
@@ -61,6 +65,8 @@ import java.util.concurrent.Executor;
 
 import javax.inject.Inject;
 
+import kotlinx.coroutines.Job;
+
 /** Quick settings tile: Bluetooth **/
 public class BluetoothTile extends SecureQSTile<BooleanState> {
 
@@ -79,6 +85,9 @@ public class BluetoothTile extends SecureQSTile<BooleanState> {
     private final BluetoothTileDialogViewModel mDialogViewModel;
 
     private final FeatureFlags mFeatureFlags;
+    @Nullable
+    @VisibleForTesting
+    Job mClickJob;
 
     @Inject
     public BluetoothTile(
@@ -111,13 +120,35 @@ public class BluetoothTile extends SecureQSTile<BooleanState> {
     }
 
     @Override
+<<<<<<< HEAD
     protected void handleClick(@Nullable View view, boolean keyguardShowing) {
         if (checkKeyguard(view, keyguardShowing)) {
             return;
         }
 
+=======
+    protected void handleClick(@Nullable View view) {
+        if (com.android.internal.telephony.flags.Flags.oemEnabledSatelliteFlag()) {
+            if (mClickJob != null && !mClickJob.isCompleted()) {
+                return;
+            }
+            mClickJob = SatelliteDialogUtils.mayStartSatelliteWarningDialog(
+                    mContext, this, TYPE_IS_BLUETOOTH, isAllowClick -> {
+                        if (!isAllowClick) {
+                            return null;
+                        }
+                        handleClickEvent(view);
+                        return null;
+                    });
+            return;
+        }
+        handleClickEvent(view);
+    }
+
+    private void handleClickEvent(@Nullable View view) {
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
         if (mFeatureFlags.isEnabled(Flags.BLUETOOTH_QS_TILE_DIALOG)) {
-            mDialogViewModel.showDialog(mContext, view);
+            mDialogViewModel.showDialog(view);
         } else {
             // Secondary clicks are header clicks, just toggle.
             final boolean isEnabled = mState.value;

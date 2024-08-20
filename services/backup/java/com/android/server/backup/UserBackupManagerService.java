@@ -3905,11 +3905,33 @@ public class UserBackupManagerService {
             skip = true;
         }
 
+        BackupManagerMonitorEventSender  mBMMEventSender =
+                getBMMEventSender(/*monitor=*/ null);
+        PackageInfo packageInfo = getPackageInfoForBMMLogging(packageName);
         TransportConnection transportConnection =
                 mTransportManager.getCurrentTransportClient("BMS.restoreAtInstall()");
         if (transportConnection == null) {
             if (DEBUG) Slog.w(TAG, addUserIdToLogMessage(mUserId, "No transport client"));
             skip = true;
+        } else if (Flags.enableIncreasedBmmLoggingForRestoreAtInstall()) {
+            try {
+                BackupTransportClient transportClient = transportConnection.connectOrThrow(
+                        "BMS.restoreAtInstall");
+                mBMMEventSender.setMonitor(transportClient.getBackupManagerMonitor());
+            } catch (TransportNotAvailableException | RemoteException e) {
+                mBMMEventSender.monitorEvent(
+                        BackupManagerMonitor.LOG_EVENT_ID_TRANSPORT_IS_NULL, packageInfo,
+                        BackupManagerMonitor.LOG_EVENT_CATEGORY_TRANSPORT, null);
+            }
+        }
+
+        if (Flags.enableIncreasedBmmLoggingForRestoreAtInstall()) {
+            mBMMEventSender.monitorEvent(
+                    BackupManagerMonitor.LOG_EVENT_ID_RESTORE_AT_INSTALL_INVOKED, packageInfo,
+                    BackupManagerMonitor.LOG_EVENT_CATEGORY_BACKUP_MANAGER_POLICY,
+                    mBMMEventSender.putMonitoringExtra(/*extras=*/null,
+                            BackupManagerMonitor.EXTRA_LOG_OPERATION_TYPE,
+                            BackupAnnotations.OperationType.RESTORE));
         }
 
         if (!mAutoRestore) {
@@ -3945,7 +3967,7 @@ public class UserBackupManagerService {
                         RestoreParams.createForRestoreAtInstall(
                                 transportConnection,
                                 /* observer */ null,
-                                /* monitor */ null,
+                                mBMMEventSender.getMonitor(),
                                 restoreSet,
                                 packageName,
                                 token,
@@ -3965,6 +3987,15 @@ public class UserBackupManagerService {
         if (skip) {
             // Auto-restore disabled or no way to attempt a restore
 
+            if (Flags.enableIncreasedBmmLoggingForRestoreAtInstall()) {
+                mBMMEventSender.monitorEvent(
+                        BackupManagerMonitor.LOG_EVENT_ID_SKIP_RESTORE_AT_INSTALL, packageInfo,
+                        BackupManagerMonitor.LOG_EVENT_CATEGORY_BACKUP_MANAGER_POLICY,
+                        mBMMEventSender.putMonitoringExtra(/*extras=*/null,
+                                BackupManagerMonitor.EXTRA_LOG_OPERATION_TYPE,
+                                BackupAnnotations.OperationType.RESTORE));
+            }
+
             if (transportConnection != null) {
                 mTransportManager.disposeOfTransportClient(
                         transportConnection, "BMS.restoreAtInstall()");
@@ -3975,6 +4006,23 @@ public class UserBackupManagerService {
             try {
                 mPackageManagerBinder.finishPackageInstall(token, false);
             } catch (RemoteException e) { /* can't happen */ }
+        }
+    }
+
+    private PackageInfo getPackageInfoForBMMLogging(String packageName) {
+        try {
+            return mPackageManager.getPackageInfoAsUser(packageName, 0, mUserId);
+        } catch (NameNotFoundException e) {
+            Slog.w(
+                    TAG,
+                    addUserIdToLogMessage(
+                            mUserId, "Asked to get PackageInfo for BMM logging of nonexistent pkg "
+                                    + packageName));
+
+            PackageInfo packageInfo = new PackageInfo();
+            packageInfo.packageName = packageName;
+
+            return packageInfo;
         }
     }
 

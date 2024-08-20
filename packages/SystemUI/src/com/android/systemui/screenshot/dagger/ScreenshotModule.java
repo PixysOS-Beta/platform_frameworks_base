@@ -16,25 +16,34 @@
 
 package com.android.systemui.screenshot.dagger;
 
-import android.app.Service;
+import static com.android.systemui.Flags.screenshotShelfUi2;
 
+import android.app.Service;
+import android.view.accessibility.AccessibilityManager;
+
+import com.android.systemui.dagger.SysUISingleton;
 import com.android.systemui.screenshot.ImageCapture;
 import com.android.systemui.screenshot.ImageCaptureImpl;
+import com.android.systemui.screenshot.LegacyScreenshotViewProxy;
 import com.android.systemui.screenshot.RequestProcessor;
 import com.android.systemui.screenshot.ScreenshotPolicy;
 import com.android.systemui.screenshot.ScreenshotPolicyImpl;
 import com.android.systemui.screenshot.ScreenshotProxyService;
 import com.android.systemui.screenshot.ScreenshotRequestProcessor;
+import com.android.systemui.screenshot.ScreenshotShelfViewProxy;
 import com.android.systemui.screenshot.ScreenshotSoundController;
 import com.android.systemui.screenshot.ScreenshotSoundControllerImpl;
 import com.android.systemui.screenshot.ScreenshotSoundProvider;
 import com.android.systemui.screenshot.ScreenshotSoundProviderImpl;
+import com.android.systemui.screenshot.ScreenshotViewProxy;
 import com.android.systemui.screenshot.TakeScreenshotService;
 import com.android.systemui.screenshot.appclips.AppClipsScreenshotHelperService;
 import com.android.systemui.screenshot.appclips.AppClipsService;
+import com.android.systemui.screenshot.ui.viewmodel.ScreenshotViewModel;
 
 import dagger.Binds;
 import dagger.Module;
+import dagger.Provides;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
 
@@ -81,4 +90,22 @@ public abstract class ScreenshotModule {
     @Binds
     abstract ScreenshotSoundController bindScreenshotSoundController(
             ScreenshotSoundControllerImpl screenshotSoundProviderImpl);
+
+    @Provides
+    @SysUISingleton
+    static ScreenshotViewModel providesScreenshotViewModel(
+            AccessibilityManager accessibilityManager) {
+        return new ScreenshotViewModel(accessibilityManager);
+    }
+
+    @Provides
+    static ScreenshotViewProxy.Factory providesScreenshotViewProxyFactory(
+            ScreenshotShelfViewProxy.Factory shelfScreenshotViewProxyFactory,
+            LegacyScreenshotViewProxy.Factory legacyScreenshotViewProxyFactory) {
+        if (screenshotShelfUi2()) {
+            return shelfScreenshotViewProxyFactory;
+        } else {
+            return legacyScreenshotViewProxyFactory;
+        }
+    }
 }

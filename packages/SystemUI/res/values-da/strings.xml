@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"Din it-administrator har blokeret screenshot-funktionen"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Rediger"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Rediger screenshot"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Del"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Del screenshottet"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Medtag mere"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Luk screenshot"</string>
@@ -562,7 +563,7 @@
     <string name="screen_pinning_negative" msgid="6882816864569211666">"Nej tak"</string>
     <string name="screen_pinning_start" msgid="7483998671383371313">"Appen er fastgjort"</string>
     <string name="screen_pinning_exit" msgid="4553787518387346893">"Appen er frigjort"</string>
-    <string name="stream_voice_call" msgid="7468348170702375660">"Ring op"</string>
+    <string name="stream_voice_call" msgid="7468348170702375660">"Opkald"</string>
     <string name="stream_system" msgid="7663148785370565134">"System"</string>
     <string name="stream_ring" msgid="7550670036738697526">"Ringetone"</string>
     <string name="stream_music" msgid="2188224742361847580">"Medie"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Satellit – dårlig forbindelse"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Satellit – god forbindelse"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Satellit – forbindelsen er tilgængelig"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"SOS-meldinger via satellit"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Arbejdsprofil"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Sjovt for nogle, men ikke for alle"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"System UI Tuner giver dig flere muligheder for at justere og tilpasse Android-brugerfladen. Disse eksperimentelle funktioner kan ændres, gå i stykker eller forsvinde i fremtidige udgivelser. Vær forsigtig, hvis du fortsætter."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Menu for afbryderknappen"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Side <xliff:g id="ID_1">%1$d</xliff:g> af <xliff:g id="ID_2">%2$d</xliff:g>"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Låseskærm"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Du kan finde denne telefon med Find min enhed, også selvom den er slukket"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"Lukker ned…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Se håndteringsvejledning"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Se håndteringsvejledning"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Træk stikket ud af din enhed"</string>
@@ -1117,7 +1122,7 @@
     <string name="status_before_loading" msgid="1500477307859631381">"Indhold dukker snart op"</string>
     <string name="missed_call" msgid="4228016077700161689">"Ubesvaret opkald"</string>
     <string name="messages_count_overflow_indicator" msgid="7850934067082006043">"<xliff:g id="NUMBER">%d</xliff:g>+"</string>
-    <string name="people_tile_description" msgid="8154966188085545556">"Se dine seneste beskeder, mistede opkald og statusopdateringer"</string>
+    <string name="people_tile_description" msgid="8154966188085545556">"Se dine seneste beskeder, ubesvarede opkald og statusopdateringer"</string>
     <string name="people_tile_title" msgid="6589377493334871272">"Samtale"</string>
     <string name="paused_by_dnd" msgid="7856941866433556428">"Sat på pause af Forstyr ikke"</string>
     <string name="new_notification_text_content_description" msgid="2915029960094389291">"<xliff:g id="NAME">%1$s</xliff:g> har sendt en besked: <xliff:g id="NOTIFICATION">%2$s</xliff:g>"</string>

@@ -46,6 +46,8 @@ import static android.os.IServiceManager.DUMP_FLAG_PRIORITY_CRITICAL;
 import static android.os.Process.FIRST_APPLICATION_UID;
 import static android.os.Process.ROOT_UID;
 
+import static com.android.server.display.layout.Layout.Display.POSITION_REAR;
+
 import android.Manifest;
 import android.annotation.EnforcePermission;
 import android.annotation.NonNull;
@@ -148,6 +150,7 @@ import android.window.ScreenCapture;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.display.BrightnessSynchronizer;
+import com.android.internal.foldables.FoldGracePeriodProvider;
 import com.android.internal.foldables.FoldLockSettingAvailabilityProvider;
 import com.android.internal.os.BackgroundThread;
 import com.android.internal.util.ArrayUtils;
@@ -577,7 +580,7 @@ public final class DisplayManagerService extends SystemService {
         mUiHandler = UiThread.getHandler();
         mDisplayDeviceRepo = new DisplayDeviceRepository(mSyncRoot, mPersistentDataStore);
         mLogicalDisplayMapper = new LogicalDisplayMapper(mContext,
-                foldSettingProvider,
+                foldSettingProvider, new FoldGracePeriodProvider(),
                 mDisplayDeviceRepo, new LogicalDisplayListener(), mSyncRoot, mHandler, mFlags);
         mDisplayModeDirector = new DisplayModeDirector(context, mHandler, mFlags);
         mBrightnessSynchronizer = new BrightnessSynchronizer(mContext,
@@ -733,6 +736,7 @@ public final class DisplayManagerService extends SystemService {
             mContext.getSystemService(DeviceStateManager.class).registerCallback(
                     new HandlerExecutor(mHandler), new DeviceStateListener());
 
+            mLogicalDisplayMapper.onWindowManagerReady();
             scheduleTraversalLocked(false);
         }
     }
@@ -4667,6 +4671,8 @@ public final class DisplayManagerService extends SystemService {
                 }
                 final int[] supportedStates =
                         mDeviceStateManager.getSupportedStateIdentifiers();
+                // TODO(b/352019542): remove the log once b/345960547 is fixed.
+                Slog.d(TAG, "supportedStates=" + Arrays.toString(supportedStates));
                 DisplayInfo displayInfo;
                 for (int state : supportedStates) {
                     displayInfo = mLogicalDisplayMapper.getDisplayInfoForStateLocked(state,
@@ -4675,6 +4681,8 @@ public final class DisplayManagerService extends SystemService {
                         possibleInfo.add(displayInfo);
                     }
                 }
+                // TODO(b/352019542): remove the log once b/345960547 is fixed.
+                Slog.d(TAG, "possibleInfos=" + possibleInfo);
                 return possibleInfo;
             }
         }
@@ -4890,8 +4898,9 @@ public final class DisplayManagerService extends SystemService {
                 }
 
                 final DisplayDevice displayDevice = display.getPrimaryDisplayDeviceLocked();
-                final boolean ownContent = (displayDevice.getDisplayDeviceInfoLocked().flags
-                        & DisplayDeviceInfo.FLAG_OWN_CONTENT_ONLY) != 0;
+                final boolean isRearDisplay = display.getDevicePositionLocked() == POSITION_REAR;
+                final boolean ownContent = ((displayDevice.getDisplayDeviceInfoLocked().flags
+                        & DisplayDeviceInfo.FLAG_OWN_CONTENT_ONLY) != 0) || isRearDisplay;
                 // If the display has enabled mirroring, but specified that it will be managed by
                 // WindowManager, return an invalid display id. This is to ensure we don't
                 // accidentally select the display id to mirror based on DM logic and instead allow

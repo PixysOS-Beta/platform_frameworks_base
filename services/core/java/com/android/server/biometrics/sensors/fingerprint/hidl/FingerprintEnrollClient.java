@@ -238,4 +238,9 @@ public class FingerprintEnrollClient extends EnrollClient<IBiometricsFingerprint
             Slog.e(TAG, "Unable to send onUdfpsUiEvent", e);
         }
     }
+
+    @Override
+    public void setIgnoreDisplayTouches(boolean shouldIgnore) {
+        // Unsupported in HIDL.
+    }
 }

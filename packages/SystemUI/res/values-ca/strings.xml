@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"El teu administrador de TI ha bloquejat les captures de pantalla"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"Edita"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"Edita la captura de pantalla"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"Comparteix"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"Comparteix la captura de pantalla"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"Captura més"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"Ignora la captura de pantalla"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"Satèl·lit, connexió deficient"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"Satèl·lit, bona connexió"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"Satèl·lit, connexió disponible"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"SOS per satèl·lit"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"Perfil de treball"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"Diversió per a uns quants, però no per a tothom"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"El Personalitzador d\'interfície d\'usuari presenta opcions addicionals per canviar i personalitzar la interfície d\'usuari d\'Android. És possible que aquestes funcions experimentals canviïn, deixin de funcionar o desapareguin en versions futures. Continua amb precaució."</string>
@@ -835,8 +837,11 @@
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"Menú d\'engegada"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"Pàgina <xliff:g id="ID_1">%1$d</xliff:g> (<xliff:g id="ID_2">%2$d</xliff:g> en total)"</string>
     <string name="tuner_lock_screen" msgid="2267383813241144544">"Pantalla de bloqueig"</string>
+<<<<<<< HEAD
     <string name="finder_active" msgid="7907846989716941952">"Pots localitzar aquest telèfon amb Troba el meu dispositiu fins i tot quan estigui apagat"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"S\'està apagant…"</string>
+=======
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"Mostra els passos de manteniment"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"Mostra els passos de manteniment"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"Desconnecta el dispositiu"</string>
@@ -967,7 +972,7 @@
     <string name="accessibility_floating_button_action_move_top_right" msgid="6106225581993479711">"Mou a dalt a la dreta"</string>
     <string name="accessibility_floating_button_action_move_bottom_left" msgid="8063394111137429725">"Mou a baix a l\'esquerra"</string>
     <string name="accessibility_floating_button_action_move_bottom_right" msgid="6196904373227440500">"Mou a baix a la dreta"</string>
-    <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"Mou dins de les vores i amaga"</string>
+    <string name="accessibility_floating_button_action_move_to_edge_and_hide_to_half" msgid="662401168245782658">"Mou fins la vora i amaga"</string>
     <string name="accessibility_floating_button_action_move_out_edge_and_show" msgid="8354760891651663326">"Mou fora de les vores i mostra"</string>
     <string name="accessibility_floating_button_action_remove_menu" msgid="6730432848162552135">"Suprimeix"</string>
     <string name="accessibility_floating_button_action_double_tap_to_toggle" msgid="7976492639670692037">"commuta"</string>
@@ -1151,7 +1156,7 @@
     <string name="wifi_wont_autoconnect_for_now" msgid="5782282612749867762">"Per ara la Wi‑Fi no es connectarà automàticament"</string>
     <string name="see_all_networks" msgid="3773666844913168122">"Mostra-ho tot"</string>
     <string name="to_switch_networks_disconnect_ethernet" msgid="6698111101156951955">"Per canviar de xarxa, desconnecta la connexió Ethernet"</string>
-    <string name="wifi_scan_notify_message" msgid="3753839537448621794">"Per millorar l\'experiència del dispositiu, les aplicacions i els serveis poden cercar xarxes Wi‑Fi en qualsevol moment, fins i tot quan la Wi‑Fi estigui desactivada. Pots canviar aquesta opció a la configuració de cerca de xarxes Wi‑Fi. "<annotation id="link">"Canvia-la"</annotation>"."</string>
+    <string name="wifi_scan_notify_message" msgid="3753839537448621794">"Per millorar l\'experiència amb el dispositiu, les aplicacions i els serveis poden continuar cercant xarxes Wi‑Fi en qualsevol moment, fins i tot amb la Wi‑Fi desactivada. Pots canviar aquesta opció a la configuració de cerca de xarxes Wi‑Fi. "<annotation id="link">"Canvia-la"</annotation>"."</string>
     <string name="turn_off_airplane_mode" msgid="8425587763226548579">"Desactiva el mode d\'avió"</string>
     <string name="qs_tile_request_dialog_text" msgid="3501359944139877694">"<xliff:g id="APPNAME">%1$s</xliff:g> vol afegir la icona següent a la configuració ràpida"</string>
     <string name="qs_tile_request_dialog_add" msgid="4888460910694986304">"Afegeix la icona"</string>
@@ -1271,5 +1276,5 @@
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"Retroil·luminació del teclat"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"Nivell %1$d de %2$d"</string>
     <string name="home_controls_dream_label" msgid="6567105701292324257">"Controls de la llar"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"Utilitza controls de la llar com a salvapantalles"</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"Utilitza controls de la llar com a estalvi de pantalla"</string>
 </resources>

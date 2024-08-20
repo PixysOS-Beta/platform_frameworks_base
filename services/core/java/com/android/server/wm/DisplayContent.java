@@ -478,7 +478,7 @@ class DisplayContent extends RootDisplayArea implements WindowManagerPolicy.Disp
     private final DisplayRotation mDisplayRotation;
     @Nullable final DisplayRotationCompatPolicy mDisplayRotationCompatPolicy;
     DisplayFrames mDisplayFrames;
-    private final DisplayUpdater mDisplayUpdater;
+    final DisplayUpdater mDisplayUpdater;
 
     private boolean mInTouchMode;
 
@@ -1308,6 +1308,15 @@ class DisplayContent extends RootDisplayArea implements WindowManagerPolicy.Disp
         }
     }
 
+    /**
+     * @return The {@link DisplayRotationCompatPolicy} for this DisplayContent
+     */
+    // TODO(b/335387481) Allow access to DisplayRotationCompatPolicy only with getters
+    @Nullable
+    DisplayRotationCompatPolicy getDisplayRotationCompatPolicy() {
+        return mDisplayRotationCompatPolicy;
+    }
+
     @Override
     void migrateToNewSurfaceControl(Transaction t) {
         t.remove(mSurfaceControl);
@@ -1950,6 +1959,12 @@ class DisplayContent extends RootDisplayArea implements WindowManagerPolicy.Disp
                 && mFixedRotationLaunchingApp != mFixedRotationTransitionListener.mAnimatingRecents;
     }
 
+    /** It usually means whether the recents activity is launching with a different rotation. */
+    boolean hasFixedRotationTransientLaunch() {
+        return mFixedRotationLaunchingApp != null
+                && mTransitionController.isTransientLaunch(mFixedRotationLaunchingApp);
+    }
+
     boolean isFixedRotationLaunchingApp(ActivityRecord r) {
         return mFixedRotationLaunchingApp == r;
     }
@@ -2302,7 +2317,8 @@ class DisplayContent extends RootDisplayArea implements WindowManagerPolicy.Disp
             mDisplayInfo.flags &= ~Display.FLAG_SCALING_DISABLED;
         }
 
-        computeSizeRanges(mDisplayInfo, rotated, dw, dh, mDisplayMetrics.density, outConfig);
+        computeSizeRanges(mDisplayInfo, rotated, dw, dh, mDisplayMetrics.density, outConfig,
+                false /* overrideConfig */);
 
         setDisplayInfoOverride();
 
@@ -2438,7 +2454,8 @@ class DisplayContent extends RootDisplayArea implements WindowManagerPolicy.Disp
         displayInfo.appHeight = appBounds.height();
         final DisplayCutout displayCutout = calculateDisplayCutoutForRotation(rotation);
         displayInfo.displayCutout = displayCutout.isEmpty() ? null : displayCutout;
-        computeSizeRanges(displayInfo, rotated, dw, dh, mDisplayMetrics.density, outConfig);
+        computeSizeRanges(displayInfo, rotated, dw, dh, mDisplayMetrics.density, outConfig,
+                false /* overrideConfig */);
         return displayInfo;
     }
 
@@ -2602,8 +2619,20 @@ class DisplayContent extends RootDisplayArea implements WindowManagerPolicy.Disp
         return curSize;
     }
 
-    private void computeSizeRanges(DisplayInfo displayInfo, boolean rotated,
-            int dw, int dh, float density, Configuration outConfig) {
+    /**
+     * Compute size range related fields of DisplayInfo and Configuration based on provided info.
+     * The fields usually contain word such as smallest or largest.
+     *
+     * @param displayInfo In-out display info to compute the result.
+     * @param rotated Whether the display is rotated.
+     * @param dw Display Width in current rotation.
+     * @param dh Display Height in current rotation.
+     * @param density Display density.
+     * @param outConfig The output configuration to
+     * @param overrideConfig Whether we need to report the override config result
+     */
+    void computeSizeRanges(DisplayInfo displayInfo, boolean rotated,
+            int dw, int dh, float density, Configuration outConfig, boolean overrideConfig) {
 
         // We need to determine the smallest width that will occur under normal
         // operation.  To this, start with the base screen size and compute the
@@ -2621,10 +2650,12 @@ class DisplayContent extends RootDisplayArea implements WindowManagerPolicy.Disp
         displayInfo.smallestNominalAppHeight = 1<<30;
         displayInfo.largestNominalAppWidth = 0;
         displayInfo.largestNominalAppHeight = 0;
-        adjustDisplaySizeRanges(displayInfo, Surface.ROTATION_0, unrotDw, unrotDh);
-        adjustDisplaySizeRanges(displayInfo, Surface.ROTATION_90, unrotDh, unrotDw);
-        adjustDisplaySizeRanges(displayInfo, Surface.ROTATION_180, unrotDw, unrotDh);
-        adjustDisplaySizeRanges(displayInfo, Surface.ROTATION_270, unrotDh, unrotDw);
+        adjustDisplaySizeRanges(displayInfo, Surface.ROTATION_0, unrotDw, unrotDh, overrideConfig);
+        adjustDisplaySizeRanges(displayInfo, Surface.ROTATION_90, unrotDh, unrotDw, overrideConfig);
+        adjustDisplaySizeRanges(displayInfo, Surface.ROTATION_180, unrotDw, unrotDh,
+                overrideConfig);
+        adjustDisplaySizeRanges(displayInfo, Surface.ROTATION_270, unrotDh, unrotDw,
+                overrideConfig);
 
         if (outConfig == null) {
             return;
@@ -2633,11 +2664,19 @@ class DisplayContent extends RootDisplayArea implements WindowManagerPolicy.Disp
                 (int) (displayInfo.smallestNominalAppWidth / density + 0.5f);
     }
 
-    private void adjustDisplaySizeRanges(DisplayInfo displayInfo, int rotation, int dw, int dh) {
+    private void adjustDisplaySizeRanges(DisplayInfo displayInfo, int rotation, int dw, int dh,
+            boolean overrideConfig) {
         final DisplayPolicy.DecorInsets.Info info = mDisplayPolicy.getDecorInsetsInfo(
                 rotation, dw, dh);
-        final int w = info.mConfigFrame.width();
-        final int h = info.mConfigFrame.height();
+        final int w;
+        final int h;
+        if (!overrideConfig) {
+            w = info.mConfigFrame.width();
+            h = info.mConfigFrame.height();
+        } else {
+            w = info.mOverrideConfigFrame.width();
+            h = info.mOverrideConfigFrame.height();
+        }
         if (w < displayInfo.smallestNominalAppWidth) {
             displayInfo.smallestNominalAppWidth = w;
         }
@@ -6180,7 +6219,12 @@ class DisplayContent extends RootDisplayArea implements WindowManagerPolicy.Disp
      * @param onDisplayChangeApplied callback that is called when the changes are applied
      */
     void requestDisplayUpdate(@NonNull Runnable onDisplayChangeApplied) {
-        mDisplayUpdater.updateDisplayInfo(onDisplayChangeApplied);
+        mAtmService.deferWindowLayout();
+        try {
+            mDisplayUpdater.updateDisplayInfo(onDisplayChangeApplied);
+        } finally {
+            mAtmService.continueWindowLayout();
+        }
     }
 
     void onDisplayInfoUpdated(@NonNull DisplayInfo newDisplayInfo) {
@@ -6977,9 +7021,8 @@ class DisplayContent extends RootDisplayArea implements WindowManagerPolicy.Disp
         boolean shouldDeferRotation() {
             ActivityRecord source = null;
             if (mTransitionController.isShellTransitionsEnabled()) {
-                final ActivityRecord r = mFixedRotationLaunchingApp;
-                if (r != null && mTransitionController.isTransientLaunch(r)) {
-                    source = r;
+                if (hasFixedRotationTransientLaunch()) {
+                    source = mFixedRotationLaunchingApp;
                 }
             } else if (mAnimatingRecents != null && !hasTopFixedRotationLaunchingApp()) {
                 source = mAnimatingRecents;
@@ -6999,7 +7042,7 @@ class DisplayContent extends RootDisplayArea implements WindowManagerPolicy.Disp
             // by finishing the recents animation and moving it to top. That also avoids flickering
             // due to wait for previous activity to be paused if it supports PiP that ignores the
             // effect of resume-while-pausing.
-            if (r == null || r == mAnimatingRecents) {
+            if (r == null || r == mAnimatingRecents || r.getDisplayId() != mDisplayId) {
                 return;
             }
             if (mAnimatingRecents != null && mRecentsWillBeTop) {

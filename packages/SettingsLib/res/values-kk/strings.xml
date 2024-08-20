@@ -186,7 +186,7 @@
     <string name="tts_default_pitch_title" msgid="6988592215554485479">"Дауыс жиілігі"</string>
     <string name="tts_default_pitch_summary" msgid="9132719475281551884">"Синтезделген сөйлеу үніне әсер етеді"</string>
     <string name="tts_default_lang_title" msgid="4698933575028098940">"Тіл"</string>
-    <string name="tts_lang_use_system" msgid="6312945299804012406">"Жүйелік тілді пайдалану"</string>
+    <string name="tts_lang_use_system" msgid="6312945299804012406">"Жүйе тілін пайдалану"</string>
     <string name="tts_lang_not_selected" msgid="7927823081096056147">"Тіл таңдалған жоқ"</string>
     <string name="tts_default_lang_summary" msgid="9042620014800063470">"Сөйлеу мәтіні үшін тілге тән дауыс орнатады"</string>
     <string name="tts_play_example_title" msgid="1599468547216481684">"Үлгіні тыңдау"</string>
@@ -221,7 +221,7 @@
     <string name="choose_profile" msgid="343803890897657450">"Профильді таңдау"</string>
     <string name="category_personal" msgid="6236798763159385225">"Жеке"</string>
     <string name="category_work" msgid="4014193632325996115">"Жұмыс"</string>
-    <string name="category_private" msgid="4244892185452788977">"Жеке"</string>
+    <string name="category_private" msgid="4244892185452788977">"Құпия"</string>
     <string name="category_clone" msgid="1554511758987195974">"Клондау"</string>
     <string name="development_settings_title" msgid="140296922921597393">"Әзірлеуші опциялары"</string>
     <string name="development_settings_enable" msgid="4285094651288242183">"Әзірлеуші ​​параметрлерін қосу"</string>
@@ -357,7 +357,7 @@
     <string name="media_category" msgid="8122076702526144053">"Mультимeдиа"</string>
     <string name="debug_monitoring_category" msgid="1597387133765424994">"Бақылау"</string>
     <string name="strict_mode" msgid="889864762140862437">"Қатаң режим қосылған"</string>
-    <string name="strict_mode_summary" msgid="1838248687233554654">"Қолданбалар негізгі жолда ұзақ әрекеттерді орындағанда экранды жыпылықтату"</string>
+    <string name="strict_mode_summary" msgid="1838248687233554654">"Қолданбалар ұзақ операцияларды орындағанда экранды жыпылықтату"</string>
     <string name="pointer_location" msgid="7516929526199520173">"Меңзер орны"</string>
     <string name="pointer_location_summary" msgid="957120116989798464">"Экран бетіне түртілген элемент дерегі көрсетіледі"</string>
     <string name="show_touches" msgid="8437666942161289025">"Түрту қимылын көрсету"</string>
@@ -376,7 +376,7 @@
     <string name="simulate_color_space" msgid="1206503300335835151">"Түстер кеңістігінің симуляциясы"</string>
     <string name="enable_opengl_traces_title" msgid="4638773318659125196">"OpenGL трейстерін қосу"</string>
     <string name="usb_audio_disable_routing" msgid="3367656923544254975">"USB-мен аудио жіберуді өшіру"</string>
-    <string name="usb_audio_disable_routing_summary" msgid="8768242894849534699">"Сыртқы USB аудио құрылғыларына автоматты жіберуді өшіру"</string>
+    <string name="usb_audio_disable_routing_summary" msgid="8768242894849534699">"Сыртқы USB аудио құрылғыларына автоматты түрде жіберуді өшіру"</string>
     <string name="debug_layout" msgid="1659216803043339741">"Жиектерді көрсету"</string>
     <string name="debug_layout_summary" msgid="8825829038287321978">"Қию шегін, шеттерді, т.б. көрсету"</string>
     <string name="force_rtl_layout_all_locales" msgid="8690762598501599796">"Оңнан солға орналастыру"</string>
@@ -479,6 +479,10 @@
     <string name="power_charging_duration" msgid="6127154952524919719">"<xliff:g id="LEVEL">%1$s</xliff:g>: толық зарядталуға <xliff:g id="TIME">%2$s</xliff:g> қалды"</string>
     <string name="power_charging_limited" msgid="8202147604844938236">"<xliff:g id="LEVEL">%1$s</xliff:g> – зарядтау оңтайландырылды"</string>
     <string name="power_charging_future_paused" msgid="1809543660923642799">"<xliff:g id="LEVEL">%1$s</xliff:g> – Зарядталып жатыр"</string>
+    <string name="power_fast_charging_duration_v2" msgid="3797735998640359490">"<xliff:g id="LEVEL">%1$s</xliff:g> - <xliff:g id="STATUS">%2$s</xliff:g> - Зарядталып болады: <xliff:g id="TIME">%3$s</xliff:g>"</string>
+    <string name="power_charging_duration_v2" msgid="2938998284074003248">"<xliff:g id="LEVEL">%1$s</xliff:g> - Толық заряд алуға қалған уақыт: <xliff:g id="TIME">%2$s</xliff:g>"</string>
+    <string name="power_remaining_charging_duration_only_v2" msgid="5358176435722950193">"Толық заряд алуға қалған уақыт: <xliff:g id="TIME">%1$s</xliff:g>"</string>
+    <string name="power_remaining_fast_charging_duration_only_v2" msgid="6270950195810579563">"Заряд толуына қалған уақыт: <xliff:g id="TIME">%1$s</xliff:g>"</string>
     <string name="battery_info_status_unknown" msgid="268625384868401114">"Белгісіз"</string>
     <string name="battery_info_status_charging" msgid="4279958015430387405">"Зарядталуда"</string>
     <string name="battery_info_status_charging_fast" msgid="8027559755902954885">"Жылдам зарядтау"</string>
@@ -490,6 +494,8 @@
     <string name="battery_info_status_full" msgid="1339002294876531312">"Зарядталды"</string>
     <string name="battery_info_status_full_charged" msgid="3536054261505567948">"Толық зарядталды."</string>
     <string name="battery_info_status_charging_on_hold" msgid="6364355145521694438">"Зарядтау кідіртілді."</string>
+    <string name="battery_info_status_charging_v2" msgid="6118522107222245505">"Зарядталып жатыр."</string>
+    <string name="battery_info_status_charging_fast_v2" msgid="1825439848151256589">"Жылдам зарядтау"</string>
     <string name="disabled_by_admin_summary_text" msgid="5343911767402923057">"Әкімші басқарады"</string>
     <string name="disabled_by_app_ops_text" msgid="8373595926549098012">"Шектелген параметрлер арқылы басқарылады."</string>
     <string name="disabled" msgid="8017887509554714950">"Өшірілген"</string>
@@ -578,7 +584,7 @@
     <string name="media_transfer_wired_device_name" msgid="4447880899964056007">"Сымды аудио құрылғысы"</string>
     <string name="help_label" msgid="3528360748637781274">"Анықтама және пікір"</string>
     <string name="storage_category" msgid="2287342585424631813">"Жад"</string>
-    <string name="shared_data_title" msgid="1017034836800864953">"Бөліскен дерек"</string>
+    <string name="shared_data_title" msgid="1017034836800864953">"Ортақ дерек"</string>
     <string name="shared_data_summary" msgid="5516326713822885652">"Ортақ деректерді көру және өзгерту"</string>
     <string name="shared_data_no_blobs_text" msgid="3108114670341737434">"Бұл пайдаланушымен бөліскен дерек жоқ."</string>
     <string name="shared_data_query_failure_text" msgid="3489828881998773687">"Ортақ деректер алу кезінде қате шықты. Қайталап көріңіз."</string>
@@ -678,6 +684,7 @@
     <string name="accessibility_phone_one_bar" msgid="5719721147018970063">"Телефон бір баған."</string>
     <string name="accessibility_phone_two_bars" msgid="2531458337458953263">"Телефон екі баған."</string>
     <string name="accessibility_phone_three_bars" msgid="1523967995996696619">"Телефон үш баған."</string>
+    <string name="accessibility_phone_four_bars" msgid="4477202400261338403">"Телефон байланысының төрт бағанасы."</string>
     <string name="accessibility_phone_signal_full" msgid="4302338883816077134">"Телефон сигналы толық."</string>
     <string name="accessibility_no_data" msgid="4563181886936931008">"Дерекқор жоқ."</string>
     <string name="accessibility_data_one_bar" msgid="6892888138070752480">"Дерекқор бір баған."</string>

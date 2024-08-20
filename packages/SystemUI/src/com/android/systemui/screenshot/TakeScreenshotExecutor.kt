@@ -8,6 +8,7 @@ import android.view.WindowManager.TAKE_SCREENSHOT_PROVIDED_IMAGE
 import com.android.app.tracing.coroutines.launch
 import com.android.internal.logging.UiEventLogger
 import com.android.internal.util.ScreenshotRequest
+import com.android.systemui.Flags.screenshotShelfUi2
 import com.android.systemui.dagger.SysUISingleton
 import com.android.systemui.dagger.qualifiers.Application
 import com.android.systemui.display.data.repository.DisplayRepository
@@ -49,14 +50,16 @@ constructor(
      */
     suspend fun executeScreenshots(
         screenshotRequest: ScreenshotRequest,
-        onSaved: (Uri) -> Unit,
+        onSaved: (Uri?) -> Unit,
         requestCallback: RequestCallback
     ) {
-        val displayIds = getDisplaysToScreenshot(screenshotRequest.type)
+        val displays = getDisplaysToScreenshot(screenshotRequest.type)
         val resultCallbackWrapper = MultiResultCallbackWrapper(requestCallback)
-        displayIds.forEach { displayId: Int ->
+        displays.forEach { display: Display ->
+            val displayId = display.displayId
             Log.d(TAG, "Executing screenshot for display $displayId")
             dispatchToController(
+                display,
                 rawScreenshotData = ScreenshotData.fromRequest(screenshotRequest, displayId),
                 onSaved =
                     if (displayId == Display.DEFAULT_DISPLAY) {
@@ -69,8 +72,9 @@ constructor(
 
     /** All logging should be triggered only by this method. */
     private suspend fun dispatchToController(
+        display: Display,
         rawScreenshotData: ScreenshotData,
-        onSaved: (Uri) -> Unit,
+        onSaved: (Uri?) -> Unit,
         callback: RequestCallback
     ) {
         // Let's wait before logging "screenshot requested", as we should log the processed
@@ -88,8 +92,7 @@ constructor(
         logScreenshotRequested(screenshotData)
         Log.d(TAG, "Screenshot request: $screenshotData")
         try {
-            getScreenshotController(screenshotData.displayId)
-                .handleScreenshot(screenshotData, onSaved, callback)
+            getScreenshotController(display).handleScreenshot(screenshotData, onSaved, callback)
         } catch (e: IllegalStateException) {
             Log.e(TAG, "Error while ScreenshotController was handling ScreenshotData!", e)
             onFailedScreenshotRequest(screenshotData, callback)
@@ -119,12 +122,13 @@ constructor(
         callback.reportError()
     }
 
-    private suspend fun getDisplaysToScreenshot(requestType: Int): List<Int> {
-        return if (requestType == TAKE_SCREENSHOT_PROVIDED_IMAGE) {
-            // If this is a provided image, let's show the UI on the default display only.
-            listOf(Display.DEFAULT_DISPLAY)
+    private suspend fun getDisplaysToScreenshot(requestType: Int): List<Display> {
+        val allDisplays = displays.first()
+        return if (requestType == TAKE_SCREENSHOT_PROVIDED_IMAGE || screenshotShelfUi2()) {
+            // If this is a provided image or using the shelf UI, just screenshot th default display
+            allDisplays.filter { it.displayId == Display.DEFAULT_DISPLAY }
         } else {
-            displays.first().filter { it.type in ALLOWED_DISPLAY_TYPES }.map { it.displayId }
+            allDisplays.filter { it.type in ALLOWED_DISPLAY_TYPES }
         }
     }
 
@@ -136,7 +140,7 @@ constructor(
     fun onCloseSystemDialogsReceived() {
         screenshotControllers.forEach { (_, screenshotController) ->
             if (!screenshotController.isPendingSharedTransition) {
-                screenshotController.dismissScreenshot(ScreenshotEvent.SCREENSHOT_DISMISSED_OTHER)
+                screenshotController.requestDismissal(ScreenshotEvent.SCREENSHOT_DISMISSED_OTHER)
             }
         }
     }
@@ -158,9 +162,9 @@ constructor(
         screenshotControllers.clear()
     }
 
-    private fun getScreenshotController(id: Int): ScreenshotController {
-        return screenshotControllers.computeIfAbsent(id) {
-            screenshotControllerFactory.create(id, /* showUIOnExternalDisplay= */ false)
+    private fun getScreenshotController(display: Display): ScreenshotController {
+        return screenshotControllers.computeIfAbsent(display.displayId) {
+            screenshotControllerFactory.create(display, /* showUIOnExternalDisplay= */ false)
         }
     }
 
@@ -173,7 +177,7 @@ constructor(
     /** For java compatibility only. see [executeScreenshots] */
     fun executeScreenshotsAsync(
         screenshotRequest: ScreenshotRequest,
-        onSaved: Consumer<Uri>,
+        onSaved: Consumer<Uri?>,
         requestCallback: RequestCallback
     ) {
         mainScope.launch("TakeScreenshotService#executeScreenshotsAsync") {

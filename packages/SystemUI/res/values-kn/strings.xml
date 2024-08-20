@@ -84,6 +84,7 @@
     <string name="screenshot_blocked_by_admin" msgid="5486757604822795797">"ಸ್ಕ್ರೀನ್‌ಶಾಟ್‌ಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುವುದನ್ನು ನಿಮ್ಮ IT ನಿರ್ವಾಹಕರು ನಿರ್ಬಂಧಿಸಿದ್ದಾರೆ"</string>
     <string name="screenshot_edit_label" msgid="8754981973544133050">"ಎಡಿಟ್ ಮಾಡಿ"</string>
     <string name="screenshot_edit_description" msgid="3333092254706788906">"ಸ್ಕ್ರೀನ್‌ಶಾಟ್‌ ಅನ್ನು ಎಡಿಟ್ ಮಾಡಿ"</string>
+    <string name="screenshot_share_label" msgid="1653061117238861559">"ಹಂಚಿಕೊಳ್ಳಿ"</string>
     <string name="screenshot_share_description" msgid="2861628935812656612">"ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಅನ್ನು ಹಂಚಿಕೊಳ್ಳಿ"</string>
     <string name="screenshot_scroll_label" msgid="2930198809899329367">"ಇನ್ನಷ್ಟು ಕ್ಯಾಪ್ಚರ್ ಮಾಡಿ"</string>
     <string name="screenshot_dismiss_description" msgid="4702341245899508786">"ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಅನ್ನು ವಜಾಗೊಳಿಸಿ"</string>
@@ -232,7 +233,7 @@
     <string name="accessibility_desc_qs_notification_shade" msgid="8327226953072700376">"ತ್ವರಿತ ಸೆಟ್ಟಿಂಗ್‍ಗಳು ಮತ್ತು ಅಧಿಸೂಚನೆಯ ಪರದೆ."</string>
     <string name="accessibility_desc_lock_screen" msgid="5983125095181194887">"ಲಾಕ್‌ ಸ್ಕ್ರೀನ್."</string>
     <string name="accessibility_desc_work_lock" msgid="4355620395354680575">"ಕೆಲಸದ ಲಾಕ್ ಪರದೆ"</string>
-    <string name="accessibility_desc_close" msgid="8293708213442107755">"ಮುಚ್ಚು"</string>
+    <string name="accessibility_desc_close" msgid="8293708213442107755">"ಮುಚ್ಚಿ"</string>
     <string name="accessibility_quick_settings_dnd_none_on" msgid="3235552940146035383">"ಸಂಪೂರ್ಣ ನಿಶ್ಯಬ್ಧ"</string>
     <string name="accessibility_quick_settings_dnd_alarms_on" msgid="3375848309132140014">"ಅಲಾರಮ್‌ಗಳು ಮಾತ್ರ"</string>
     <string name="accessibility_quick_settings_dnd" msgid="2415967452264206047">"ಅಡಚಣೆ ಮಾಡಬೇಡಿ."</string>
@@ -562,9 +563,9 @@
     <string name="screen_pinning_negative" msgid="6882816864569211666">"ಬೇಡ"</string>
     <string name="screen_pinning_start" msgid="7483998671383371313">"ಆ್ಯಪ್ ಪಿನ್ ಮಾಡಲಾಗಿದೆ"</string>
     <string name="screen_pinning_exit" msgid="4553787518387346893">"ಆ್ಯಪ್ ಅನ್‌ಪಿನ್ ಮಾಡಲಾಗಿದೆ"</string>
-    <string name="stream_voice_call" msgid="7468348170702375660">"ಕರೆಮಾಡಿ"</string>
+    <string name="stream_voice_call" msgid="7468348170702375660">"ಕರೆ ಮಾಡಿ"</string>
     <string name="stream_system" msgid="7663148785370565134">"ಸಿಸ್ಟಂ"</string>
-    <string name="stream_ring" msgid="7550670036738697526">"ರಿಂಗ್"</string>
+    <string name="stream_ring" msgid="7550670036738697526">"ರಿಂಗ್ ಮಾಡಿ"</string>
     <string name="stream_music" msgid="2188224742361847580">"ಮಾಧ್ಯಮ"</string>
     <string name="stream_alarm" msgid="16058075093011694">"ಅಲಾರಮ್"</string>
     <string name="stream_notification" msgid="7930294049046243939">"ನೋಟಿಫಿಕೇಶನ್"</string>
@@ -617,6 +618,7 @@
     <string name="accessibility_status_bar_satellite_poor_connection" msgid="5231478574952724160">"ಸ್ಯಾಟಲೈಟ್‌, ಕನೆಕ್ಷನ್ ಕಳಪೆಯಾಗಿದೆ"</string>
     <string name="accessibility_status_bar_satellite_good_connection" msgid="308079391708578704">"ಸ್ಯಾಟಲೈಟ್‌, ಕನೆಕ್ಷನ್ ಉತ್ತಮವಾಗಿದೆ"</string>
     <string name="accessibility_status_bar_satellite_available" msgid="6514855015496916829">"ಸ್ಯಾಟಲೈಟ್, ಕನೆಕ್ಷನ್ ಲಭ್ಯವಿದೆ"</string>
+    <string name="satellite_connected_carrier_text" msgid="118524195198532589">"ಸ್ಯಾಟಲೈಟ್ SOS"</string>
     <string name="accessibility_managed_profile" msgid="4703836746209377356">"ಕೆಲಸದ ಪ್ರೊಫೈಲ್"</string>
     <string name="tuner_warning_title" msgid="7721976098452135267">"ಕೆಲವರಿಗೆ ಮೋಜು ಆಗಿದೆ ಎಲ್ಲರಿಗೆ ಇಲ್ಲ"</string>
     <string name="tuner_warning" msgid="1861736288458481650">"ಸಿಸ್ಟಂ UI ಟ್ಯೂನರ್ ನಿಮಗೆ Android ಬಳಕೆದಾರ ಅಂತರಸಂಪರ್ಕವನ್ನು ಸರಿಪಡಿಸಲು ಮತ್ತು ಕಸ್ಟಮೈಸ್ ಮಾಡಲು ಹೆಚ್ಚುವರಿ ಮಾರ್ಗಗಳನ್ನು ನೀಡುತ್ತದೆ. ಈ ಪ್ರಾಯೋಗಿಕ ವೈಶಿಷ್ಟ್ಯಗಳು ಭವಿಷ್ಯದ ಬಿಡುಗಡೆಗಳಲ್ಲಿ ಬದಲಾಗಬಹುದು, ವಿರಾಮವಾಗಬಹುದು ಅಥವಾ ಕಾಣಿಸಿಕೊಳ್ಳದಿರಬಹುದು. ಎಚ್ಚರಿಕೆಯಿಂದ ಮುಂದುವರಿಯಿರಿ."</string>
@@ -834,9 +836,13 @@
     <string name="accessibility_quick_settings_edit" msgid="1523745183383815910">"ಸೆಟ್ಟಿಂಗ್‌ಗಳ ಕ್ರಮವನ್ನು ಎಡಿಟ್ ಮಾಡಿ."</string>
     <string name="accessibility_quick_settings_power_menu" msgid="6820426108301758412">"ಪವರ್ ಮೆನು"</string>
     <string name="accessibility_quick_settings_page" msgid="7506322631645550961">"<xliff:g id="ID_2">%2$d</xliff:g> ರಲ್ಲಿ <xliff:g id="ID_1">%1$d</xliff:g> ಪುಟ"</string>
+<<<<<<< HEAD
     <string name="tuner_lock_screen" msgid="2267383813241144544">"ಲಾಕ್ ಪರದೆ"</string>
     <string name="finder_active" msgid="7907846989716941952">"ಪವರ್ ಆಫ್ ಆಗಿರುವಾಗಲೂ ನೀವು Find My Device ಮೂಲಕ ಈ ಫೋನ್ ಅನ್ನು ಪತ್ತೆ ಮಾಡಬಹುದು"</string>
     <string name="shutdown_progress" msgid="5464239146561542178">"ಶಟ್ ಡೌನ್‌ ಮಾಡಲಾಗುತ್ತಿದೆ…"</string>
+=======
+    <string name="tuner_lock_screen" msgid="2267383813241144544">"ಲಾಕ್ ಸ್ಕ್ರೀನ್"</string>
+>>>>>>> 1eea31d56dec945b7337e76766a93c03d76d544f
     <string name="thermal_shutdown_dialog_help_text" msgid="6413474593462902901">"ಕಾಳಜಿಯ ಹಂತಗಳನ್ನು ವೀಕ್ಷಿಸಿ"</string>
     <string name="high_temp_dialog_help_text" msgid="7380171287943345858">"ಕಾಳಜಿಯ ಹಂತಗಳನ್ನು ವೀಕ್ಷಿಸಿ"</string>
     <string name="high_temp_alarm_title" msgid="8654754369605452169">"ನಿಮ್ಮ ಸಾಧನವನ್ನು ಅನ್‌ಪ್ಲಗ್ ಮಾಡಿ"</string>
@@ -1270,6 +1276,6 @@
     <string name="privacy_dialog_recent_app_usage_2" msgid="2874689735085367167">"ಇತ್ತೀಚೆಗೆ <xliff:g id="APP_NAME">%1$s</xliff:g> ಇದನ್ನು ಬಳಸಿದೆ (<xliff:g id="ATTRIBUTION_LABEL">%2$s</xliff:g> • <xliff:g id="PROXY_LABEL">%3$s</xliff:g>)"</string>
     <string name="keyboard_backlight_dialog_title" msgid="8273102932345564724">"ಕೀಬೋರ್ಡ್ ಬ್ಯಾಕ್‌ಲೈಟ್"</string>
     <string name="keyboard_backlight_value" msgid="7336398765584393538">"%2$d ರಲ್ಲಿ %1$d ಮಟ್ಟ"</string>
-    <string name="home_controls_dream_label" msgid="6567105701292324257">"ಹೋಮ್ ನಿಯಂತ್ರಣಗಳು"</string>
-    <string name="home_controls_dream_description" msgid="4644150952104035789">"ಹೋಮ್ ನಿಯಂತ್ರಣವನ್ನು ಸ್ಕ್ರೀನ್‌ಸೇವರ್‌ನಂತೆ ತ್ವರಿತವಾಗಿ ಆ್ಯಕ್ಸೆಸ್ ಮಾಡಿ"</string>
+    <string name="home_controls_dream_label" msgid="6567105701292324257">"ಮನೆ ನಿಯಂತ್ರಣಗಳು"</string>
+    <string name="home_controls_dream_description" msgid="4644150952104035789">"ಮನೆ ನಿಯಂತ್ರಣವನ್ನು ಸ್ಕ್ರೀನ್‌ಸೇವರ್‌ನಂತೆ ಬೇಗ ಆ್ಯಕ್ಸೆಸ್ ಮಾಡಿ"</string>
 </resources>

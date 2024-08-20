@@ -410,6 +410,7 @@
   <java-symbol type="bool" name="config_supportsSplitScreenMultiWindow" />
   <java-symbol type="bool" name="config_supportsMultiDisplay" />
   <java-symbol type="bool" name="config_leftRightSplitInPortrait" />
+  <java-symbol type="bool" name="config_flexibleSplitRatios" />
   <java-symbol type="integer" name="config_supportsNonResizableMultiWindow" />
   <java-symbol type="integer" name="config_respectsActivityMinWidthHeightMultiWindow" />
   <java-symbol type="dimen" name="config_minPercentageMultiWindowSupportHeight" />
@@ -4207,6 +4208,7 @@
   <java-symbol type="bool" name="config_supportsConcurrentInternalDisplays" />
   <java-symbol type="bool" name="config_unfoldTransitionEnabled" />
   <java-symbol type="bool" name="config_unfoldTransitionHingeAngle" />
+  <java-symbol type="bool" name="config_unfoldTransitionHapticsEnabled" />
   <java-symbol type="integer" name="config_unfoldTransitionHalfFoldedTimeout" />
   <java-symbol type="array" name="config_perDeviceStateRotationLockDefaults" />
 
@@ -4248,7 +4250,9 @@
   <java-symbol type="string" name="battery_saver_charged_notification_summary" />
   <java-symbol type="string" name="dynamic_mode_notification_channel_name" />
   <java-symbol type="string" name="dynamic_mode_notification_title" />
+  <java-symbol type="string" name="dynamic_mode_notification_title_v2" />
   <java-symbol type="string" name="dynamic_mode_notification_summary" />
+  <java-symbol type="string" name="dynamic_mode_notification_summary_v2" />
   <java-symbol type="drawable" name="ic_battery" />
 
   <java-symbol type="bool" name="config_skipSensorAvailable" />
@@ -4700,6 +4704,8 @@
   <java-symbol type="integer" name="config_letterboxDefaultPositionForTabletopModeReachability" />
   <java-symbol type="bool" name="config_letterboxIsPolicyForIgnoringRequestedOrientationEnabled" />
   <java-symbol type="bool" name="config_letterboxIsEducationEnabled" />
+  <java-symbol type="dimen" name="config_letterboxThinLetterboxWidthDp" />
+  <java-symbol type="dimen" name="config_letterboxThinLetterboxHeightDp" />
   <java-symbol type="dimen" name="config_letterboxDefaultMinAspectRatioForUnresizableApps" />
   <java-symbol type="bool" name="config_letterboxIsSplitScreenAspectRatioForUnresizableAppsEnabled" />
   <java-symbol type="bool" name="config_letterboxIsDisplayAspectRatioForFixedOrientationLetterboxEnabled" />
@@ -5027,8 +5033,7 @@
   <java-symbol type="bool" name="config_assistLongPressHomeEnabledDefault" />
   <java-symbol type="bool" name="config_assistTouchGestureEnabledDefault" />
 
-  <java-symbol type="bool" name="config_searchPressHoldNavHandleEnabledDefault" />
-  <java-symbol type="bool" name="config_searchLongPressHomeEnabledDefault" />
+  <java-symbol type="bool" name="config_searchAllEntrypointsEnabledDefault" />
 
   <java-symbol type="integer" name="config_hotwordDetectedResultMaxBundleSize" />
 
@@ -5375,6 +5380,7 @@
   <java-symbol type="string" name="satellite_notification_open_message" />
   <java-symbol type="string" name="satellite_notification_how_it_works" />
   <java-symbol type="drawable" name="ic_satellite_alt_24px" />
+  <java-symbol type="drawable" name="ic_android_satellite_24px" />
 
   <!-- DisplayManager configs. -->
   <java-symbol type="bool" name="config_evenDimmerEnabled" />
@@ -5384,4 +5390,15 @@
   <java-symbol type="string" name="config_defaultContextualSearchKey" />
   <java-symbol type="string" name="config_defaultContextualSearchEnabled" />
   <java-symbol type="string" name="config_defaultContextualSearchLegacyEnabled" />
+
+  <!-- Biometric dangling notification strings -->
+  <java-symbol type="string" name="fingerprint_dangling_notification_title" />
+  <java-symbol type="string" name="fingerprint_dangling_notification_msg_1" />
+  <java-symbol type="string" name="fingerprint_dangling_notification_msg_2" />
+  <java-symbol type="string" name="fingerprint_dangling_notification_msg_all_deleted_1" />
+  <java-symbol type="string" name="fingerprint_dangling_notification_msg_all_deleted_2" />
+  <java-symbol type="string" name="face_dangling_notification_title" />
+  <java-symbol type="string" name="face_dangling_notification_msg" />
+  <java-symbol type="string" name="biometric_dangling_notification_action_set_up" />
+  <java-symbol type="string" name="biometric_dangling_notification_action_not_now" />
 </resources>

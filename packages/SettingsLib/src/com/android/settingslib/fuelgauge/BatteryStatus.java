@@ -152,7 +152,8 @@ public class BatteryStatus {
         final int slowThreshold = context.getResources().getInteger(
                 R.integer.config_chargingSlowlyThreshold);
         final int fastThreshold = context.getResources().getInteger(
-                R.integer.config_chargingFastThreshold);
+                getFastChargingThresholdResId());
+
         return maxChargingWattage <= 0 ? CHARGING_UNKNOWN :
                 maxChargingWattage < slowThreshold ? CHARGING_SLOWLY :
                         maxChargingWattage > fastThreshold ? CHARGING_FAST :
@@ -389,7 +390,7 @@ public class BatteryStatus {
                 < context.getResources().getInteger(R.integer.config_chargingSlowlyThreshold)) {
             return CHARGING_SLOWLY;
         } else if (maxChargingMicroWatt
-                > context.getResources().getInteger(R.integer.config_chargingFastThreshold)) {
+                > context.getResources().getInteger(getFastChargingThresholdResId())) {
             return CHARGING_FAST;
         } else {
             return CHARGING_REGULAR;
@@ -416,5 +417,11 @@ public class BatteryStatus {
         } else {
             return -1;
         }
+    }
+
+    private static int getFastChargingThresholdResId() {
+        return BatteryUtils.isChargingStringV2Enabled()
+                        ? R.integer.config_chargingFastThreshold_v2
+                        : R.integer.config_chargingFastThreshold;
     }
 }
