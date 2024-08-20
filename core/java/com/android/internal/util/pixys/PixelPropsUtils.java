@@ -53,17 +53,18 @@ public class PixelPropsUtils {
     private static final String TAG = PixelPropsUtils.class.getSimpleName();
     private static final boolean DEBUG = false;
 
-    private static final Boolean sEnablePixelProps =
+   private static final Boolean sEnablePixelProps =
             Resources.getSystem().getBoolean(R.bool.config_enablePixelProps);
 
+    private static final String SPOOF_GMS = "persist.sys.gms.enabled";
     private static final String sDeviceModel =
             SystemProperties.get("ro.product.model", Build.MODEL);
 
     private static final Map<String, Object> propsToChangeGeneric;
 
     private static final Map<String, Object> propsToChangeRecentPixel =
-            createGoogleSpoofProps("Pixel 8 Pro",
-                    "google/husky/husky:14/AP2A.240705.005/11942872:user/release-keys");
+            createGoogleSpoofProps("Pixel 9 Pro XL",
+                    "google/komodo/komodo:14/AD1A.240530.047/12143574:user/release-keys");
 
     private static final Map<String, Object> propsToChangePixel5a =
             createGoogleSpoofProps("Pixel 5a",
@@ -97,19 +98,23 @@ public class PixelPropsUtils {
                 "com.google.android.apps.subscriptions.red",
                 "com.google.android.apps.photos",
 	        "com.google.android.googlequicksearchbox",
-                "com.google.android.gms.gservice",
-                "com.google.android.gms.search",
-                "com.google.android.gms.learning",
-                "com.google.android.gms.persistent",
+                "com.google.android.gms",
                 "com.google.android.apps.nexuslauncher",
                 "com.google.android.tts",
-                "com.google.android.inputmethod.latin"
+                "com.google.android.inputmethod.latin",
+                "com.google.android.apps.pixel.creativeassistant",
+                "com.google.android.apps.bard",
+	        "com.google.android.apps.pixel.agent",
+		"com.google.android.markup",
+                "com.google.android.apps.weather"
         ));
 
    private static final ArrayList<String> packagesToChangePixel5a = 
         new ArrayList<String> (
             Arrays.asList(
-		"com.breel.wallpapers20"
+		"com.breel.wallpapers20",
+                "com.google.android.gms.learning",
+                "com.google.android.gms.persistent"
        ));
 
     private static final ArrayList<String> extraPackagesToChange = 
@@ -169,7 +174,8 @@ public class PixelPropsUtils {
     }
 
     private static boolean shouldTryToCertifyDevice() {
-        if (!sIsGms) return false;
+
+        if (!sIsGms && !sShouldApplyGMS) return false;
 
         final String processName = Application.getProcessName();
         if (!processName.toLowerCase().contains("unstable")) {
@@ -279,20 +285,24 @@ public class PixelPropsUtils {
         sIsGms = packageName.equals("com.google.android.gms") && processName.equals("com.google.android.gms.unstable");
         sIsFinsky = packageName.equals("com.android.vending");
         sIsSetupWizard = packageName.equals("com.google.android.setupwizard");
+        sShouldApplyGMS = SystemProperties.getBoolean(SPOOF_GMS, true);
 
         if (shouldTryToCertifyDevice()) {
             return;
         }
 
         Map<String, Object> propsToChange = new HashMap<>();
-        if (sIsGoogle || sIsSamsung
+        if (sIsSamsung
             || extraPackagesToChange.contains(packageName)
             || extraPackagesToChange.contains(processName)) {
+              propsToChange = propsToChangePixel5a;
+           }
 
             if (packagesToChangeRecentPixel.contains(packageName)
                 || packagesToChangeRecentPixel.contains(processName)) {
                 propsToChange = propsToChangeRecentPixel;
-            } else if (packagesToChangePixel5a.contains(packageName)) {
+            } else if (packagesToChangePixel5a.contains(packageName)
+	        || packagesToChangePixel5a.contains(processName)) {
                 propsToChange = propsToChangePixel5a;
             }
 
@@ -406,7 +416,7 @@ public class PixelPropsUtils {
             Process.killProcess(Process.myPid());
             return;
         }
-        if (isCallerSafetyNet() || sIsFinsky) {
+        if (isCallerSafetyNet() || sIsFinsky) && sShouldApplyGMS) {
             dlog("Blocked key attestation");
             throw new UnsupportedOperationException();
         }

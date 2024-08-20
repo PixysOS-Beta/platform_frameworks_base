@@ -895,39 +895,37 @@ public class ApplicationPackageManager extends PackageManager {
         boolean isGPhotosSpoofed = SystemProperties.getBoolean("persist.sys.pixelprops.gphotos", true);
         boolean isTensorDevice = Arrays.asList(pTensorCodenames).contains(deviceCodename);
 
-        if (packageName != null) {
-            if (packageName.equals("com.google.android.googlequicksearchbox")) {
-                if (containsAny(name, featuresPixel, featuresPixelOthers, featuresTensor, featuresNexus)) {
+    private static final ArrayList<String> packagesToChangeRecentPixel = 
+        new ArrayList<String> (
+            Arrays.asList(
+                "com.google.android.apps.aiwallpapers",
+                "com.google.android.apps.emojiwallpaper",
+                "com.google.android.wallpaper.effects",
+                "com.google.pixel.livewallpaper",
+                "com.google.android.apps.wallpaper.pixel",
+                "com.google.android.apps.wallpaper",
+                "com.google.android.apps.customization.pixel",
+                "com.google.android.apps.privacy.wildlife",
+                "com.google.android.apps.subscriptions.red",
+	        "com.google.android.googlequicksearchbox",
+                "com.google.android.apps.nexuslauncher",
+                "com.google.android.apps.pixel.creativeassistant",
+                "com.google.android.apps.pixel.agent",
+                "com.google.android.apps.bard"
+        ));
+
+           if (packageName != null
+                && packagesToChangeRecentPixel().contains(packageName)) {
+            if (containsAny(name, featuresPixel, featuresPixelOthers, featuresTensor, featuresNexus)) {
                     return true;
                 }
-            }
-
-         }
-
-        if (packageName != null) {
-            if (packageName.toLowerCase().contains("wallpaper")) {
-                if (containsAny(name, featuresPixel, featuresPixelOthers, featuresTensor, featuresNexus)) {
-                    return true;
-                }
-            }
-
+           }
 
             if (packageName.equals("com.google.android.apps.photos") && isGPhotosSpoofed) {
                 if (Arrays.asList(featuresPixel).contains(name)) {
                     return false;
                 }
                 if (containsAny(name, featuresPixelOthers, featuresNexus)) {
-                    return true;
-                }
-            }
-
-            if (packageName.equals("com.google.android.as")) {
-                if (Arrays.asList(featuresTensor).contains(name)) {
-                    if (!isTensorDevice) {
-                        return false;
-                    }
-                }
-                if (containsAny(name, featuresPixel, featuresPixelOthers, featuresNexus)) {
                     return true;
                 }
             }
@@ -939,7 +937,6 @@ public class ApplicationPackageManager extends PackageManager {
             if (containsAny(name, featuresPixel, featuresPixelOthers)) {
                 return true;
             }
-        }
 
         return mHasSystemFeatureCache.query(new HasSystemFeatureQuery(name, version));
     }
