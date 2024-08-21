@@ -43,11 +43,10 @@ import com.android.systemui.qs.tileimpl.QSTileImpl;
 import com.android.systemui.res.R;
 import com.android.systemui.statusbar.phone.SystemUIDialog;
 import com.android.systemui.statusbar.policy.DataSaverController;
-import com.android.systemui.statusbar.policy.KeyguardStateController;
 
 import javax.inject.Inject;
 
-public class DataSaverTile extends SecureQSTile<BooleanState> implements
+public class DataSaverTile extends QSTileImpl<BooleanState> implements
         DataSaverController.Listener{
 
     public static final String TILE_SPEC = "saver";
@@ -71,11 +70,10 @@ public class DataSaverTile extends SecureQSTile<BooleanState> implements
             QSLogger qsLogger,
             DataSaverController dataSaverController,
             DialogTransitionAnimator dialogTransitionAnimator,
-            SystemUIDialog.Factory systemUIDialogFactory,
-            KeyguardStateController keyguardStateController
+            SystemUIDialog.Factory systemUIDialogFactory
     ) {
         super(host, uiEventLogger, backgroundLooper, mainHandler, falsingManager, metricsLogger,
-                statusBarStateController, activityStarter, qsLogger, keyguardStateController);
+                statusBarStateController, activityStarter, qsLogger);
         mDataSaverController = dataSaverController;
         mDialogTransitionAnimator = dialogTransitionAnimator;
         mSystemUIDialogFactory = systemUIDialogFactory;
@@ -92,11 +90,7 @@ public class DataSaverTile extends SecureQSTile<BooleanState> implements
         return new Intent(Settings.ACTION_DATA_SAVER_SETTINGS);
     }
     @Override
-    protected void handleClick(@Nullable View view, boolean keyguardShowing) {
-        if (checkKeyguard(view, keyguardShowing)) {
-            return;
-        }
-
+    protected void handleClick(@Nullable View view) {
         if (mState.value
                 || Prefs.getBoolean(mContext, Prefs.Key.QS_DATA_SAVER_DIALOG_SHOWN, false)) {
             // Do it right away.
