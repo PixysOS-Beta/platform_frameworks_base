@@ -296,8 +296,6 @@ public class PixelPropsUtils {
             || extraPackagesToChange.contains(packageName)
             || extraPackagesToChange.contains(processName)) {
               propsToChange = propsToChangePixel5a;
-           }
-
             if (packagesToChangeRecentPixel.contains(packageName)
                 || packagesToChangeRecentPixel.contains(processName)) {
                 propsToChange = propsToChangeRecentPixel;

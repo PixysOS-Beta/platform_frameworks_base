@@ -24,17 +24,20 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Slog;
 
+import android.hardware.biometrics.BiometricsProtoEnums;
 import com.android.server.biometrics.log.BiometricContext;
 import com.android.server.biometrics.log.BiometricLogger;
 import com.android.server.biometrics.sensors.BiometricUtils;
 import com.android.server.biometrics.sensors.InternalEnumerateClient;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.List;
 import java.util.function.Supplier;
 
 import vendor.aospa.biometrics.face.ISenseService;
 
-class FaceInternalEnumerateClient extends InternalEnumerateClient<ISenseService> {
+@VisibleForTesting
+public class FaceInternalEnumerateClient extends InternalEnumerateClient<ISenseService> {
     private static final String TAG = "FaceInternalEnumerateClient";
 
     FaceInternalEnumerateClient(@NonNull Context context,
@@ -55,4 +58,10 @@ class FaceInternalEnumerateClient extends InternalEnumerateClient<ISenseService>
             mCallback.onClientFinished(this, false /* success */);
         }
     }
+
+    @Override
+    protected int getModality() {
+        return BiometricsProtoEnums.MODALITY_FACE;
+    }
+
 }
