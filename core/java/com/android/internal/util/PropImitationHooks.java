@@ -38,11 +38,14 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+import android.os.SystemProperties;
+
 public class PropImitationHooks {
 
     private static final String TAG = "PropImitationHooks";
     private static final boolean DEBUG = false;
 
+    private static final String PACKAGE_WALLPAPER = "com.google.android.apps.aiwallpapers";
     private static final String PACKAGE_ARCORE = "com.google.ar.core";
     private static final String PACKAGE_FINSKY = "com.android.vending";
     private static final String PACKAGE_GMS = "com.google.android.gms";
@@ -52,6 +55,9 @@ public class PropImitationHooks {
     private static final String PACKAGE_SETUPWIZARD = "com.google.android.setupwizard";
     private static final String PACKAGE_SUBSCRIPTION_RED = "com.google.android.apps.subscriptions.red";
     private static final String PACKAGE_VELVET = "com.google.android.googlequicksearchbox";
+
+    private static final String sDeviceModel =
+            SystemProperties.get("ro.product.model", Build.MODEL);
 
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
             "com.google.android.gms/.auth.uiflows.minutemaid.MinuteMaidActivity");
@@ -124,6 +130,7 @@ public class PropImitationHooks {
             return;
         }
 
+
         sCertifiedProps = res.getStringArray(R.array.config_certifiedBuildProperties);
         sStockFp = res.getString(R.string.config_stockFingerprint);
         sIsTablet = res.getBoolean(R.bool.config_spoofasTablet);
@@ -150,6 +157,7 @@ public class PropImitationHooks {
             case PACKAGE_SETUPWIZARD:
             case PACKAGE_SUBSCRIPTION_RED:
             case PACKAGE_VELVET:
+            case PACKAGE_WALLPAPER:
                 if (sIsTablet) {
                     dlog("Spoofing Pixel Tablet for: " + packageName + " process: " + processName);
                     setProps(sPixelTabletProps);
@@ -164,6 +172,10 @@ public class PropImitationHooks {
                     setPropValue("FINGERPRINT", sStockFp);;
                 }
                 return;
+        }
+       if ("com.google.android.gms.ui".equals(processName)) {
+            setPropValue("MODEL", sDeviceModel);
+            return;
         }
     }
 
