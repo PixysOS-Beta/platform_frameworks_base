@@ -155,7 +155,6 @@ public class PropImitationHooks {
         }
 
         switch (packageName) {
-            case PACKAGE_GMS:
             case PACKAGE_SETUPWIZARD:
             case PACKAGE_SUBSCRIPTION_RED:
             case PACKAGE_VELVET:
