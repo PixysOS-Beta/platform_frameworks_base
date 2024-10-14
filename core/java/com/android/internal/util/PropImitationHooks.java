@@ -30,6 +30,7 @@ import android.os.Binder;
 import android.os.Process;
 import android.text.TextUtils;
 import android.util.Log;
+import android.os.SystemProperties;
 
 import com.android.internal.R;
 
@@ -37,8 +38,6 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
-
-import android.os.SystemProperties;
 
 public class PropImitationHooks {
 
@@ -48,6 +47,9 @@ public class PropImitationHooks {
             "persist.sys.pihooks.disable.gms_props", false);
     private static final Boolean sDisableKeyAttestationBlock = SystemProperties.getBoolean(
             "persist.sys.pihooks.disable.gms_key_attestation_block", false);
+
+    private static final String PROP_SECURITY_PATCH = "persist.sys.pihooks.security_patch";
+    private static final String PROP_FIRST_API_LEVEL = "persist.sys.pihooks.first_api_level";
 
     private static final String PACKAGE_WALLPAPER = "com.google.android.apps.aiwallpapers";
     private static final String PACKAGE_ARCORE = "com.google.ar.core";
@@ -253,6 +255,17 @@ public class PropImitationHooks {
                 continue;
             }
             setPropValue(fieldAndProp[0], fieldAndProp[1]);
+        }
+        setSystemProperty(PROP_SECURITY_PATCH, Build.VERSION.SECURITY_PATCH);
+        setSystemProperty(PROP_FIRST_API_LEVEL,
+                Integer.toString(Build.VERSION.DEVICE_INITIAL_SDK_INT));
+    }
+    private static void setSystemProperty(String name, String value) {
+        try {
+            SystemProperties.set(name, value);
+            dlog("Set system prop " + name + "=" + value);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to set system prop " + name + "=" + value, e);
         }
     }
 
