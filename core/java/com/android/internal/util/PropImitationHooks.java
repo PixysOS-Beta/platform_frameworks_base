@@ -43,7 +43,11 @@ import android.os.SystemProperties;
 public class PropImitationHooks {
 
     private static final String TAG = "PropImitationHooks";
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
+    private static final Boolean sDisableGmsProps = SystemProperties.getBoolean(
+            "persist.sys.pihooks.disable.gms_props", false);
+    private static final Boolean sDisableKeyAttestationBlock = SystemProperties.getBoolean(
+            "persist.sys.pihooks.disable.gms_key_attestation_block", false);
 
     private static final String PACKAGE_WALLPAPER = "com.google.android.apps.aiwallpapers";
     private static final String PACKAGE_ARCORE = "com.google.ar.core";
@@ -202,6 +206,15 @@ public class PropImitationHooks {
     }
 
     private static void setCertifiedPropsForGms() {
+
+        if (sDisableGmsProps) {
+            dlog("GMS prop imitation is disabled by user");
+            setSystemProperty(PROP_SECURITY_PATCH, Build.VERSION.SECURITY_PATCH);
+            setSystemProperty(PROP_FIRST_API_LEVEL,
+                    Integer.toString(Build.VERSION.DEVICE_INITIAL_SDK_INT));
+            return;
+        }
+
         if (sCertifiedProps.length == 0) {
             dlog("Certified props are not set");
             return;
@@ -256,6 +269,11 @@ public class PropImitationHooks {
     }
 
     public static boolean shouldBypassTaskPermission(Context context) {
+
+        if (sDisableGmsProps) {
+            return false;
+        }
+
         // GMS doesn't have MANAGE_ACTIVITY_TASKS permission
         final int callingUid = Binder.getCallingUid();
         final int gmsUid;
@@ -275,6 +293,11 @@ public class PropImitationHooks {
     }
 
     public static void onEngineGetCertificateChain() {
+
+       if (sDisableKeyAttestationBlock) {
+            dlog("Key attestation blocking is disabled by user");
+            return;
+        }
 
         // If a keybox is found, don't block key attestation
         if (KeyProviderManager.isKeyboxAvailable()) {
