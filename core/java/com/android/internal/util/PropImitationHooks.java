@@ -64,6 +64,8 @@ public class PropImitationHooks {
     private static final String PACKAGE_SUBSCRIPTION_RED = "com.google.android.apps.subscriptions.red";
     private static final String PACKAGE_VELVET = "com.google.android.googlequicksearchbox";
 
+    private static final String PACKAGE_STUDIO = "com.google.android.apps.pixel.creativeassistant";
+
     private static final String sDeviceModel =
             SystemProperties.get("ro.product.model", Build.MODEL);
 
@@ -168,6 +170,8 @@ public class PropImitationHooks {
             case PACKAGE_PL:
             case PACKAGE_WALLPAPER:
             case PACKAGE_GBOARD: 
+            case PACKAGE_STUDIO:
+
             if (sIsTablet) {
                     dlog("Spoofing Pixel Tablet for: " + packageName + " process: " + processName);
                     setProps(sPixelTabletProps);
